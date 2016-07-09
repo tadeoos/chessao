@@ -37,7 +37,12 @@ def ktora_kupka(karta, kupki):
 
 def rozpakuj_input(inp):
 	a = inp.split()
-	a[0] = [karta_z_str(s) for s in a[0].split(',')]
+	if len(a)==3:
+		a[0] = [karta_z_str(s) for s in a[0].split(',')]
+	elif len(a)==1:
+		a[0] = [karta_z_str(s) for s in a[0].split(',')]
+	elif len(a)==2:
+		return a
 	return a 
 
 def czy_pion_na_koncu(plansza, k):
@@ -121,19 +126,26 @@ class rozgrywka:
 				print('PAT')
 				return 'koniec'
 
-			a = input('''jaka karte zagrywasz, którym pionkiem chcesz się ruszyć, gdzie
-[1 - Pik, 2 - Kier, 3 - Karo, 4 - Trefl]
-(siódemka pik, ruch z A2 na A3)
-np. '71 A2 A3' 
-(schodki 7,8,9 w pikach - oddziel karty przecinkiem bez spacji)
-'71,81,91 A2 A3' 
+# 			a = input('''jaka karte zagrywasz, którym pionkiem chcesz się ruszyć, gdzie
+# [1 - Pik, 2 - Kier, 3 - Karo, 4 - Trefl]
+# (siódemka pik, ruch z A2 na A3)
+# np. '71 A2 A3' 
+# (schodki 7,8,9 w pikach - oddziel karty przecinkiem bez spacji)
+# '71,81,91 A2 A3' 
 
-(type e to exit)\n''').upper()
+# (type e to exit)\n''').upper()
+
+			a = input('KARTA: ').upper()
 
 			if a == 'E':
 				break;
 
+
+
+
 			z = rozpakuj_input(a)
+
+
 			if len(z)==3:
 				for p in z[0]:
 					assert p in gr.reka
