@@ -9,6 +9,24 @@ def odwrot(a):
 	else:
 		return 'b'
 
+def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
+	d = {v:k for (k,v) in plansza.mapdict.items()}
+	if kolor==2:
+		a = plansza.all_taken()
+	else:
+		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
+
+	res = {}
+	for i in a:
+		skad = d[i]
+		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza)]
+		if len(gdzie)>0:
+			res[skad]=gdzie
+		# print(skad)
+		# print(gdzie)
+	# print(res.items())
+	return res
+
 def pod_biciem(pole, plansza, kolor):
 	for i in (1,-1,10,-10,9,11,-9,-11):
 		a = pole + i
@@ -189,15 +207,29 @@ class board:
 			res = [key for (key,val) in self.mapdict.items() if val in self.brd[a].dozwolony(karta,self.brd)]
 			return 'Gdzie chcesz się ruszyć?\nMożliwe pola: {}'.format(res)
 		b = self.mapdict[d]
-		if b in self.brd[a].dozwolony(karta,self):
-			print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
-			self.brd[b] = self.brd[a]
-			self.brd[b].pozycja = b
-			self.brd[a] = ' '
-			return True
-		else:
+		if karta.ran == 'Q' and self.brd[a].name == 'dama':
+			if b in self.brd[a].dozwolony(karta,self):
+				print('Dozwolone ruchy tej Damki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
+				tym = self.brd[b]
+				self.brd[b] = self.brd[a]
+				self.brd[a] = tym
+
+				self.brd[b].pozycja = b
+				self.brd[a].pozycja = a
+				self.brd[b].ruszony = True
+				
+				return True
+		else:	
+			if b in self.brd[a].dozwolony(karta,self):
+				print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
+				self.brd[b] = self.brd[a]
+				self.brd[b].pozycja = b
+				self.brd[b].ruszony = True
+				self.brd[a] = ' '
+				return True
+		# else:
 			# print('ruch nie jest dozwolony')
-			return False
+		return False
 
 	def __str__(self):
 		for i in range(len(self.brd)):
@@ -251,6 +283,8 @@ class board:
 			# 		return (True, k)
 		return False
 
+
+
 ## szachy
 
 class pionek:
@@ -258,31 +292,55 @@ class pionek:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.ruszony = False
-		self.name = 'pion'
+		self.name = 'pionek'
 	def dozwolony(self, karta, plansza):
 		# poz = self.pozycja
-		plansza.brd[self.pozycja] = ' '
-		if plansza.czy_szach()==(True, self.kolor):
-			plansza.brd[self.pozycja] = self
-			print('jestem tu')
-			return []
-		plansza.brd[self.pozycja] = self
+		# plansza.brd[self.pozycja] = ' '
+		# if plansza.czy_szach()==(True, self.kolor):
+		# 	plansza.brd[self.pozycja] = self
+		# 	print('jestem tu')
+		# 	return []
+		# plansza.brd[self.pozycja] = self
 		dop = [10,20]
 		if self.ruszony:
 			dop = [10]
-		if int(karta.ran) == 2:
+		if karta.ran == '2':
 			dop.append(dop[-1]+10)
 		if self.kolor == 'b':
+			for d in dop[::-1]:
+				if plansza.is_empty(self.pozycja+d)==0:
+					ind = dop.index(d) 
+					dop = dop[:ind]
 			a = (9,11)
 		else:
+			for d in dop[::-1]:
+				if plansza.is_empty(self.pozycja-d)==0:
+					ind = dop.index(d) 
+					dop = dop[:ind]
 			a = (-9, -11)
+
 		for i in a:
 			if plansza.brd[self.pozycja+i]!=0 and plansza.brd[self.pozycja+i]!=' ' and plansza.brd[self.pozycja+i].kolor!=self.kolor:
 				print('bicie pionka', self.pozycja, i)
 				dop.append(abs(i))
 
 		# if karta in (3,4,5,6,7,8,9,10):
-		return [self.pozycja+i if self.kolor=='b' else self.pozycja-i for i in dop] 
+		res = [self.pozycja+i if self.kolor=='b' else self.pozycja-i for i in dop]
+
+		res2 = deepcopy(res)
+		pln = deepcopy(plansza)
+		if plansza.czy_szach()==(True, self.kolor):
+			for r in res2:
+				x = pln.brd[r]
+				pln.brd[self.pozycja] = ' '
+				pln.brd[r] = self
+				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+					# print(r)
+					res.remove(r)
+				pln.brd[self.pozycja] = self
+				pln.brd[r] = x
+
+		return res
 
 	def __str__(self):
 		if self.kolor=='b':
@@ -295,13 +353,13 @@ class wieza:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name = 'wieza'
+		self.ruszony = False
 	def dozwolony(self, karta, plansza):
-		poz = self.pozycja
-		plansza.brd[self.pozycja] = ' '
-		if plansza.czy_szach()==(True, self.kolor):
-			plansza.brd[self.pozycja] = self
-			return []
-		plansza.brd[self.pozycja] = self
+		# plansza.brd[self.pozycja] = ' '
+		# if plansza.czy_szach()==(True, self.kolor):
+		# 	plansza.brd[self.pozycja] = self
+		# 	return []
+		# plansza.brd[self.pozycja] = self
 		res = []
 		for i in (1,10,-1,-10):
 			a = self.pozycja + i
@@ -316,6 +374,26 @@ class wieza:
 				# print(plansza.is_empty(a))
 				res.append(a)
 				a+=i
+
+		res2 = deepcopy(res)
+		pln = deepcopy(plansza)
+		if plansza.czy_szach()==(True, self.kolor):
+			for r in res2:
+				x = pln.brd[r]
+				pln.brd[self.pozycja] = ' '
+				pln.brd[r] = self
+				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+					# print(r)
+					res.remove(r)
+				pln.brd[self.pozycja] = self
+				pln.brd[r] = x
+
+		# plansza.brd[self.pozycja] = ' '
+		# if plansza.czy_szach()==(True, self.kolor):
+		# 	plansza.brd[self.pozycja] = self
+		# 	return []
+		# plansza.brd[self.pozycja] = self
+
 		return res
 
 	def __str__(self):
@@ -329,13 +407,8 @@ class skoczek:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='skoczek'
+		self.ruszony = False
 	def dozwolony(self, karta, plansza):
-		# poz = self.pozycja
-		plansza.brd[self.pozycja] = ' '
-		if plansza.czy_szach()==(True, self.kolor):
-			plansza.brd[self.pozycja] = self	
-			return []
-		plansza.brd[self.pozycja] = self
 		res = []
 		for i in (-12,-21,-19,-8,8,19,21,12):
 			# print(self.pozycja)
@@ -344,6 +417,19 @@ class skoczek:
 			if plansza.brd[a]!=0:
 				if plansza.is_empty(a)==1 or plansza.brd[a].kolor!=self.kolor:
 					res.append(a)
+
+		res2 = deepcopy(res)
+		pln = deepcopy(plansza)
+		if plansza.czy_szach()==(True, self.kolor):
+			for r in res2:
+				x = pln.brd[r]
+				pln.brd[self.pozycja] = ' '
+				pln.brd[r] = self
+				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+					# print(r)
+					res.remove(r)
+				pln.brd[self.pozycja] = self
+				pln.brd[r] = x
 		return res
 
 	def __str__(self):
@@ -357,13 +443,8 @@ class goniec:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='goniec'
+		self.ruszony = False
 	def dozwolony(self, karta, plansza):
-		# poz = self.pozycja
-		plansza.brd[self.pozycja] = ' '
-		if plansza.czy_szach()==(True, self.kolor):
-			plansza.brd[self.pozycja] = self
-			return []
-		plansza.brd[self.pozycja] = self
 		res = []
 		for i in (9,11,-11,-9):
 			a = self.pozycja + i
@@ -376,7 +457,21 @@ class goniec:
 						break
 				res.append(a)
 				a+=i
+
+		res2 = deepcopy(res)
+		pln = deepcopy(plansza)
+		if plansza.czy_szach()==(True, self.kolor):
+			for r in res2:
+				x = pln.brd[r]
+				pln.brd[self.pozycja] = ' '
+				pln.brd[r] = self
+				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+					# print(r)
+					res.remove(r)
+				pln.brd[self.pozycja] = self
+				pln.brd[r] = x
 		return res
+
 	def __str__(self):
 		if self.kolor=='b':
 			return '♗'
@@ -389,13 +484,12 @@ class dama:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='dama'
+		self.ruszony = False
 	def dozwolony(self, karta, plansza):
-		# poz = self.pozycja
-		plansza.brd[self.pozycja] = ' '
-		if plansza.czy_szach()==(True, self.kolor):
-			plansza.brd[self.pozycja] = self
-			return []
-		plansza.brd[self.pozycja] = self
+		if karta.ran == 'Q':
+			res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[i].name in ('pionek', 'goniec','skoczek','wieza'))]
+			return res
+
 		res = []
 		for i in (9,11,-11,-9,1,-1,10,-10):
 			a = self.pozycja + i
@@ -408,7 +502,20 @@ class dama:
 						break
 				res.append(a)
 				a+=i
+		res2 = deepcopy(res)
+		pln = deepcopy(plansza)
+		if plansza.czy_szach()==(True, self.kolor):
+			for r in res2:
+				x = pln.brd[r]
+				pln.brd[self.pozycja] = ' '
+				pln.brd[r] = self
+				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+					# print(r)
+					res.remove(r)
+				pln.brd[self.pozycja] = self
+				pln.brd[r] = x		
 		return res
+
 	def __str__(self):
 		if self.kolor=='b':
 			return '♕'
@@ -421,29 +528,38 @@ class krol:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name = 'krol'
+		self.ruszony = False
 	def dozwolony(self, karta, plansza):
 		res = []
 		if karta.ran == 'K' and karta.kol in (3,4):
-			zakres = (1,-1,10,-10,9,11,-9,-11,2,-2,20,-20,18,22,-18,-22)
+			zakres = [1,-1,10,-10,9,11,-9,-11,2,-2,20,-20,18,22,-18,-22]
 		else:	
-			zakres = (1,-1,10,-10,9,11,-9,-11)
+			zakres = [1,-1,10,-10,9,11,-9,-11]
 		for i in zakres:
 			# print(self.pozycja)
 			# print(i)
 			a = self.pozycja + i
 			if plansza.brd[a]!=0:
-				if plansza.is_empty(a)==1 or plansza.brd[a].kolor!=self.kolor:
+				if plansza.is_empty(a):
+					res.append(a)
+					continue
+				elif plansza.brd[a].kolor!=self.kolor:
 					b = 2*i
 					if b in zakres:
 						zakres.remove(b)
 					res.append(a)
+				else:
+					continue
+
 		# print(res)
 		res2 = deepcopy(res)
+		plansza.brd[self.pozycja] = ' '
 		for r in res2:
 			# print(r)
 			if pod_biciem(r, plansza, self.kolor):
 				# print(r)
 				res.remove(r)
+		plansza.brd[self.pozycja] = self
 		return res
 	def __str__(self):
 		if self.kolor=='b':
@@ -455,6 +571,8 @@ class krol:
 
 ## testy
 
+
+
 def testy():
 	print('\n------ TESTY -------\n')
 	pla = board()
@@ -463,7 +581,7 @@ def testy():
 	# w = wieza('c', 91)
 
 	pla_los = board(rnd=1)
-	while(pla_los.czy_szach()!=False):
+	while(pla_los.czy_szach()!=(True, 'b')):
 		pla_los = board(rnd=1)
 	print(pla_los)
 	print('Czy szach? {}'.format(pla_los.czy_szach()) )
@@ -472,16 +590,20 @@ def testy():
 	# print(p2.dozwolony(7))
 	# print(pla.all_empty())
 	# print(pla)
-	print(pla_los.pozycja_bierki("goniec", 'b')[0])
-	print(pla_los.brd[pla_los.pozycja_bierki("goniec", 'b')[0]].dozwolony(karta(1, '5'), pla_los))
-	print(pla_los.brd[pla_los.pozycja_bierki("goniec", 'c')[0]].dozwolony(karta(1, '5'), pla_los))
-	print(pla_los.brd[pla_los.pozycja_bierki('dama', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
-	print(pla_los.brd[pla_los.pozycja_bierki('krol', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
+	# print(pla_los.pozycja_bierki("goniec", 'b')[0])
+	# print(pla_los.brd[pla_los.pozycja_bierki("goniec", 'b')[0]].dozwolony(karta(1, '5'), pla_los))
+	# print(pla_los.brd[pla_los.pozycja_bierki("goniec", 'c')[0]].dozwolony(karta(1, '5'), pla_los))
+	# print(pla_los.brd[pla_los.pozycja_bierki('dama', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
+	# print(pla_los.brd[pla_los.pozycja_bierki('krol', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
 	# print(pla.brd[92].dozwolony(7, pla))
 	# print(pla.brd[93].dozwolony(7, pla))
 	# print(pla.brd[94].dozwolony(7, pla))
 	# print(pla.brd[95].dozwolony(7, pla))
-
+	all_ruchy(pla_los, 'b')
+	# for i in pla_los.all_taken():
+	# 	d = {v:k for (k,v) in pla_los.mapdict.items()}
+	# 	print(d[i])
+	# 	print([d[a] for a in pla_los.brd[i].dozwolony(karta(1,'5'), pla_los)])
 	# pla.rusz('A7','A6')
 	# pla.rusz('E2','E4')
 	# print(pla.rusz('G7'))

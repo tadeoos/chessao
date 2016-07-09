@@ -1,4 +1,5 @@
 from szachao import *
+
 def rozd(tal):
 	a=[]
 	b=[]
@@ -6,8 +7,6 @@ def rozd(tal):
 		a.append(tal.cards.pop())
 		b.append(tal.cards.pop())
 	return (a,b,tal)
-
-
 
 def karta_z_str(s):
 	return karta(int(s[-1]), s[:-1])
@@ -63,6 +62,9 @@ class gracz:
 
 	def __str__(self):
 		return 'Gracz {}'.format(self.nr)
+	def __repr__(self):
+		return 'Gracz {}'.format(self.nr)
+
 
 class rozgrywka:
 	def __init__(self):
@@ -78,6 +80,7 @@ class rozgrywka:
 		self.mat = False
 		self.spalone = []
 		self.historia = []
+
 		# self.blotki = (5,6,7,8,9,10)
 		# self.indy = (2,'K')
 		# self.roz = ('A', 3, 4, 'J', 'K', 'Q')
@@ -91,20 +94,33 @@ class rozgrywka:
 
 	def graj(self):
 		kolej = 'b'
+		last_card = karta(1,'5')
+
+		## ROZGRYWKA
 		while(self.mat==0):
+			
+			print('----------------------------------------')
 			print(self)
+
+			spalona = False
+			gr = self.get_gracz(kolej)
+
 			self.szach = self.czy_szach(kolej)
+			print("\nRUCH: {} {}\n".format(kolej, gr))
+
 			if czy_pion_na_koncu(self.plansza, odwrot(kolej))>0:
 				print('Coś nie halo, bo niezamieniony pion poprzedniego gracza na końcu stoi')
 
 			if self.szach:
 				print('Szachao...')
-				if self.czy_mat(kolej):
+				if self.czy_pat(kolej):
 					print('PO SZACHALE!\n{} wygrał grę'.format(gr))
 					self.mat = True
 					return 'koniec'
-			print("\nRUCH: {}\n".format(kolej))
-			gr = self.gracze[0] if self.gracze[0].kol == kolej else self.gracze[1]
+			elif self.czy_pat(kolej):
+				print('PAT')
+				return 'koniec'
+
 			a = input('''jaka karte zagrywasz, którym pionkiem chcesz się ruszyć, gdzie
 [1 - Pik, 2 - Kier, 3 - Karo, 4 - Trefl]
 (siódemka pik, ruch z A2 na A3)
@@ -112,13 +128,17 @@ np. '71 A2 A3'
 (schodki 7,8,9 w pikach - oddziel karty przecinkiem bez spacji)
 '71,81,91 A2 A3' 
 
-(type e to exit)\n''')
+(type e to exit)\n''').upper()
 
-			if a == 'e':
+			if a == 'E':
 				break;
 
 			z = rozpakuj_input(a)
-			assert z[0][0] in gr.reka
+			if len(z)==3:
+				for p in z[0]:
+					assert p in gr.reka
+				assert z[2] in self.plansza.mapdict
+				assert z[1] in self.plansza.mapdict
 
 			if not ok_karta(z[0],self.kupki):
 				print('nie możesz wyłożyć tych kart..\n\n')
@@ -127,22 +147,39 @@ np. '71 A2 A3'
 				b = input('Chcesz spalić tę kartę? (t/n)')
 				if b == 'n':
 					continue
+				else:
+					spalona = True
+
+			if not spalona and z[0][-1].ran == 'A':
+				gr.reka = [x for x in gr.reka if x not in z[0]]
+				self.kupki[ktora_kupka(z[0], self.kupki)].extend(z[0])
+				tas = self.karty.deal(len(z[0]))
+				gr.reka.extend(tas)
+				self.historia.append([gr]+z)
+				for g in self.gracze:
+					g.kol = odwrot(g.kol)
+				last_card = z[0][-1]
+				continue
 
 			if self.plansza.brd[self.plansza.mapdict[z[1]]].kolor != kolej:
 				print('to nie twój pionek...\n\n')
 			# print(z)
 
 			# print('Możliwe ruchy tej bierki \n {}'.format() )
+			if not spalona:
+				ruch = self.plansza.rusz(z[1],z[2],z[0][-1])
+			else:
+				ruch = self.plansza.rusz(z[1],z[2])
 
-			if self.plansza.rusz(z[1],z[2],z[0][-1]):
+			if ruch:
 				if self.czy_szach(kolej):
 					print('SZACH PO MOIM RUCHU, KOŃCZĘ PRACĘ')
 					self.mat=True
 					break
 				zam = czy_pion_na_koncu(self.plansza, kolej)
 				if zam>0:
-					q = input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS- Skoczek\nW- Wieża\n')
-					if q == 'e':
+					q = input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n').upper()
+					if q == 'E':
 						break
 					elif q=='D':
 						self.plansza.brd[zam] = dama(kolej, zam)
@@ -156,20 +193,24 @@ np. '71 A2 A3'
 						print('wrong input')
 
 				gr.reka = [x for x in gr.reka if x not in z[0]]
-				print(z[0])
-				print([x for x in gr.reka if x not in z[0]])
-				print(gr.reka)
+				# print(z[0])
+				# print([x for x in gr.reka if x not in z[0]])
+				# print(gr.reka)
 				if ktora_kupka(z[0], self.kupki) == 3:
 					self.spalone.extend(z[0])
 				else:
 					self.kupki[ktora_kupka(z[0], self.kupki)].extend(z[0])
+
 				if len(self.karty.cards)<len(z[0]):
 					pass #przetasowanie talii
 				tas = self.karty.deal(len(z[0]))
 				gr.reka.extend(tas)
 
-
-				self.historia.append([kolej]+z)
+				if spalona:
+					self.historia.append([gr,'spalona']+z)
+				else:
+					self.historia.append([gr]+z)
+				last_card = z[0][-1]
 				kolej = odwrot(kolej)	
 			else:
 				print('\n!!! ruch nie dozwolony !!!\n\n')
@@ -186,11 +227,20 @@ np. '71 A2 A3'
 			return 2
 		return False
 
-	def czy_mat(self, k):
-		poz_k = self.plansza.pozycja_bierki('krol', k)
-		if len(self.plansza.brd[poz_k[0]].dozwolony(karta(1, '7'), self.plansza))==0:
-			return True
-		return False
+	def czy_pat(self, k):
+		for kar in self.get_gracz(k).reka:
+			if ok_karta([kar], self.kupki):
+				res = all_ruchy(self.plansza, k, kar)
+				if len(res)>0:
+					return False
+			else:
+				res = all_ruchy(self.plansza, k)
+				if len(res)>0:
+					return False
+		return True
+
+	def get_gracz(self, k):
+		return [g for g in self.gracze if g.kol == k][0]
 
 
 
@@ -204,12 +254,14 @@ li = [
 ]
 
 roz = rozgrywka()
+while(roz.plansza.czy_szach()==2):
+	roz = rozgrywka()
 # print(rozpakuj_input('101,53,K3 A1 A2'))
-print(roz)
-for g in roz.gracze:
-	for k in g.reka:
-		print(k)
-		print(ok_karta([k],roz.kupki))
+# print(roz)
+# for g in roz.gracze:
+# 	for k in g.reka:
+# 		print(k)
+# 		print(ok_karta([k],roz.kupki))
 # print(karta_z_str('101'))
 
 roz.graj()
