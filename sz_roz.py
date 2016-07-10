@@ -12,6 +12,7 @@ def karta_z_str(s):
 	return karta(int(s[-1]), s[:-1])
 
 def schodki_check(lis):
+	# schodkom brakuje jeszcze opcji schodzenia w dół...
 	for i in range(len(lis)-1):
 		if lis[i].ran==lis[i+1].ran:
 			continue
@@ -30,9 +31,16 @@ def ok_karta(karta, talie):
 	return False
 
 def ktora_kupka(karta, kupki):
+	res = []
 	for i in range(2):
 		if karta[0].kol == kupki[i][-1].kol or karta[0].ran == kupki[i][-1].ran or kupki[i][-1].ran=='Q'or karta[0].ran=='Q':
-			return i
+			res.append(i)
+	if len(res)==1:
+		return res[0]
+	elif len(res)==2:
+		a = input('Na którą kupkę dołożyć kartę? (0 - lewa / 1 - prawa) ')
+		assert a in ('1', '0')
+		return int(a)
 	return 3
 
 def rozpakuj_input(inp):
@@ -40,7 +48,7 @@ def rozpakuj_input(inp):
 	if len(a)==3:
 		a[0] = [karta_z_str(s) for s in a[0].split(',')]
 	elif len(a)==1:
-		a[0] = [karta_z_str(s) for s in a[0].split(',')]
+		return [karta_z_str(s) for s in inp.split(',')]
 	elif len(a)==2:
 		return a
 	return a 
@@ -60,10 +68,11 @@ def czy_pion_na_koncu(plansza, k):
 
 
 class gracz:
-	def __init__(self, ida, kol, reka=[]):
+	def __init__(self, ida, kol, reka=[], name='gracz'):
 		self.nr = ida
 		self.kol = kol
 		self.reka = reka
+		self.name = name
 
 	def __str__(self):
 		return 'Gracz {}'.format(self.nr)
@@ -100,7 +109,13 @@ class rozgrywka:
 	def graj(self):
 		kolej = 'b'
 		last_card = karta(1,'5')
-
+		last_move = []
+		now_card = None
+		walet = False
+		trojka = 0
+		czworka = False
+		kpik = []
+		kkier = []
 		## ROZGRYWKA
 		while(self.mat==0):
 			
@@ -109,15 +124,16 @@ class rozgrywka:
 
 			spalona = False
 			gr = self.get_gracz(kolej)
+			assert gr.kol == kolej
 
 			self.szach = self.czy_szach(kolej)
-			print("\nRUCH: {} {}\n".format(kolej, gr))
+			print("RUSZA SIĘ: {} ({})\n{}\n".format(gr, kolej, gr.reka))
 
 			if czy_pion_na_koncu(self.plansza, odwrot(kolej))>0:
 				print('Coś nie halo, bo niezamieniony pion poprzedniego gracza na końcu stoi')
 
 			if self.szach:
-				print('Szachao...')
+				print('Szachao...\n')
 				if self.czy_pat(kolej):
 					print('PO SZACHALE!\n{} wygrał grę'.format(gr))
 					self.mat = True
@@ -134,54 +150,100 @@ class rozgrywka:
 # '71,81,91 A2 A3' 
 
 # (type e to exit)\n''').upper()
+			if last_card.ran!='K' or last_card.kol != 1:
+				a = input('KARTA: ').upper()
+				if a == 'E':
+					break;
 
-			a = input('KARTA: ').upper()
-
-			if a == 'E':
-				break;
-
-
-
-
-			z = rozpakuj_input(a)
-
-
-			if len(z)==3:
-				for p in z[0]:
+				kar = rozpakuj_input(a)
+				
+				for p in kar:
 					assert p in gr.reka
-				assert z[2] in self.plansza.mapdict
-				assert z[1] in self.plansza.mapdict
-
-			if not ok_karta(z[0],self.kupki):
-				print('nie możesz wyłożyć tych kart..\n\n')
-				if len(z[0])>1:
-					continue
-				b = input('Chcesz spalić tę kartę? (t/n)')
-				if b == 'n':
-					continue
-				else:
+				
+				now_card = kar[-1] 	
+				if not ok_karta(kar,self.kupki):
+					assert len(kar)==1
+					print('palę tę kartę')
 					spalona = True
 
-			if not spalona and z[0][-1].ran == 'A':
-				gr.reka = [x for x in gr.reka if x not in z[0]]
-				self.kupki[ktora_kupka(z[0], self.kupki)].extend(z[0])
-				tas = self.karty.deal(len(z[0]))
-				gr.reka.extend(tas)
-				self.historia.append([gr]+z)
-				for g in self.gracze:
-					g.kol = odwrot(g.kol)
-				last_card = z[0][-1]
-				continue
+					gr.reka = [x for x in gr.reka if x not in kar]
+					# if ktora_kupka(kar, self.kupki) == 3:
+					self.spalone.extend(kar)
+					tas = self.karty.deal(len(kar))
+					gr.reka.extend(tas)
 
-			if self.plansza.brd[self.plansza.mapdict[z[1]]].kolor != kolej:
-				print('to nie twój pionek...\n\n')
-			# print(z)
+				else:
+					if self.szach:
+						assert kar[-1].ran!='A'
+					self.kupki[ktora_kupka(kar, self.kupki)].extend(kar)
+					gr.reka = [x for x in gr.reka if x not in kar]
+					tas = self.karty.deal(len(kar))
+					gr.reka.extend(tas)
 
-			# print('Możliwe ruchy tej bierki \n {}'.format() )
+				# if len(self.karty.cards)<len(kar):
+				# 		pass #przetasowanie talii
+
+				if not spalona:
+					# AS
+					if kar[-1].ran == 'A':
+						self.historia.append([gr]+kar+last_move)
+						for g in self.gracze:
+							g.kol = odwrot(g.kol)
+						last_card = kar[-1]
+						continue
+					# WALET
+					if kar[-1].ran == 'J':
+						c = input('Ruchu jaką figurą żądasz?\nP W S G D ?\n').lower()
+						walet = c
+					if kar[-1].ran == '3':
+						trojka = 3
+					if kar[-1].ran == '4':
+						czworka = True
+					if kar[-1].ran == 'K' and kar[-1].kol==1:
+						kpik = self.historia[-1][-2:]
+						self.historia.append([gr]+kar)
+						last_card = kar[-1]
+						self.cofnij()
+						kolej = odwrot(kolej)
+						continue
+					if kar[-1].ran == 'K' and kar[-1].kol==2:
+						kkier = self.historia[-1][-1]
+
+
+			### RUCH
+			print('możliwe ruchy:\n{}'.format(all_ruchy(self.plansza,kolej,now_card)))
+			b = input('RUCH: ').upper()
+			if b == 'E':
+				break;
+			z = rozpakuj_input(b)
+
+			while(not self.plansza.rusz(z[0],z[1],now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej):
+				print('Ruch nie dozwolony! Wybierz inny...')
+				b = input('RUCH: ').upper()
+				if b == 'E':
+					break;
+				z = rozpakuj_input(b)
+
+			assert len(z)==2
+				# for p in z[0]:
+				# 	assert p in gr.reka
+			assert z[1] in self.plansza.mapdict
+			assert z[0] in self.plansza.mapdict
+
+			if last_card.ran=='K' and last_card.kol == 1:
+				assert z[0] == kpik[0]
+				assert z[1] != kpik[1]
+
+			if last_card.ran=='K' and last_card.kol == 2:
+				assert z[0] == kkier
+
+			# if self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej:
+				# print('to nie twój pionek...\n\n')
+
 			if not spalona:
-				ruch = self.plansza.rusz(z[1],z[2],z[0][-1])
+				ruch = self.plansza.rusz(z[0],z[1],now_card)
 			else:
-				ruch = self.plansza.rusz(z[1],z[2])
+				ruch = self.plansza.rusz(z[0],z[1])
 
 			if ruch:
 				if self.czy_szach(kolej):
@@ -204,26 +266,20 @@ class rozgrywka:
 					else:
 						print('wrong input')
 
-				gr.reka = [x for x in gr.reka if x not in z[0]]
-				# print(z[0])
-				# print([x for x in gr.reka if x not in z[0]])
-				# print(gr.reka)
-				if ktora_kupka(z[0], self.kupki) == 3:
-					self.spalone.extend(z[0])
-				else:
-					self.kupki[ktora_kupka(z[0], self.kupki)].extend(z[0])
 
-				if len(self.karty.cards)<len(z[0]):
-					pass #przetasowanie talii
-				tas = self.karty.deal(len(z[0]))
-				gr.reka.extend(tas)
 
 				if spalona:
-					self.historia.append([gr,'spalona']+z)
+					self.historia.append([gr,'spalona']+[now_card]+z)
+					last_card = karta(1,'5')
 				else:
-					self.historia.append([gr]+z)
-				last_card = z[0][-1]
-				kolej = odwrot(kolej)	
+					self.historia.append([gr]+[now_card]+z)
+					last_card = now_card
+				last_move = z
+				
+				if last_card.ran=='K' and last_card.kol == 2:
+					if z[1] == kkier: # or self.plansza.brd[]
+						pass
+				kolej = odwrot(kolej)
 			else:
 				print('\n!!! ruch nie dozwolony !!!\n\n')
 
@@ -254,6 +310,20 @@ class rozgrywka:
 	def get_gracz(self, k):
 		return [g for g in self.gracze if g.kol == k][0]
 
+	def cofnij(self):
+		assert len(self.historia)>1
+		assert self.historia[-1][-1]==karta(1,'K')
+		ruch = self.historia[-2][-2:]
+		a = self.plansza.mapdict[ruch[0]]
+		b = self.plansza.mapdict[ruch[1]]
+		if self.plansza.bicie:
+			assert self.plansza.is_empty(a)
+			rezurekt = self.plansza.zbite.pop()
+			self.plansza.brd[a] = rezurekt
+			self.plansza.swap(a,b)
+		else:
+			self.plansza.swap(a,b)
+
 
 
 li = [
@@ -266,8 +336,11 @@ li = [
 ]
 
 roz = rozgrywka()
-while(roz.plansza.czy_szach()==2):
+while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
 	roz = rozgrywka()
+
+# if karta(3,'K') not in roz.gracze[0].reka:
+	# print('CHUUUUUUJ')
 # print(rozpakuj_input('101,53,K3 A1 A2'))
 # print(roz)
 # for g in roz.gracze:
@@ -279,10 +352,13 @@ while(roz.plansza.czy_szach()==2):
 roz.graj()
 # print(type(roz.kupki[0][-1]))
 def test_stat(n=5, m=2000):
+	res2 = []
 	for i in range(n):
 		res = [0,0,0,0]
 		for i in range(m):
 			roz = rozgrywka()
+			while(roz.plansza.czy_szach()==2):
+				roz = rozgrywka()
 			if roz.czy_szach('c')==2:
 				res[3]+=1
 			elif roz.czy_szach('c'):
@@ -292,9 +368,25 @@ def test_stat(n=5, m=2000):
 			else:
 				res[2]+=1
 		
-		print(res)
+		# print(res)
+		res2.append(res)
+	return res2
 
-# test_stat(3)
+# t = test_stat(50)
+# t = test_stat(1000) 
+def stat_avr(n):
+	t = test_stat(n)
+	a = 0
+	b = 0
+	c = 0
+	for r in t:
+		a+=r[0]
+		b+=r[1]
+		c+=r[2]
+	x=len(t)
+	print(a/x, b/x, c/x)
+	return [a/x,b/x,c/x]
+
 # print('\n schodki ...')
 # for l in li:
 # 	print(l)

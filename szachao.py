@@ -9,23 +9,7 @@ def odwrot(a):
 	else:
 		return 'b'
 
-def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
-	d = {v:k for (k,v) in plansza.mapdict.items()}
-	if kolor==2:
-		a = plansza.all_taken()
-	else:
-		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
 
-	res = {}
-	for i in a:
-		skad = d[i]
-		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza)]
-		if len(gdzie)>0:
-			res[skad]=gdzie
-		# print(skad)
-		# print(gdzie)
-	# print(res.items())
-	return res
 
 def pod_biciem(pole, plansza, kolor):
 	for i in (1,-1,10,-10,9,11,-9,-11):
@@ -135,6 +119,25 @@ class talia:
 			if last==first:
 				l=1
 
+
+def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
+	d = {v:k for (k,v) in plansza.mapdict.items()}
+	if kolor==2:
+		a = plansza.all_taken()
+	else:
+		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
+
+	res = {}
+	for i in a:
+		skad = d[i]
+		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza)]
+		if len(gdzie)>0:
+			res[skad]=gdzie
+		# print(skad)
+		# print(gdzie)
+	# print(res.items())
+	return res
+
 ## plansza
 class board:
 	def __init__(self, rnd=False):
@@ -200,27 +203,34 @@ class board:
 
 
 		self.mapdict = {'A1': 21,'A2': 31,'A3': 41,'A4': 51,'A5': 61,'A6': 71,'A7': 81,'A8': 91,'B1': 22,'B2': 32,'B3': 42,'B4': 52,'B5': 62,'B6': 72,'B7': 82,'B8': 92,'C1': 23,'C2': 33,'C3': 43,'C4': 53,'C5': 63,'C6': 73,'C7': 83,'C8': 93,'D1': 24,'D2': 34,'D3': 44,'D4': 54,'D5': 64,'D6': 74,'D7': 84,'D8': 94,'E1': 25,'E2': 35,'E3': 45,'E4': 55,'E5': 65,'E6': 75,'E7': 85,'E8': 95,'F1': 26,'F2': 36,'F3': 46,'F4': 56,'F5': 66,'F6': 76,'F7': 86,'F8': 96,'G1': 27,'G2': 37,'G3': 47,'G4': 57,'G5': 67,'G6': 77,'G7': 87,'G8': 97,'H1': 28,'H2': 38,'H3': 48,'H4': 58,'H5': 68,'H6': 78,'H7': 88, 'H8': 98}
+		self.bicie = False
+		self.zbite = []
 
-	def rusz(self, c, d=None, karta=karta(1, '5')):
+	def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
+		self.bicie = False
 		a = self.mapdict[c]
+		if self.is_empty(a):
+			return False
 		if d == None:
 			res = [key for (key,val) in self.mapdict.items() if val in self.brd[a].dozwolony(karta,self.brd)]
 			return 'Gdzie chcesz się ruszyć?\nMożliwe pola: {}'.format(res)
 		b = self.mapdict[d]
 		if karta.ran == 'Q' and self.brd[a].name == 'dama':
 			if b in self.brd[a].dozwolony(karta,self):
+				if only_bool:
+					return True
 				print('Dozwolone ruchy tej Damki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
-				tym = self.brd[b]
-				self.brd[b] = self.brd[a]
-				self.brd[a] = tym
-
-				self.brd[b].pozycja = b
-				self.brd[a].pozycja = a
+				self.swap(a,b)
 				self.brd[b].ruszony = True
 				
 				return True
 		else:	
 			if b in self.brd[a].dozwolony(karta,self):
+				if only_bool:
+					return True
+				if self.is_empty(b)==0:
+					self.bicie = True
+					self.zbite.append(self.brd[b])
 				print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
 				self.brd[b] = self.brd[a]
 				self.brd[b].pozycja = b
@@ -266,6 +276,13 @@ class board:
 
 	def pozycja_bierki(self, naz, kol):
 		return [i for i in self.all_taken() if self.brd[i].name==naz and self.brd[i].kolor==kol]
+
+	def swap(self, a, b):
+		tym = self.brd[b]
+		self.brd[b] = self.brd[a]
+		self.brd[a] = tym
+		self.brd[b].pozycja = b
+		self.brd[a].pozycja = a
 
 	def czy_szach(self, karta=karta(1,'5')):
 		res = []
@@ -321,7 +338,7 @@ class pionek:
 
 		for i in a:
 			if plansza.brd[self.pozycja+i]!=0 and plansza.brd[self.pozycja+i]!=' ' and plansza.brd[self.pozycja+i].kolor!=self.kolor:
-				print('bicie pionka', self.pozycja, i)
+				# print('bicie pionka', self.pozycja, i)
 				dop.append(abs(i))
 
 		# if karta in (3,4,5,6,7,8,9,10):
