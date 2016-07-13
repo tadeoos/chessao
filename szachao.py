@@ -60,7 +60,13 @@ def pod_biciem(pole, plansza, kolor):
 
 	return False
 
-## karty
+
+
+
+
+################ KARTY
+
+
 class karta:
 
 	def __init__(self, kolor, ranga):
@@ -96,10 +102,13 @@ class karta:
 			return 'zła wartość koloru'
 
 class talia:
-	def __init__(self):
+	def __init__(self, lista_kart=[]):
 		a = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','Q', 'K']
 		k = [1,2,3,4]
-		self.cards = [karta(b,c) for b in k for c in a]
+		if len(lista_kart)==0:
+			self.cards = [karta(b,c) for b in k for c in a]
+		else:
+			self.cards = lista_kart
 	def deal(self, n=1):
 		res = []
 		for i in range(n):
@@ -120,13 +129,33 @@ class talia:
 				l=1
 
 
+
+
+
+#######  ALL RUCHY
+
+def jaki_typ_zostal(plansza, kolor):
+	a = plansza.all_taken()
+	res = {plansza.brd[i].name for i in a if plansza.brd[i].kolor == kolor}
+	return res
+
+
 def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
 	d = {v:k for (k,v) in plansza.mapdict.items()}
 	if kolor==2:
 		a = plansza.all_taken()
+	elif kar.ran=='Q' and len(plansza.pozycja_bierki('dama',kolor))>0:
+		if jaki_typ_zostal(plansza, kolor) != {'krol', 'dama'}:
+			a = plansza.pozycja_bierki('dama',kolor)
+		else:
+			a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
+	# elif kar.ran=='K' and kar.kol==1:
+		# a = 
+		# pass
 	else:
 		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
 
+		# print('a: {}\nd: {}'.format(a, d.items()))
 	res = {}
 	for i in a:
 		skad = d[i]
@@ -138,7 +167,15 @@ def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
 	# print(res.items())
 	return res
 
-## plansza
+
+
+
+
+########## PLANSZA
+#######
+
+
+
 class board:
 	def __init__(self, rnd=False):
 		self.brd = [0 for i in range(120)]
@@ -219,7 +256,7 @@ class board:
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
-				print('Dozwolone ruchy tej Damki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
+				# print('Dozwolone ruchy tej Damki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
 				self.swap(a,b)
 				self.brd[b].ruszony = True
 				
@@ -231,7 +268,7 @@ class board:
 				if self.is_empty(b)==0:
 					self.bicie = True
 					self.zbite.append(self.brd[b])
-				print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
+				# print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
 				self.brd[b] = self.brd[a]
 				self.brd[b].pozycja = b
 				self.brd[b].ruszony = True
@@ -281,13 +318,15 @@ class board:
 		tym = self.brd[b]
 		self.brd[b] = self.brd[a]
 		self.brd[a] = tym
-		self.brd[b].pozycja = b
+		if not self.is_empty(b):
+			self.brd[b].pozycja = b
 		self.brd[a].pozycja = a
 
 	def czy_szach(self, karta=karta(1,'5')):
 		res = []
 		for k in ('c','b'):
 			poz_k = self.pozycja_bierki('krol', k)
+			# print(poz_k)
 			if pod_biciem(poz_k[0],self,k):
 				res.append((True, k))
 		if len(res)==1:
@@ -302,7 +341,14 @@ class board:
 
 
 
-## szachy
+
+
+#######
+######## SZACHY
+########
+
+
+
 
 class pionek:
 	def __init__(self, kolor, pozycja):
@@ -325,12 +371,16 @@ class pionek:
 			dop.append(dop[-1]+10)
 		if self.kolor == 'b':
 			for d in dop[::-1]:
+				if self.pozycja+d > 119:
+					continue
 				if plansza.is_empty(self.pozycja+d)==0:
 					ind = dop.index(d) 
 					dop = dop[:ind]
 			a = (9,11)
 		else:
 			for d in dop[::-1]:
+				if self.pozycja-d < 0:
+					continue
 				if plansza.is_empty(self.pozycja-d)==0:
 					ind = dop.index(d) 
 					dop = dop[:ind]
@@ -346,16 +396,16 @@ class pionek:
 
 		res2 = deepcopy(res)
 		pln = deepcopy(plansza)
-		if plansza.czy_szach()==(True, self.kolor):
-			for r in res2:
-				x = pln.brd[r]
-				pln.brd[self.pozycja] = ' '
-				pln.brd[r] = self
-				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
-					# print(r)
-					res.remove(r)
-				pln.brd[self.pozycja] = self
-				pln.brd[r] = x
+
+		for r in res2:
+			x = pln.brd[r]
+			pln.brd[self.pozycja] = ' '
+			pln.brd[r] = self
+			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+				# print(r)
+				res.remove(r)
+			pln.brd[self.pozycja] = self
+			pln.brd[r] = x
 
 		return res
 
@@ -394,16 +444,16 @@ class wieza:
 
 		res2 = deepcopy(res)
 		pln = deepcopy(plansza)
-		if plansza.czy_szach()==(True, self.kolor):
-			for r in res2:
-				x = pln.brd[r]
-				pln.brd[self.pozycja] = ' '
-				pln.brd[r] = self
-				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
-					# print(r)
-					res.remove(r)
-				pln.brd[self.pozycja] = self
-				pln.brd[r] = x
+
+		for r in res2:
+			x = pln.brd[r]
+			pln.brd[self.pozycja] = ' '
+			pln.brd[r] = self
+			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+				# print(r)
+				res.remove(r)
+			pln.brd[self.pozycja] = self
+			pln.brd[r] = x
 
 		# plansza.brd[self.pozycja] = ' '
 		# if plansza.czy_szach()==(True, self.kolor):
@@ -437,16 +487,16 @@ class skoczek:
 
 		res2 = deepcopy(res)
 		pln = deepcopy(plansza)
-		if plansza.czy_szach()==(True, self.kolor):
-			for r in res2:
-				x = pln.brd[r]
-				pln.brd[self.pozycja] = ' '
-				pln.brd[r] = self
-				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
-					# print(r)
-					res.remove(r)
-				pln.brd[self.pozycja] = self
-				pln.brd[r] = x
+
+		for r in res2:
+			x = pln.brd[r]
+			pln.brd[self.pozycja] = ' '
+			pln.brd[r] = self
+			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+				# print(r)
+				res.remove(r)
+			pln.brd[self.pozycja] = self
+			pln.brd[r] = x
 		return res
 
 	def __str__(self):
@@ -477,16 +527,16 @@ class goniec:
 
 		res2 = deepcopy(res)
 		pln = deepcopy(plansza)
-		if plansza.czy_szach()==(True, self.kolor):
-			for r in res2:
-				x = pln.brd[r]
-				pln.brd[self.pozycja] = ' '
-				pln.brd[r] = self
-				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
-					# print(r)
-					res.remove(r)
-				pln.brd[self.pozycja] = self
-				pln.brd[r] = x
+
+		for r in res2:
+			x = pln.brd[r]
+			pln.brd[self.pozycja] = ' '
+			pln.brd[r] = self
+			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+				# print(r)
+				res.remove(r)
+			pln.brd[self.pozycja] = self
+			pln.brd[r] = x
 		return res
 
 	def __str__(self):
@@ -521,16 +571,16 @@ class dama:
 				a+=i
 		res2 = deepcopy(res)
 		pln = deepcopy(plansza)
-		if plansza.czy_szach()==(True, self.kolor):
-			for r in res2:
-				x = pln.brd[r]
-				pln.brd[self.pozycja] = ' '
-				pln.brd[r] = self
-				if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
-					# print(r)
-					res.remove(r)
-				pln.brd[self.pozycja] = self
-				pln.brd[r] = x		
+
+		for r in res2:
+			x = pln.brd[r]
+			pln.brd[self.pozycja] = ' '
+			pln.brd[r] = self
+			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+				# print(r)
+				res.remove(r)
+			pln.brd[self.pozycja] = self
+			pln.brd[r] = x		
 		return res
 
 	def __str__(self):
@@ -556,7 +606,7 @@ class krol:
 			# print(self.pozycja)
 			# print(i)
 			a = self.pozycja + i
-			if plansza.brd[a]!=0:
+			if a>20 and a<99 and plansza.brd[a]!=0:
 				if plansza.is_empty(a):
 					res.append(a)
 					continue
@@ -587,6 +637,24 @@ class krol:
 
 
 ## testy
+def szach_po_ruchu(plansza, ruch, kol, karta):
+	a = ruch[0]
+	b = ruch[1]
+	plan = deepcopy(plansza)
+	if karta.ran == 'Q' and plan.brd[a].name == 'dama':
+		plan.swap(a,b)
+		return plan.czy_szach() != (True, kol)
+	else:
+		plan.brd[b] = plan.brd[a]
+		plan.brd[b].pozycja = b
+		plan.brd[b].ruszony = True
+		plan.brd[a] = ' '
+		return plan.czy_szach() != (True, kol)
+# 
+	print('Coś się rozjebało w szach_po_ruchu')
+	return 'error'
+
+
 
 
 
@@ -646,5 +714,5 @@ def testy():
 	# print(pla.brd[pla.mapdict['B4']].dozwolony(5, pla))
 	return pla_los
 
-t = testy()
+# t = testy()
 
