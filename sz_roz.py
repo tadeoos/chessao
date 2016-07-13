@@ -107,6 +107,7 @@ class rozgrywka:
 		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()])
 		self.szach = False
 		self.mat = False
+		self.pat = False
 		self.spalone = []
 		self.historia = []
 		self.zamiana = False
@@ -138,8 +139,8 @@ class rozgrywka:
 		licznik = 0
 		while(self.mat==0):
 			licznik += 1
-			if rnd:
-				print ("\rRuchów: ", licznik, end="")
+			# if rnd:
+				# print ("\rRuchów: ", licznik, end="")
 			if not rnd:
 				print('----------------------------------------')
 				print(self)
@@ -151,11 +152,15 @@ class rozgrywka:
 					print('Szachao...\n')
 				last_card = karta(1,'5')
 				if self.czy_pat(kolej):
-					print('\nPO SZACHALE!\n{} wygrał grę\nRuchów: {}'.format(gr, len(self.historia)))
+
+					if not rnd:
+						print('\nPO SZACHALE!\n{} wygrał grę\nRuchów: {}'.format(gr, len(self.historia)))
 					self.mat = True
 					return 'koniec'
 			elif self.czy_pat(kolej):
-				print('\nPAT\nRuchów: {}'.format(len(self.historia)))
+				if not rnd:
+					print('\nPAT\nRuchów: {}'.format(len(self.historia)))
+				self.pat = True
 				return 'koniec'
 
 
@@ -413,7 +418,7 @@ class rozgrywka:
 				# time.sleep(3)
 
 
-
+		assert self.mat != self.pat
 		return 'Dzięki za grę'
 
 	def czy_szach(self, k):
@@ -444,6 +449,7 @@ class rozgrywka:
 	def cofnij(self, kolor):
 		assert len(self.historia)>1
 		assert self.historia[-1][-1]==karta(1,'K')
+		# tu problem w przypadku omijania kolejki
 		ruch = self.historia[-2][-2:]
 		a = self.plansza.mapdict[ruch[0]]
 		b = self.plansza.mapdict[ruch[1]]
@@ -480,11 +486,47 @@ li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '8'),karta(1, '9')]
 ]
 
-roz = rozgrywka()
-# while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
-while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
-	roz = rozgrywka()
+def test(n):
+	print('-----------------')
+	print('SZACHAO TESTY')
+	print('n: {}'.format(n))
+	m = 0
+	p = 0
+	err = 0
+	bad = []
+	licznik = 0
+	for i in range(n):
+		print ("\rPostęp: {:.0f}%".format((licznik/n)*100), end="")
+		licznik+=1
+		roz = rozgrywka()
+		# while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
+		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+			roz = rozgrywka()
+		try:
+			roz.graj(rnd=True)
+		except Exception as e:
 
+			# print(e)
+			bad.append((e,roz))
+		# except KeyError as ek:
+			# print(ek)
+		# print(roz.historia[-10:])
+		# print(roz)
+		if roz.mat:
+			m += 1
+		elif roz.pat:
+			p += 1
+		else:
+			err += 1
+	print ("\rPostęp: {:.0f}%".format((licznik/n)*100))		
+	print('\nMatów: {}, Patów: {}, Błędów: {}'.format(m,p,err))
+	return bad
+
+t1 = time()
+bad = test(150)
+t2 = time()
+
+print(t1-t2)
 # if karta(3,'K') not in roz.gracze[0].reka:
 	# print('CHUUUUUUJ')
 # print(rozpakuj_input('101,53,K3 A1 A2'))
@@ -495,7 +537,7 @@ while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
 # 		print(ok_karta([k],roz.kupki))
 # print(karta_z_str('101'))
 
-roz.graj(rnd=True)
+
 # print(type(roz.kupki[0][-1]))
 def test_stat(n=5, m=2000):
 	res2 = []
