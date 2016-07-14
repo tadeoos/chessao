@@ -1,5 +1,9 @@
 from sz_roz import *
+import traceback
 
+
+print('-----------------')
+print('SZACHAO TESTY')
 
 li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '7'),karta(1, '8')],
@@ -12,8 +16,6 @@ li = [
 
 def test(n, rnd = True, test = True):
 	t1 = time.time()
-	print('-----------------')
-	print('SZACHAO TESTY')
 	print('n: {}'.format(n))
 	m = 0
 	p = 0
@@ -30,7 +32,9 @@ def test(n, rnd = True, test = True):
 		try:
 			roz.graj(rnd, test)
 		except Exception as e:
-
+			print(roz)
+			print(roz.historia[-10:])
+			traceback.print_exc()
 			if n ==1:
 				print(e)
 			bad.append((e,roz))
@@ -47,30 +51,32 @@ def test(n, rnd = True, test = True):
 	print ("\rPostęp: {:.1f}%".format((licznik/n)*100))		
 	print('\nMatów: {}, Patów: {}, Błędów: {}'.format(m,p,err))
 	t2 = time.time()
-	print('czas: {} s'.format(t2-t1))
+	print('czas: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-# bad = test(5, True, True)
+bad = test(100, True, True)
 
 
 
 
-# def test_err():
-roz = rozgrywka()
-while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+def test_err():
 	roz = rozgrywka()
-
-
-
-licznik = 0
-a = roz.graj(rnd=1, test=1)
-while (a == 'koniec' and licznik<100):
-	licznik += 1
-	print ("\rPostęp: {:.0f}%".format(licznik), end="")
-	roz = rozgrywka()
+	
 	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
 		roz = rozgrywka()
+	print('po rozgrywce')
+	
+	
+	licznik = 0
 	a = roz.graj(rnd=1, test=1)
+	print('po pierwszej')
+	while (a == 'koniec' and licznik<100):
+		licznik += 1
+		print ("\rPostęp: {:.0f}%".format(licznik), end="")
+		roz = rozgrywka()
+		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+			roz = rozgrywka()
+		a = roz.graj(rnd=1, test=1)
 
 # test_err()
 
@@ -117,6 +123,8 @@ def stat_avr(m=5, n=5, e=2000):
 	z = [[row[i] for row in res] for i in range(3)]
 	out = [sum(l)/len(l) for l in z]
 	return out
+
+
 
 # print(stat_avr(10))
 

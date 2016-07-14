@@ -12,8 +12,6 @@ def odwrot(a):
 
 
 def pod_biciem(pole, plansza, kolor):
-	if (type(plansza.brd[a])==krol:
-		return True
 	for i in (1,-1,10,-10,9,11,-9,-11):
 		a = pole + i
 		if (type(plansza.brd[a])==krol and plansza.brd[a].kolor!=kolor):
@@ -162,7 +160,8 @@ def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
 	res = {}
 	for i in a:
 		skad = d[i]
-		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza)]
+		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol]
+
 		if len(gdzie)>0:
 			res[skad]=gdzie
 		# print(skad)
@@ -561,7 +560,7 @@ class dama:
 		self.name='dama'
 		self.ruszony = False
 	def dozwolony(self, karta, plansza):
-		if karta.ran == 'Q':
+		if karta.ran == 'Q' and jaki_typ_zostal(plansza, self.kolor) != {'krol', 'dama'}:
 			res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[i].name in ('pionek', 'goniec','skoczek','wieza'))]
 			return res
 
@@ -724,3 +723,4 @@ def testy():
 
 # t = testy()
 
+# print('module szachao loaded')

@@ -212,6 +212,9 @@ class rozgrywka:
 				# warunki kiedy nie można wyłożyć jakiejś karty..
 				if licznik>2:
 					temp = self.historia[-1][-1:][0]
+					if type(temp) != str:
+						temp = self.historia[-1][-2]
+						# print('\nbłąd w tempie, licznik {} temp: {}\nhistoria {}'.format(licznik, temp, self.historia[-5:]))
 				else:
 					temp = 'nic'
 
@@ -288,7 +291,10 @@ class rozgrywka:
 						continue
 					# WALET
 					if kar[-1].ran == 'J':
-						# c = input('Ruchu jaką figurą żądasz?\nP W S G D ?\n').lower()
+						if rnd:
+							c = random.choice(['p', 'w', 's', 'g', 'd'])
+						else:
+							c = input('Ruchu jaką figurą żądasz?\nP W S G D ?\n').lower()
 						# walet = c
 						pass
 					if kar[-1].ran == '3':
@@ -307,6 +313,7 @@ class rozgrywka:
 					if kar[-1].ran == 'K' and kar[-1].kol==2:
 						assert licznik>1
 						kkier = self.historia[-1][-1]
+						assert type(kkier)==str
 
 
 			### RUCH
@@ -442,12 +449,18 @@ class rozgrywka:
 				kolej = odwrot(kolej)
 			else:
 				print('\n!!! ruch nie dozwolony !!!\n\n')
-				print(self, last_card, now_card, last_move, kkier, kpik)
+				print('''Plansza:
+					{}
+					last_card: {}
+					now_card: {}
+					ruch: {}
+					{}{}{}
+					'''.format(self, last_card, now_card, z, last_move, kkier, kpik) )
 				print(self.historia[-5:])
 				# break
 
-			# if rnd:
-				# time.sleep(3)
+			if rnd and not test:
+				time.sleep(2)
 
 
 		assert self.mat != self.pat
@@ -486,6 +499,7 @@ class rozgrywka:
 		assert self.historia[-1][-1]==karta(1,'K')
 		# tu problem w przypadku omijania kolejki
 		ruch = self.historia[-2][-2:]
+		# assert 
 		a = self.plansza.mapdict[ruch[0]]
 		b = self.plansza.mapdict[ruch[1]]
 		if self.zamiana:
@@ -513,11 +527,14 @@ class rozgrywka:
 
 
 
-
 #### bugi
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
-
+# - dokleiłem jeszcze w dozwolonym damki warunek na typ ktory zostal
+# król się zbija w pewnym momencie (jakim?)
+# - dokleilem w all_ruchy by wywalal pozycje krola
+# kkier unhashable type karta
+#  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
 
 #####
 # fajny licznik
