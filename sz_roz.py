@@ -13,6 +13,20 @@ def rozd(tal):
 def karta_z_str(s):
 	return karta(int(s[-1]), s[:-1])
 
+def nawaleta(c):
+	if c == 'p':
+		return 'pionek'
+	elif c == 'w':
+		return 'wieza'
+	elif c == 's':
+		return 'skoczek'
+	elif c == 'g':
+		return 'goniec'
+	elif c == 'd':
+		return 'dama'
+	else:
+		return False
+
 def schodki_check(lis):
 	# schodkom brakuje jeszcze opcji schodzenia w dół...
 	for i in range(len(lis)-1):
@@ -290,13 +304,24 @@ class rozgrywka:
 						last_card = kar[-1]
 						continue
 					# WALET
-					if kar[-1].ran == 'J':
-						if rnd:
-							c = random.choice(['p', 'w', 's', 'g', 'd'])
-						else:
-							c = input('Ruchu jaką figurą żądasz?\nP W S G D ?\n').lower()
-						# walet = c
-						pass
+					if kar[-1].ran == 'J' and jaki_typ_zostal(self.plansza, odwrot(kolej))!={'krol'}:
+						waltym = 'pies'
+						print(waltym not in jaki_typ_zostal(self.plansza, odwrot(kolej)))
+						licz = 0
+						while(waltym not in jaki_typ_zostal(self.plansza, odwrot(kolej))):
+							licz += 1
+							# print(licz)
+							# print(waltym)
+							if rnd:
+								c = random.choice(['p', 'w', 's', 'g', 'd'])
+							else:
+								c = input('Ruchu jaką figurą żądasz?\nP W S G D ?\n').lower()
+							waltym = nawaleta(c)
+
+						assert waltym != False
+						assert waltym in jaki_typ_zostal(self.plansza, odwrot(kolej))
+						walet = nawaleta(c)
+						
 					if kar[-1].ran == '3':
 						trojka = 3
 					if kar[-1].ran == '4':
@@ -317,6 +342,7 @@ class rozgrywka:
 
 
 			### RUCH
+
 			# tu jest jeszcze bug ze krolowka moze na damie sie ruszac do woli..
 			self.zamiana = False
 			if last_card.ran=='K' and last_card.kol == 1:
@@ -325,11 +351,13 @@ class rozgrywka:
 				else:
 					spalona = True
 
+			# zbieram wszystkie dozwolone ruchy
 			if not spalona:
 				ruchy = all_ruchy(self.plansza,kolej,now_card)
 			else:
 				ruchy = all_ruchy(self.plansza,kolej)
 
+			# warunki dla krola pik
 			if last_card.ran=='K' and last_card.kol == 1:
 				ruchy = {k:v for (k,v) in ruchy.items() if k==kpik[0]}
 				if kpik[1] in ruchy[kpik[0]]:
@@ -342,6 +370,8 @@ class rozgrywka:
 					last_card = karta(1,'5')
 					kolej = odwrot(kolej)
 					continue
+
+			# warunki dla krola kier
 			if last_card.ran=='K' and last_card.kol == 2:
 				if kkier not in ruchy.keys():
 					if not test:
@@ -359,8 +389,27 @@ class rozgrywka:
 					last_card = now_card
 					kolej = odwrot(kolej)
 					continue
+
+			#warunki dla waleta
+			if last_card.ran=='J' and now_card.ran != 'J' and not spalona:
+				ruchy = {k:v for (k,v) in ruchy.items() if self.plansza.brd[self.plansza.mapdict[k]].name==walet}
+				if last_card.ran=='J' and now_card.ran == 'Q' and walet=='dama' and not spalona:
+					# print('walet')
+					pass
+				if len(ruchy)==0:
+					if not test:
+						print('nie możesz się ruszyć, tracisz kolejke, WALET')
+					self.historia.append([gr, 'ominięta']+kar)
+					last_card = now_card
+					kolej = odwrot(kolej)
+					continue
+
+
 			if not test:
 				print('możliwe ruchy:\n{}'.format(ruchy))
+
+
+			## zaczyna się właściwy ruch	
 			if rnd:
 				random_ruch = random.choice(list(ruchy.keys()))
 
@@ -375,6 +424,9 @@ class rozgrywka:
 				z = rozpakuj_input(b)
 
 				while(not self.plansza.rusz(z[0],z[1],now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej):
+					if z[0] not in ruchy.keys():
+						print('\nwybranego ruchu nie ma w ruchach')
+						continue
 					if len(z)==1:
 						if not test:
 							print('wpisz drugą pozycję!')
@@ -399,8 +451,10 @@ class rozgrywka:
 			if last_card.ran=='K' and last_card.kol == 2:
 				assert z[0] == kkier
 
-			# if self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej:
-				# print('to nie twój pionek...\n\n')
+			if last_card.ran=='J' and now_card.ran != 'J' and not spalona:
+				self.plansza.brd[self.plansza.mapdict[z[0]]].name==walet
+				# czyszczenie waleta, może nie warto?
+				walet = False
 
 			if not spalona:
 				ruch = self.plansza.rusz(z[0],z[1],now_card)
@@ -434,6 +488,7 @@ class rozgrywka:
 						print('wrong input')
 
 
+				# po ruchu, dopisuje hisorie i zamieniam switche
 
 				if spalona:
 					self.historia.append([gr,'spalona']+[now_card]+z)
@@ -441,12 +496,10 @@ class rozgrywka:
 				else:
 					self.historia.append([gr]+[now_card]+z)
 					last_card = now_card
-				last_move = z
 				
-				if last_card.ran=='K' and last_card.kol == 2:
-					if z[1] == kkier: # or self.plansza.brd[]
-						pass
+				last_move = z
 				kolej = odwrot(kolej)
+			
 			else:
 				print('\n!!! ruch nie dozwolony !!!\n\n')
 				print('''Plansza:
@@ -535,6 +588,9 @@ class rozgrywka:
 # - dokleilem w all_ruchy by wywalal pozycje krola
 # kkier unhashable type karta
 #  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
+# co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
+# robię tak, że tracisz kolejkę.
+
 
 #####
 # fajny licznik
