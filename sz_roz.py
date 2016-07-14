@@ -565,21 +565,21 @@ t2 = time.time()
 print('czas: {} s'.format(t2-t1))
 
 # def test_err():
-# roz = rozgrywka()
-# while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
-# 	roz = rozgrywka()
+roz = rozgrywka()
+while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+	roz = rozgrywka()
 
 # # roz.graj(rnd=1)
 
-# licznik = 0
-# a = roz.graj(rnd=1, test=1)
-# while (a == 'koniec' and licznik<100):
-# 	# licznik += 1
-# 	print ("\rPostęp: {:.0f}%".format(licznik), end="")
-# 	roz = rozgrywka()
-# 	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
-# 		roz = rozgrywka()
-# 	a = roz.graj(rnd=1, test=0)
+licznik = 0
+a = roz.graj(rnd=1, test=1)
+while (a == 'koniec' and licznik<100):
+	licznik += 1
+	print ("\rPostęp: {:.0f}%".format(licznik), end="")
+	roz = rozgrywka()
+	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+		roz = rozgrywka()
+	a = roz.graj(rnd=1, test=0)
 
 # test_err()
 # if karta(3,'K') not in roz.gracze[0].reka:
@@ -646,6 +646,10 @@ def stat_avr(m=5, n=5, e=2000):
 # Matów: 18, Patów: 111, Błędów: 21
 # -1702.7965829372406
 
+
+#### bugi
+
+# co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
 
 
 #####
