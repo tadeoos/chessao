@@ -12,6 +12,8 @@ def odwrot(a):
 
 
 def pod_biciem(pole, plansza, kolor):
+	if (type(plansza.brd[a])==krol:
+		return True
 	for i in (1,-1,10,-10,9,11,-9,-11):
 		a = pole + i
 		if (type(plansza.brd[a])==krol and plansza.brd[a].kolor!=kolor):
