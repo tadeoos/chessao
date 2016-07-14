@@ -95,8 +95,8 @@ class gracz:
 		return 'Gracz {}'.format(self.nr)
 
 class rozgrywka:
-	def __init__(self):
-		self.plansza = board(rnd=0)
+	def __init__(self, rnd=1):
+		self.plansza = board(rnd)
 		self.karty = talia()
 		self.karty.combine(talia().cards)
 		self.karty.tasuj()
@@ -123,7 +123,7 @@ class rozgrywka:
 		print('Gracz 2: {}. kolor: {}'.format(self.gracze[1].reka, self.gracze[1].kol))
 		return '\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1])
 
-	def graj(self, rnd = False):
+	def graj(self, rnd = False, test=False):
 		kolej = 'b'
 		last_card = karta(1,'5')
 		last_move = []
@@ -133,6 +133,7 @@ class rozgrywka:
 		czworka = False
 		kpik = []
 		kkier = []
+		gr = self.get_gracz('c')
 ###########
 		###  ROZGRYWKA
 
@@ -141,24 +142,24 @@ class rozgrywka:
 			licznik += 1
 			# if rnd:
 				# print ("\rRuchów: ", licznik, end="")
-			if not rnd:
+			if not test:
 				print('----------------------------------------')
 				print(self)
 
 			self.szach = self.czy_szach(kolej)
 
 			if self.szach:
-				if not rnd:
+				if not test:
 					print('Szachao...\n')
 				last_card = karta(1,'5')
 				if self.czy_pat(kolej):
 
-					if not rnd:
+					if not test:
 						print('\nPO SZACHALE!\n{} wygrał grę\nRuchów: {}'.format(gr, len(self.historia)))
 					self.mat = True
 					return 'koniec'
 			elif self.czy_pat(kolej):
-				if not rnd:
+				if not test:
 					print('\nPAT\nRuchów: {}'.format(len(self.historia)))
 				self.pat = True
 				return 'koniec'
@@ -169,7 +170,7 @@ class rozgrywka:
 			gr = self.get_gracz(kolej)
 			assert gr.kol == kolej
 
-			if not rnd:
+			if not test:
 				print("RUSZA SIĘ: {} ({})\n{}\n".format(gr, kolej, gr.reka))
 
 			if czy_pion_na_koncu(self.plansza, odwrot(kolej))>0 and not rnd:
@@ -186,12 +187,20 @@ class rozgrywka:
 
 
 
-			# trzeba jeszcxzze dodać, że król pik nie może być po Asie
 			if last_card.ran!='K' or last_card.kol != 1:
 				if rnd:
-					rando = random.randint(0,4)
-					kar = [gr.reka[rando]]
-					if not rnd:
+					if self.szach or len(all_ruchy(self.plansza,kolej))==0:
+						if karta(3,'K') in gr.reka and ok_karta([karta(3,'K')],self.kupki):
+							kar = [karta(3,'K')]
+						elif karta(4,'K') in gr.reka and ok_karta([karta(4,'K')],self.kupki):
+							kar = [karta(4,'K')]
+						else:
+							rando = random.randint(0,4)
+							kar = [gr.reka[rando]]
+					else:
+						rando = random.randint(0,4)
+						kar = [gr.reka[rando]]
+					if not test:
 						print('karta: {}'.format(kar[0]))
 				else:
 					a = input('KARTA: ').upper()
@@ -199,20 +208,35 @@ class rozgrywka:
 						return 'exit';
 					kar = rozpakuj_input(a)
 
-				while(self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')):
+
+				# warunki kiedy nie można wyłożyć jakiejś karty..
+				if licznik>2:
+					temp = self.historia[-1][-1:][0]
+				else:
+					temp = 'nic'
+
+				war1 = self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')
+				war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
+				war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
+
+
+				while(war1 or war2 or war3):
 					if rnd:
 						rando = random.randint(0,4)
 						kar = [gr.reka[rando]]
-						if not rnd:
+						if not test:
 							print('karta: {}'.format(kar[0]))
 					else:
-						if not rnd:
-							print('Nie możesz zagrać tej karty.. Jest szachao!')
+						if not test:
+							print('Nie możesz zagrać tej karty.. !')
 						a = input('KARTA: ').upper()
 						if a == 'E':
 							return 'exit';
 						kar = rozpakuj_input(a)
-				
+					war1 = self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')
+					war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
+					war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
+
 				
 				for p in kar:
 					assert p in gr.reka
@@ -220,7 +244,7 @@ class rozgrywka:
 				now_card = kar[-1] 	
 				if not ok_karta(kar,self.kupki):
 					assert len(kar)==1
-					if not rnd:
+					if not test:
 						print('palę tę kartę')
 					spalona = True
 
@@ -228,7 +252,7 @@ class rozgrywka:
 					# if ktora_kupka(kar, self.kupki) == 3:
 					self.spalone.extend(kar)
 					if len(self.karty.cards)<len(kar):
-						if not rnd:
+						if not test:
 							print('przetasowuje!')
 						self.przetasuj()
 					tas = self.karty.deal(len(kar))
@@ -243,7 +267,7 @@ class rozgrywka:
 					self.kupki[ktora_kupka(kar, self.kupki, rnd)].extend(kar)
 					
 					if len(self.karty.cards)<len(kar):
-						if not rnd:
+						if not test:
 							print('przetasowuje!')
 						self.przetasuj()
 					tas = self.karty.deal(len(kar))
@@ -272,6 +296,7 @@ class rozgrywka:
 					if kar[-1].ran == '4':
 						czworka = True
 					if kar[-1].ran == 'K' and kar[-1].kol==1:
+						assert licznik > 2
 						# tu jeszcze nie działa bo losowo można zagrać króla pik za wcześnie
 						kpik = self.historia[-1][-2:]
 						self.historia.append([gr]+kar)
@@ -280,6 +305,7 @@ class rozgrywka:
 						kolej = odwrot(kolej)
 						continue
 					if kar[-1].ran == 'K' and kar[-1].kol==2:
+						assert licznik>1
 						kkier = self.historia[-1][-1]
 
 
@@ -287,7 +313,10 @@ class rozgrywka:
 			# tu jest jeszcze bug ze krolowka moze na damie sie ruszac do woli..
 			self.zamiana = False
 			if last_card.ran=='K' and last_card.kol == 1:
-				now_card = self.historia[-2][-3]
+				if self.historia[-2][-4] != 'spalona':
+					now_card = self.historia[-2][-3]
+				else:
+					spalona = True
 
 			if not spalona:
 				ruchy = all_ruchy(self.plansza,kolej,now_card)
@@ -296,18 +325,19 @@ class rozgrywka:
 
 			if last_card.ran=='K' and last_card.kol == 1:
 				ruchy = {k:v for (k,v) in ruchy.items() if k==kpik[0]}
-				ruchy[kpik[0]].remove(kpik[1])
+				if kpik[1] in ruchy[kpik[0]]:
+					ruchy[kpik[0]].remove(kpik[1])
 				if len(ruchy[kpik[0]])==0:
 
-					if not rnd:
+					if not test:
 						print('nie mam ruchu!!! KPIK')
-					self.historia.append([gr, 'ominięta']+kar)
-					last_card = now_card
+					self.historia.append([gr, 'ominięta'])
+					last_card = karta(1,'5')
 					kolej = odwrot(kolej)
 					continue
 			if last_card.ran=='K' and last_card.kol == 2:
-				if kkier not in ruchy:
-					if not rnd:
+				if kkier not in ruchy.keys():
+					if not test:
 						print('bierka zbita, tracisz kolejke, KKIER')
 					self.historia.append([gr, 'ominięta']+kar)
 					last_card = now_card
@@ -316,20 +346,20 @@ class rozgrywka:
 				ruchy = {k:v for (k,v) in ruchy.items() if k==kkier}
 				# ruchy[kkier[0]].remove(kkier[1])
 				if len(ruchy[kkier])==0:
-					if not rnd:
+					if not test:
 						print('nie mam ruchu!!! KKIER')
 					self.historia.append([gr, 'ominięta']+kar)
 					last_card = now_card
 					kolej = odwrot(kolej)
 					continue
-			if not rnd:
+			if not test:
 				print('możliwe ruchy:\n{}'.format(ruchy))
 			if rnd:
 				random_ruch = random.choice(list(ruchy.keys()))
 
 				random_nr = random.randint(0,len(ruchy[random_ruch])-1)
 				z = [random_ruch, ruchy[random_ruch][random_nr]]
-				if not rnd:
+				if not test:
 					print('ruch: {}'.format(z))
 			else:
 				b = input('RUCH: ').upper()
@@ -339,10 +369,10 @@ class rozgrywka:
 
 				while(not self.plansza.rusz(z[0],z[1],now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej):
 					if len(z)==1:
-						if not rnd:
+						if not test:
 							print('wpisz drugą pozycję!')
 						continue
-					if not rnd:
+					if not test:
 						print('Ruch nie dozwolony! Wybierz inny...')
 					b = input('RUCH: ').upper()
 					if b == 'E':
@@ -412,6 +442,8 @@ class rozgrywka:
 				kolej = odwrot(kolej)
 			else:
 				print('\n!!! ruch nie dozwolony !!!\n\n')
+				print(self, last_card, now_card, last_move, kkier, kpik)
+				print(self.historia[-5:])
 				# break
 
 			# if rnd:
@@ -419,7 +451,7 @@ class rozgrywka:
 
 
 		assert self.mat != self.pat
-		return 'Dzięki za grę'
+		return 'koniec'
 
 	def czy_szach(self, k):
 		s = self.plansza.czy_szach()
@@ -432,8 +464,11 @@ class rozgrywka:
 	def czy_pat(self, k):
 		if len(self.plansza.all_taken())==2:
 			return True
+		szach = self.czy_szach(k)
 		for kar in self.get_gracz(k).reka:
 			if ok_karta([kar], self.kupki):
+				if szach and kar.ran=='Q':
+					continue
 				res = all_ruchy(self.plansza, k, kar)
 				if len(res)>0:
 					return False
@@ -486,7 +521,7 @@ li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '8'),karta(1, '9')]
 ]
 
-def test(n):
+def test(n, rnd = True, test = True):
 	print('-----------------')
 	print('SZACHAO TESTY')
 	print('n: {}'.format(n))
@@ -503,10 +538,11 @@ def test(n):
 		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
 			roz = rozgrywka()
 		try:
-			roz.graj(rnd=True)
+			roz.graj(rnd, test)
 		except Exception as e:
 
-			# print(e)
+			if n ==1:
+				print(e)
 			bad.append((e,roz))
 		# except KeyError as ek:
 			# print(ek)
@@ -518,15 +554,34 @@ def test(n):
 			p += 1
 		else:
 			err += 1
-	print ("\rPostęp: {:.0f}%".format((licznik/n)*100))		
+	print ("\rPostęp: {:.1f}%".format((licznik/n)*100))		
 	print('\nMatów: {}, Patów: {}, Błędów: {}'.format(m,p,err))
 	return bad
 
-t1 = time()
-bad = test(150)
-t2 = time()
+t1 = time.time()
+# bad = test(5, True, True)
+t2 = time.time()
 
-print(t1-t2)
+print('czas: {} s'.format(t2-t1))
+
+# def test_err():
+# roz = rozgrywka()
+# while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+# 	roz = rozgrywka()
+
+# # roz.graj(rnd=1)
+
+# licznik = 0
+# a = roz.graj(rnd=1, test=1)
+# while (a == 'koniec' and licznik<100):
+# 	# licznik += 1
+# 	print ("\rPostęp: {:.0f}%".format(licznik), end="")
+# 	roz = rozgrywka()
+# 	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+# 		roz = rozgrywka()
+# 	a = roz.graj(rnd=1, test=0)
+
+# test_err()
 # if karta(3,'K') not in roz.gracze[0].reka:
 	# print('CHUUUUUUJ')
 # print(rozpakuj_input('101,53,K3 A1 A2'))
@@ -588,6 +643,8 @@ def stat_avr(m=5, n=5, e=2000):
 # 	print(schodki_check(l))
 
 
+# Matów: 18, Patów: 111, Błędów: 21
+# -1702.7965829372406
 
 
 

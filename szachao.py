@@ -148,6 +148,7 @@ def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
 		if jaki_typ_zostal(plansza, kolor) != {'krol', 'dama'}:
 			a = plansza.pozycja_bierki('dama',kolor)
 		else:
+			kar = karta(1, '5')
 			a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
 	# elif kar.ran=='K' and kar.kol==1:
 		# a = 
@@ -208,30 +209,30 @@ class board:
 					self.brd[rand2] = krol(k, rand2)
 				rand = random.randint(0,8)
 				for i in range(rand):
-					rand2 = random.randint(21,98)
+					rand2 = random.randint(31,78)
 					while(self.brd[rand2]!=' '):
 						rand2 = random.randint(21,98)
 					self.brd[rand2] = pionek(k, rand2)
 				rand = random.randint(0,2)
-				for i in range(1):
+				for i in range(rand):
 					rand2 = random.randint(21,98)
 					while(self.brd[rand2]!=' '):
 						rand2 = random.randint(21,98)
 					self.brd[rand2] = goniec(k, rand2)
 				rand = random.randint(0,2)
-				for i in range(1):
+				for i in range(rand):
 					rand2 = random.randint(21,98)
 					while(self.brd[rand2]!=' '):
 						rand2 = random.randint(21,98)
 					self.brd[rand2] = skoczek(k, rand2)
 				rand = random.randint(0,2)
-				for i in range(1):
+				for i in range(rand):
 					rand2 = random.randint(21,98)
 					while(self.brd[rand2]!=' '):
 						rand2 = random.randint(21,98)
 					self.brd[rand2] = wieza(k, rand2)
 				rand = random.randint(0,1)
-				for i in range(1):
+				for i in range(rand):
 					rand2 = random.randint(21,98)
 					while(self.brd[rand2]!=' '):
 						rand2 = random.randint(21,98)
@@ -252,7 +253,7 @@ class board:
 			res = [key for (key,val) in self.mapdict.items() if val in self.brd[a].dozwolony(karta,self.brd)]
 			return 'Gdzie chcesz się ruszyć?\nMożliwe pola: {}'.format(res)
 		b = self.mapdict[d]
-		if karta.ran == 'Q' and self.brd[a].name == 'dama':
+		if karta.ran == 'Q' and self.brd[a].name == 'dama' and jaki_typ_zostal(self, self.brd[a].kolor) != {'krol', 'dama'}:
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
@@ -326,7 +327,12 @@ class board:
 		res = []
 		for k in ('c','b'):
 			poz_k = self.pozycja_bierki('krol', k)
-			# print(poz_k)
+
+			if len(poz_k) != 1:
+				print(self)
+				
+			assert len(poz_k) == 1
+
 			if pod_biciem(poz_k[0],self,k):
 				res.append((True, k))
 		if len(res)==1:
