@@ -119,14 +119,15 @@ class talia:
 	def __str__(self):
 		return str(self.cards)
 	def tasuj(self):
-		l=0
-		first = self.cards[0]
-		while(l!=1):
-			last = self.cards.pop()
-			rnd = random.randint(0,len(self.cards)-1)
-			self.cards.insert(rnd, last)
-			if last==first:
-				l=1
+		# l=0
+		# first = self.cards[0]
+		# while(l!=1):
+		# 	last = self.cards.pop()
+		# 	rnd = random.randint(0,len(self.cards)-1)
+		# 	self.cards.insert(rnd, last)
+		# 	if last==first:
+		# 		l=1
+		random.shuffle(self.cards)
 
 
 
@@ -141,6 +142,7 @@ def jaki_typ_zostal(plansza, kolor):
 
 
 def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5')):
+	assert type(okzbi)==bool
 	d = {v:k for (k,v) in plansza.mapdict.items()}
 	if kolor==2:
 		a = plansza.all_taken()
@@ -170,6 +172,9 @@ def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5')):
 		# print(skad)
 		# print(gdzie)
 	# print(res.items())
+	# if len(res) == 0:
+	# 	print('\nkarta: {}, okzbi = {} a: {}'.format(kar, okzbi, a))
+	# assert len(res) > 0
 	return res
 
 

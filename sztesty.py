@@ -17,6 +17,7 @@ li = [
 def test(n, rnd = True, test = True):
 	t1 = time.time()
 	print('n: {}'.format(n))
+	avr_moves = 0
 	m = 0
 	p = 0
 	err = 0
@@ -25,24 +26,30 @@ def test(n, rnd = True, test = True):
 	for i in range(n):
 		print ("\rPostęp: {:.0f}%".format((licznik/n)*100), end="")
 		licznik+=1
-		roz = rozgrywka()
+		if licznik%2==0:
+			randa = 0
+		else:
+			randa = 1
+		roz = rozgrywka(randa)
 		# while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
 		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
-			roz = rozgrywka()
+			roz = rozgrywka(randa)
+
+		# print('Rozgrywka nr {}'.format(licznik))
 		try:
 			roz.graj(rnd, test)
 		except Exception as e:
 			print('\n ERROR')
 			print(roz)
 			print(roz.historia[-10:])
+			print('spalone {}'.format(roz.spalone[-4:]))
 			traceback.print_exc()
-			if n ==1:
-				print(e)
 			bad.append((e,roz))
 		# except KeyError as ek:
 			# print(ek)
 		# print(roz.historia[-10:])
 		# print(roz)
+		avr_moves += len(roz.historia)
 		if roz.mat:
 			m += 1
 		elif roz.pat:
@@ -50,12 +57,12 @@ def test(n, rnd = True, test = True):
 		else:
 			err += 1
 	print ("\rPostęp: {:.1f}%".format((licznik/n)*100))		
-	print('\nMatów: {}, Patów: {}, Błędów: {}'.format(m,p,err))
+	print('\nMatów: {}, Patów: {}, Błędów: {} Średnia ilość ruchów: {:.0f}'.format(m,p,err, avr_moves/n))
 	t2 = time.time()
 	print('czas: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-bad = test(30, True, True)
+bad = test(10, True, True)
 
 
 
@@ -137,3 +144,14 @@ def stat_avr(m=5, n=5, e=2000):
 
 # Matów: 18, Patów: 111, Błędów: 21
 # -1702.7965829372406
+
+
+
+
+#####
+# fajny licznik
+# values = range(0, 100)
+# for i in values:
+# 	time.sleep(0.1)
+# 	print ("\rComplete: ", i, "%", end="")
+# print ("\rComplete: 100% ")

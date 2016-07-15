@@ -147,14 +147,17 @@ class rozgrywka:
 		czworka = False
 		ok_zbicie = True
 		kpik = []
-		kkier = []
+		kkier = ['as']
 		gr = self.get_gracz('c')
 ###########
 		###  ROZGRYWKA
 
 		licznik = 0
-		while(self.mat==0):
+		while(not self.mat and not self.pat):
 			licznik += 1
+			if licznik > 1500:
+				print('1500 ruchów')
+				return 'too_long'
 			# if rnd:
 				# print ("\rRuchów: ", licznik, end="")
 			if not test:
@@ -166,7 +169,8 @@ class rozgrywka:
 			if self.szach:
 				if not test:
 					print('Szachao...\n')
-				last_card = karta(1,'5')
+				if last_card.ran != '3':
+					last_card = karta(1,'5')
 				if self.czy_pat(kolej):
 
 					if not test:
@@ -200,9 +204,22 @@ class rozgrywka:
 
 # (type e to exit)\n''').upper()
 
+			# warunki dla trójki
+			# if trojka > 5:
+			# 	tescik = [1 for k in gr.reka if k.ran=='3']
+			# 	if 1 not in tescik:
+			# 		self.spalone.extend(gr.reka)
+			# 		if len(self.karty.cards)<5:
+			# 			if not test:
+			# 				print('przetasowuje!')
+			# 			self.przetasuj()
+			# 		tas = self.karty.deal(5)
+			# 		gr.reka = []
+			# 		gr.reka.extend(tas)
 
 
-			if last_card.ran!='K' or last_card.kol != 1:
+			if last_card.ran!='K' or last_card.kol != 1: # po królu pik nie zagrywasz karty
+			
 				if rnd:
 					if self.szach or len(all_ruchy(self.plansza,kolej))==0:
 						if karta(3,'K') in gr.reka and ok_karta([karta(3,'K')],self.kupki):
@@ -228,7 +245,8 @@ class rozgrywka:
 				if licznik>2:
 					temp = self.historia[-1][-1:][0]
 					if type(temp) != str:
-						temp = self.historia[-1][-2]
+						# if spalo
+						temp = self.historia[-1][1]
 						# print('\nbłąd w tempie, licznik {} temp: {}\nhistoria {}'.format(licznik, temp, self.historia[-5:]))
 				else:
 					temp = 'nic'
@@ -236,9 +254,16 @@ class rozgrywka:
 				war1 = self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')
 				war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
 				war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
+				war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
+				war5 = kar[-1].ran=='4' and self.szach and len(all_ruchy(self.plansza, kolej, False, kar[-1]))==0
 
-
-				while(war1 or war2 or war3):
+				licz = 0
+				while(war1 or war2 or war3 or war4 or war5):
+					licz += 1
+					if licz > 1000:
+						print('oo, cieżko wybrać kartę')
+						print(gr.reka)
+						return None
 					if rnd:
 						rando = random.randint(0,4)
 						kar = [gr.reka[rando]]
@@ -254,8 +279,11 @@ class rozgrywka:
 					war1 = self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')
 					war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
 					war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
+					war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
+					war5 = kar[-1].ran=='4' and self.szach and len(all_ruchy(self.plansza, kolej, False, kar[-1]))==0
+					if self.szach and len(all_ruchy(self.plansza, kolej, False, kar[-1]))==0:
+						assert sum([1 for k in gr.reka if k.ran=='4' or k.ran=='A' or k.ran=='Q'])!=5			
 
-				
 				for p in kar:
 					assert p in gr.reka
 				
@@ -304,6 +332,26 @@ class rozgrywka:
 							g.kol = odwrot(g.kol)
 						last_card = kar[-1]
 						continue
+					# KRÓL PIK
+					if kar[-1].ran == 'K' and kar[-1].kol==1:
+						assert licznik > 2
+						kpik = self.historia[-1][-2:]
+						self.historia.append([gr]+kar)
+						last_card = kar[-1]
+						self.cofnij(odwrot(kolej))
+						kolej = odwrot(kolej)
+						continue
+
+					# KRÓL KIER
+					if kar[-1].ran == 'K' and kar[-1].kol==2:
+						assert licznik>1
+						kkier = self.historia[-1][-1]
+						try:
+							type(kkier)==str
+						except Exception as e:
+							print('kkier: {}, karta: {}'.format(kkier, now_card))
+						assert type(kkier)==str
+
 					# WALET
 					if kar[-1].ran == 'J' and jaki_typ_zostal(self.plansza, odwrot(kolej))!={'krol'}:
 						waltym = 'pies'
@@ -322,29 +370,68 @@ class rozgrywka:
 						assert waltym != False
 						assert waltym in jaki_typ_zostal(self.plansza, odwrot(kolej))
 						walet = nawaleta(c)
-						
+					
+					# TRÓJKA
 					if kar[-1].ran == '3':
-						trojka = 3
+						trojka += 3
+
+					# CZWÓRKA
 					if kar[-1].ran == '4':
 						czworka == True
 						ok_zbicie = False
-					if kar[-1].ran == 'K' and kar[-1].kol==1:
-						assert licznik > 2
-						# tu jeszcze nie działa bo losowo można zagrać króla pik za wcześnie
-						kpik = self.historia[-1][-2:]
-						self.historia.append([gr]+kar)
-						last_card = kar[-1]
-						self.cofnij(odwrot(kolej))
-						kolej = odwrot(kolej)
-						continue
-					if kar[-1].ran == 'K' and kar[-1].kol==2:
-						assert licznik>1
-						kkier = self.historia[-1][-1]
-						assert type(kkier)==str
+
+				# if trojka>0 and (spalona or now_card.ran!='3'):
+				# 	if trojka < 5:
+				# 		if not rnd:
+				# 			trj = input('Których kart chcesz się pozbyć? [podaj miejsca np. 1 2 4]')
+				# 		else:
+				# 			a = random.randint(0,4)
+				# 			b = random.randint(0,4)
+				# 			c = random.randint(0,4)
+				# 			cond = a != b and a!= c and b!=c
+				# 			while (not cond):
+				# 				a = random.randint(0,4)
+				# 				b = random.randint(0,4)
+				# 				c = random.randint(0,4)
+				# 				cond = a != b and a!= c and b!=c
+
+				# 			# print(a,b,c)
+				# 			self.spalone.append(gr.reka[a])
+				# 			self.spalone.append(gr.reka[b])
+				# 			self.spalone.append(gr.reka[c])
+
+				# 			o = sorted([a,b,c])
+				# 			del gr.reka[o[-1]]
+				# 			del gr.reka[o[-2]]
+				# 			del gr.reka[o[0]]
+
+				# 			if len(self.karty.cards)<3:
+				# 				if not test:
+				# 					print('przetasowuje!')
+				# 				self.przetasuj()
+				# 			# gr.reka = [gr.reka[i] for i in range(5) if i not in [a,b,c]]
+				# 			tas = self.karty.deal(3)
+				# 			gr.reka.extend(tas)
+
+							
+				# 		trojka = 0
+				# 	else:
+				# 		self.spalone.extend(gr.reka[:-1])
+				# 		if len(self.karty.cards)<5:
+				# 			if not test:
+				# 				print('przetasowuje!')
+				# 			self.przetasuj()
+				# 		gr.reka = [gr.reka[-1]]
+				# 		tas = self.karty.deal(4)
+				# 		gr.reka.extend(tas)
+				# 		trojka = 0
 
 
+
+
+			
 			### RUCH
-
+			assert len(gr.reka)==5
 			# tu jest jeszcze bug ze krolowka moze na damie sie ruszac do woli..
 			self.zamiana = False
 			if last_card.ran=='K' and last_card.kol == 1:
@@ -362,6 +449,10 @@ class rozgrywka:
 			# warunki dla krola pik
 			if last_card.ran=='K' and last_card.kol == 1:
 				ruchy = {k:v for (k,v) in ruchy.items() if k==kpik[0]}
+				if len(ruchy)==0:
+					print('kpik: {}'.format(kpik))
+				assert len(ruchy)>0
+				# print('\nruchy: {} kpik {}'.format(ruchy, kpik))
 				if kpik[1] in ruchy[kpik[0]]:
 					ruchy[kpik[0]].remove(kpik[1])
 				if len(ruchy[kpik[0]])==0:
@@ -375,6 +466,11 @@ class rozgrywka:
 
 			# warunki dla krola kier
 			if last_card.ran=='K' and last_card.kol == 2:
+				try:
+					kkier not in ruchy.keys()
+				except Exception as e:
+					print(e)
+					print('ruchy {}, kkier: {}, karta: {}, ok_zbicie = {}'.format(ruchy, kkier, karta, ok_zbicie))
 				if kkier not in ruchy.keys():
 					if not test:
 						print('bierka zbita, tracisz kolejke, KKIER')
@@ -394,6 +490,7 @@ class rozgrywka:
 
 			#warunki dla waleta
 			if last_card.ran=='J' and (now_card.ran != 'J' or spalona):
+				assert not self.szach
 				ruchy = {k:v for (k,v) in ruchy.items() if self.plansza.brd[self.plansza.mapdict[k]].name==walet}
 				if last_card.ran=='J' and now_card.ran == 'Q' and walet=='dama' and not spalona:
 					# print('walet')
@@ -401,21 +498,37 @@ class rozgrywka:
 				if len(ruchy)==0:
 					if not test:
 						print('nie możesz się ruszyć, tracisz kolejke, WALET')
-					self.historia.append([gr, 'ominięta']+kar)
-					last_card = now_card
+
+					if spalona:
+						self.historia.append([gr, 'ominięta', 'spalona']+kar)
+						last_card = karta(1, '5')
+					else:
+						self.historia.append([gr, 'ominięta']+kar)
+						last_card = now_card						
+
 					kolej = odwrot(kolej)
 					continue
 
 			# warunki dla 4
+
 			# if czworka:
 			# if now_card.ran=='4':
 			# 		ok_zbicie = False
 			if last_card.ran=='4' and (now_card.ran != '4' or spalona):
+				assert not self.szach
+				if not test:
+					print('nie możesz się ruszyć, tracisz kolejke, CZWORKA')
+
+				if spalona:
+					self.historia.append([gr, 'ominięta', 'spalona']+kar)
+					last_card = karta(1, '5')
+				else:
 					self.historia.append([gr, 'ominięta']+kar)
-					last_card = now_card
-					kolej = odwrot(kolej)
-					ok_zbicie = False
-					continue
+					last_card = now_card	
+
+				kolej = odwrot(kolej)
+				ok_zbicie = False
+				continue
 
 			# if not ok_zbicie:
 
@@ -428,6 +541,12 @@ class rozgrywka:
 
 			## zaczyna się właściwy ruch	
 			if rnd:
+				if len(ruchy)==0:
+					print('\n Jest błędzik - bocik nie ma ruchu :( ')
+					print(self.czy_pat(kolej))
+					if self.czy_pat(kolej):
+						self.pat = True
+						return 'koniec'
 				random_ruch = random.choice(list(ruchy.keys()))
 
 				random_nr = random.randint(0,len(ruchy[random_ruch])-1)
@@ -555,7 +674,7 @@ class rozgrywka:
 			if ok_karta([kar], self.kupki):
 				if szach and kar.ran=='Q':
 					continue
-				res = all_ruchy(self.plansza, k, kar)
+				res = all_ruchy(self.plansza, k, True, kar)
 				if len(res)>0:
 					return False
 			else:
@@ -589,10 +708,13 @@ class rozgrywka:
 		kup_1=self.kupki[0][-1]
 		kup_2=self.kupki[1][-1]
 		do_tasu = self.kupki[0][:-1] + self.kupki[1][:-1] + self.spalone
+		assert len(do_tasu) > 3
 		out = talia(do_tasu)
+		
+		assert len(out.cards) < 94 
+		assert len(out.cards) > 3
 		self.spalone = []
-		assert len(out.cards) < 94
-		talia(do_tasu).tasuj()
+		out.tasuj()
 		out.combine(self.karty.cards)
 		self.karty = out
 		self.kupki=([kup_1], [kup_2])
@@ -610,12 +732,11 @@ class rozgrywka:
 #  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
 # robię tak, że tracisz kolejkę.
+# czy mogę dać czwórkę na waleta?
+# robię, że nie
+# może się wydarzyć taka sytuacja: czarne szachują białe. biały król ucieka. czarne zagrywają króla pik. (co w efekcie połowicznie realizuje króla pik - cofa rozgrywkę, ale zaraz karta już przestaje działać bo jest szach ) biały król zagrywa króla pik. -> system się jebie
+
+# może być też tak, że król się gracz się sam wpierdoli w pata. Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król, który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję? Samopodpierdolenie na remis?
+# roboczo - tak 
 
 
-#####
-# fajny licznik
-# values = range(0, 100)
-# for i in values:
-# 	time.sleep(0.1)
-# 	print ("\rComplete: ", i, "%", end="")
-# print ("\rComplete: 100% ")
