@@ -140,7 +140,7 @@ def jaki_typ_zostal(plansza, kolor):
 	return res
 
 
-def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
+def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5')):
 	d = {v:k for (k,v) in plansza.mapdict.items()}
 	if kolor==2:
 		a = plansza.all_taken()
@@ -160,7 +160,10 @@ def all_ruchy(plansza, kolor=2, kar=karta(1,'5')):
 	res = {}
 	for i in a:
 		skad = d[i]
-		gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol]
+		if okzbi:
+			gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol]
+		else:
+			gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol and (plansza.is_empty(a) or plansza.brd[a].kolor == kolor)]
 
 		if len(gdzie)>0:
 			res[skad]=gdzie

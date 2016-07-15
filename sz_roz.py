@@ -145,6 +145,7 @@ class rozgrywka:
 		walet = False
 		trojka = 0
 		czworka = False
+		ok_zbicie = True
 		kpik = []
 		kkier = []
 		gr = self.get_gracz('c')
@@ -306,12 +307,12 @@ class rozgrywka:
 					# WALET
 					if kar[-1].ran == 'J' and jaki_typ_zostal(self.plansza, odwrot(kolej))!={'krol'}:
 						waltym = 'pies'
-						print(waltym not in jaki_typ_zostal(self.plansza, odwrot(kolej)))
 						licz = 0
 						while(waltym not in jaki_typ_zostal(self.plansza, odwrot(kolej))):
 							licz += 1
-							# print(licz)
-							# print(waltym)
+							if licz > 1000:
+								print(licz)
+								print(waltym)
 							if rnd:
 								c = random.choice(['p', 'w', 's', 'g', 'd'])
 							else:
@@ -325,7 +326,8 @@ class rozgrywka:
 					if kar[-1].ran == '3':
 						trojka = 3
 					if kar[-1].ran == '4':
-						czworka = True
+						czworka == True
+						ok_zbicie = False
 					if kar[-1].ran == 'K' and kar[-1].kol==1:
 						assert licznik > 2
 						# tu jeszcze nie działa bo losowo można zagrać króla pik za wcześnie
@@ -353,9 +355,9 @@ class rozgrywka:
 
 			# zbieram wszystkie dozwolone ruchy
 			if not spalona:
-				ruchy = all_ruchy(self.plansza,kolej,now_card)
+				ruchy = all_ruchy(self.plansza,kolej,ok_zbicie,now_card)
 			else:
-				ruchy = all_ruchy(self.plansza,kolej)
+				ruchy = all_ruchy(self.plansza,kolej,ok_zbicie)
 
 			# warunki dla krola pik
 			if last_card.ran=='K' and last_card.kol == 1:
@@ -391,7 +393,7 @@ class rozgrywka:
 					continue
 
 			#warunki dla waleta
-			if last_card.ran=='J' and now_card.ran != 'J' and not spalona:
+			if last_card.ran=='J' and (now_card.ran != 'J' or spalona):
 				ruchy = {k:v for (k,v) in ruchy.items() if self.plansza.brd[self.plansza.mapdict[k]].name==walet}
 				if last_card.ran=='J' and now_card.ran == 'Q' and walet=='dama' and not spalona:
 					# print('walet')
@@ -403,6 +405,21 @@ class rozgrywka:
 					last_card = now_card
 					kolej = odwrot(kolej)
 					continue
+
+			# warunki dla 4
+			# if czworka:
+			# if now_card.ran=='4':
+			# 		ok_zbicie = False
+			if last_card.ran=='4' and (now_card.ran != '4' or spalona):
+					self.historia.append([gr, 'ominięta']+kar)
+					last_card = now_card
+					kolej = odwrot(kolej)
+					ok_zbicie = False
+					continue
+
+			# if not ok_zbicie:
+
+
 
 
 			if not test:
@@ -424,12 +441,12 @@ class rozgrywka:
 				z = rozpakuj_input(b)
 
 				while(not self.plansza.rusz(z[0],z[1],now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej):
-					if z[0] not in ruchy.keys():
-						print('\nwybranego ruchu nie ma w ruchach')
-						continue
 					if len(z)==1:
 						if not test:
 							print('wpisz drugą pozycję!')
+						continue
+					if z[0] not in ruchy.keys() or z[1] not in ruchy[z[0]]:
+						print('\nwybranego ruchu nie ma w ruchach')
 						continue
 					if not test:
 						print('Ruch nie dozwolony! Wybierz inny...')
@@ -453,8 +470,11 @@ class rozgrywka:
 
 			if last_card.ran=='J' and now_card.ran != 'J' and not spalona:
 				self.plansza.brd[self.plansza.mapdict[z[0]]].name==walet
-				# czyszczenie waleta, może nie warto?
-				walet = False
+			
+			## CZYSZCZENIA
+			# czyszczenie waleta, może nie warto?
+			walet = False
+			ok_zbicie = True
 
 			if not spalona:
 				ruch = self.plansza.rusz(z[0],z[1],now_card)

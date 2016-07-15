@@ -32,6 +32,7 @@ def test(n, rnd = True, test = True):
 		try:
 			roz.graj(rnd, test)
 		except Exception as e:
+			print('\n ERROR')
 			print(roz)
 			print(roz.historia[-10:])
 			traceback.print_exc()
@@ -54,7 +55,7 @@ def test(n, rnd = True, test = True):
 	print('czas: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-bad = test(100, True, True)
+bad = test(30, True, True)
 
 
 
