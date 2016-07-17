@@ -381,59 +381,39 @@ class rozgrywka:
 						czworka == True
 						ok_zbicie = False
 
-				# if trojka>0 and (spalona or now_card.ran!='3'):
-				# 	if trojka < 5:
-				# 		if not rnd:
-				# 			trj = input('Których kart chcesz się pozbyć? [podaj miejsca np. 1 2 4]')
-				# 		else:
+				if trojka>0 and (spalona or now_card.ran!='3'):
+					if trojka < 5:
+						if not rnd:
+							trj = input('Których kart chcesz się pozbyć? [podaj miejsca np. 1 2 4]')
+						else:
+							t = random.sample([0,1,2,3,4], 3)
+							self.spalone.append(gr.reka[t[0]])
+							self.spalone.append(gr.reka[t[1]])
+							self.spalone.append(gr.reka[t[2]])
 
+							o = sorted(t)
+							del gr.reka[o[-1]]
+							del gr.reka[o[-2]]
+							del gr.reka[o[0]]
 
-					##### zrob to inaczej poprzez random.sample!
-
-
-				# 			a = random.randint(0,4)
-				# 			b = random.randint(0,4)
-				# 			c = random.randint(0,4)
-				# 			cond = a != b and a!= c and b!=c
-				# 			while (not cond):
-				# 				a = random.randint(0,4)
-				# 				b = random.randint(0,4)
-				# 				c = random.randint(0,4)
-				# 				cond = a != b and a!= c and b!=c
-
-				# 			# print(a,b,c)
-
-
-							# t = random.sample([0,1,2,3,4], 3)
-				# 			self.spalone.append(gr.reka[t[0]])
-				# 			self.spalone.append(gr.reka[t[1]])
-				# 			self.spalone.append(gr.reka[t[2]])
-
-				# 			o = sorted(t)
-				# 			del gr.reka[o[-1]]
-				# 			del gr.reka[o[-2]]
-				# 			del gr.reka[o[0]]
-
-				# 			if len(self.karty.cards)<3:
-				# 				if not test:
-				# 					print('przetasowuje!')
-				# 				self.przetasuj()
-				# 			# gr.reka = [gr.reka[i] for i in range(5) if i not in [a,b,c]]
-				# 			tas = self.karty.deal(3)
-				# 			gr.reka.extend(tas)
-
-							
-				# 		trojka = 0
-				# 	else:
-				# 		self.spalone.extend(gr.reka[:-1])
-				# 		if len(self.karty.cards)<5:
-				# 			if not test:
-				# 				print('przetasowuje!')
-				# 			self.przetasuj()
-				# 		gr.reka = [gr.reka[-1]]
-				# 		tas = self.karty.deal(4)
-				# 		gr.reka.extend(tas)
-				# 		trojka = 0
+							if len(self.karty.cards)<3:
+								if not test:
+									print('przetasowuje!')
+								self.przetasuj()
+							# gr.reka = [gr.reka[i] for i in range(5) if i not in [a,b,c]]
+							tas = self.karty.deal(3)
+							gr.reka.extend(tas)							
+							trojka = 0
+					else:
+						self.spalone.extend(gr.reka[:-1])
+						if len(self.karty.cards)<5:
+							if not test:
+								print('przetasowuje!')
+							self.przetasuj()
+						gr.reka = [gr.reka[-1]]
+						tas = self.karty.deal(4)
+						gr.reka.extend(tas)
+						trojka = 0
 
 
 
@@ -463,6 +443,9 @@ class rozgrywka:
 				# assert len(ruchy)>0
 				# print('\nruchy: {} kpik {}'.format(ruchy, kpik))
 
+				if kpik[1] in ruchy[kpik[0]]:
+					ruchy[kpik[0]].remove(kpik[1])
+
 				if len(ruchy[kpik[0]])==0:
 					if not test:
 						print('nie mam ruchu!!! KPIK')
@@ -470,8 +453,7 @@ class rozgrywka:
 					last_card = karta(1,'5')
 					kolej = odwrot(kolej)
 					continue
-				if kpik[1] in ruchy[kpik[0]]:
-					ruchy[kpik[0]].remove(kpik[1])
+
 
 			# warunki dla krola kier
 			if last_card.ran=='K' and last_card.kol == 2:
@@ -722,7 +704,7 @@ class rozgrywka:
 		assert len(do_tasu) > 3
 		out = talia(do_tasu)
 		
-		assert len(out.cards) < 94 
+		assert len(out.cards) < 100
 		assert len(out.cards) > 3
 		self.spalone = []
 		out.tasuj()
