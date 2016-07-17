@@ -229,9 +229,13 @@ class board:
 				# rand = random.randint(0,1)
 
 
+
 		self.mapdict = {'A1': 21,'A2': 31,'A3': 41,'A4': 51,'A5': 61,'A6': 71,'A7': 81,'A8': 91,'B1': 22,'B2': 32,'B3': 42,'B4': 52,'B5': 62,'B6': 72,'B7': 82,'B8': 92,'C1': 23,'C2': 33,'C3': 43,'C4': 53,'C5': 63,'C6': 73,'C7': 83,'C8': 93,'D1': 24,'D2': 34,'D3': 44,'D4': 54,'D5': 64,'D6': 74,'D7': 84,'D8': 94,'E1': 25,'E2': 35,'E3': 45,'E4': 55,'E5': 65,'E6': 75,'E7': 85,'E8': 95,'F1': 26,'F2': 36,'F3': 46,'F4': 56,'F5': 66,'F6': 76,'F7': 86,'F8': 96,'G1': 27,'G2': 37,'G3': 47,'G4': 57,'G5': 67,'G6': 77,'G7': 87,'G8': 97,'H1': 28,'H2': 38,'H3': 48,'H4': 58,'H5': 68,'H6': 78,'H7': 88, 'H8': 98}
 		self.bicie = False
 		self.zbite = []
+		self.enpass = 300
+		self.stanpocz = self.repdict()
+
 
 	def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
 		self.bicie = False
@@ -242,6 +246,47 @@ class board:
 			res = [key for (key,val) in self.mapdict.items() if val in self.brd[a].dozwolony(karta,self.brd)]
 			return 'Gdzie chcesz się ruszyć?\nMożliwe pola: {}'.format(res)
 		b = self.mapdict[d]
+		# en passant
+
+		#najpierw sprawdzam czy jest bicie w przelocie
+		if self.brd[a].name == 'pionek' and self.enpass == b:
+			if only_bool:
+					return True
+			assert self.is_empty(b)
+			self.bicie = True
+			if self.brd[a].kolor == 'b':
+				self.zbite.append(self.brd[b-10])
+			else:
+				self.zbite.append(self.brd[b+10])
+			self.brd[b] = self.brd[a]
+			self.brd[b].pozycja = b
+			self.brd[b].ruszony = True
+			self.brd[a] = ' '
+			return True
+		# potem ustawiam	
+		if self.brd[a].name == 'pionek'and self.brd[a].ruszony==False and abs(a-b)==20:
+			self.enpass = (a+b)/2
+		else:
+			self.enpass = 300
+		#checking for castle
+		if (karta.ran != 'K' or karta.kol not in (3,4)) and self.brd[a].name == 'krol' and abs(b-a)==2:
+			if only_bool:
+				return True
+			# determining rook position
+			rook_pos = (b-1,b+1) if b<a else (b+1,b-1)
+			# moving the king
+			self.brd[b] = self.brd[a]
+			self.brd[b].pozycja = b
+			self.brd[b].ruszony = True
+			self.brd[a] = ' '
+			# moving the rook
+			self.brd[rook_pos[1]] = self.brd[rook_pos[0]]
+			self.brd[rook_pos[1]].pozycja = rook_pos[1]
+			self.brd[rook_pos[1]].ruszony = True
+			self.brd[rook_pos[0]] = ' '
+			return True
+
+		# checking for Queen card and valid Queen move
 		if karta.ran == 'Q' and self.brd[a].name == 'dama' and jaki_typ_zostal(self, self.brd[a].kolor) != {'krol', 'dama'}:
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
@@ -285,7 +330,7 @@ class board:
 					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse'] ), end=' | {}\n'.format(r))
 				
 		print('-----------------')
-		return '{} {} {} {} {} {} {} {}'.format('A','B', 'C', 'D', 'E','F','G','H')
+		return ' {} {} {} {} {} {} {} {}'.format('A','B', 'C', 'D', 'E','F','G','H')
 
 	def is_empty(self, i):
 		return self.brd[i]==' '
@@ -298,6 +343,9 @@ class board:
 
 	def pozycja_bierki(self, naz, kol):
 		return [i for i in self.all_taken() if self.brd[i].name==naz and self.brd[i].kolor==kol]
+
+	def repdict(self):
+		return { p : self.brd[p] for p in range(21,89) }
 
 	def swap(self, a, b):
 		tym = self.brd[b]
@@ -312,10 +360,10 @@ class board:
 		for k in ('c','b'):
 			poz_k = self.pozycja_bierki('krol', k)
 
-			if len(poz_k) != 1:
-				print(self)
+			# if len(poz_k) != 1:
+			# 	print('\n{}'.format(self))
 				
-			assert len(poz_k) == 1
+			# assert len(poz_k) == 1
 
 			if pod_biciem(poz_k[0],self,k):
 				res.append((True, k))
@@ -329,6 +377,34 @@ class board:
 			# 		return (True, k)
 		return False
 
+	def check_castle(self, kol):
+		k = self.pozycja_bierki('krol', kol)[0]
+		w = self.pozycja_bierki('wieza', kol)
+		d = {'if': 0, 'lng': 0, 'shrt': 0}
+		if self.brd[k].ruszony == True or len(w)==0 or self.czy_szach()==(True, kol):	
+			return d
+		cntr = 0
+		for r in w:
+			if self.brd[r].ruszony == True:
+				continue
+			if r<k:
+				where = [i for i in range(r+1, k)]
+			else:
+				where = [i for i in range(k+1, r)]
+			c = 0
+			for pos in where:
+				if self.is_empty(pos)==0 or pod_biciem(pos,self,kol):
+					break
+				else:
+					c+=1
+			if c == len(where):
+				cntr+=1
+				if r<k:
+					d['lng']=r+1
+				else:
+					d['shrt']=r-1
+		d['if']=cntr
+		return d
 
 
 
@@ -377,7 +453,7 @@ class pionek:
 			a = (-9, -11)
 
 		for i in a:
-			if plansza.brd[self.pozycja+i]!=0 and plansza.brd[self.pozycja+i]!=' ' and plansza.brd[self.pozycja+i].kolor!=self.kolor:
+			if (plansza.brd[self.pozycja+i]!=0 and plansza.brd[self.pozycja+i]!=' ' and plansza.brd[self.pozycja+i].kolor!=self.kolor) or plansza.enpass==self.pozycja+i:
 				# print('bicie pionka', self.pozycja, i)
 				dop.append(abs(i))
 
@@ -612,11 +688,16 @@ class krol:
 		res2 = deepcopy(res)
 		plansza.brd[self.pozycja] = ' '
 		for r in res2:
-			# print(r)
 			if pod_biciem(r, plansza, self.kolor):
-				# print(r)
 				res.remove(r)
 		plansza.brd[self.pozycja] = self
+
+		# checking for castle / cannot castle on a special king card
+		cstl = plansza.check_castle(self.kolor)
+		if cstl['if']>0 and (karta.ran != 'K' or karta.kol not in (3,4)):
+			res.extend([i for i in cstl.values() if i > 10])
+
+
 		return res
 	def __str__(self):
 		if self.kolor=='b':

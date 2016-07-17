@@ -458,20 +458,20 @@ class rozgrywka:
 			# warunki dla krola pik
 			if last_card.ran=='K' and last_card.kol == 1:
 				ruchy = {k:v for (k,v) in ruchy.items() if k==kpik[0]}
-				if len(ruchy)==0:
-					print('kpik: {}'.format(kpik))
-				assert len(ruchy)>0
+				# if len(ruchy)==0:
+				# 	print('\nkpik: {}'.format(kpik))
+				# assert len(ruchy)>0
 				# print('\nruchy: {} kpik {}'.format(ruchy, kpik))
-				if kpik[1] in ruchy[kpik[0]]:
-					ruchy[kpik[0]].remove(kpik[1])
-				if len(ruchy[kpik[0]])==0:
 
+				if len(ruchy[kpik[0]])==0:
 					if not test:
 						print('nie mam ruchu!!! KPIK')
 					self.historia.append([gr, 'ominięta'])
 					last_card = karta(1,'5')
 					kolej = odwrot(kolej)
 					continue
+				if kpik[1] in ruchy[kpik[0]]:
+					ruchy[kpik[0]].remove(kpik[1])
 
 			# warunki dla krola kier
 			if last_card.ran=='K' and last_card.kol == 2:
@@ -557,8 +557,10 @@ class rozgrywka:
 						self.pat = True
 						return 'koniec'
 				random_ruch = random.choice(list(ruchy.keys()))
-
-				random_nr = random.randint(0,len(ruchy[random_ruch])-1)
+				try:
+					random_nr = random.randint(0,len(ruchy[random_ruch])-1)
+				except ValueError as e:
+					print('ruchy {}'.format(ruchy))
 				z = [random_ruch, ruchy[random_ruch][random_nr]]
 				if not test:
 					print('ruch: {}'.format(z))
@@ -745,7 +747,11 @@ class rozgrywka:
 # robię, że nie
 # może się wydarzyć taka sytuacja: czarne szachują białe. biały król ucieka. czarne zagrywają króla pik. (co w efekcie połowicznie realizuje króla pik - cofa rozgrywkę, ale zaraz karta już przestaje działać bo jest szach ) biały król zagrywa króla pik. -> system się jebie
 
+
 # może być też tak, że król się gracz się sam wpierdoli w pata. Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król, który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję? Samopodpierdolenie na remis?
 # roboczo - tak 
+
+# co jesli chce zagrać roszadę na królu trefl?
+# wprowadzam rozwiazanie ze roszady nie można zrobić na królu..
 
 
