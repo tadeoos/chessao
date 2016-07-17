@@ -90,16 +90,7 @@ class karta:
 			return 'zła wartość koloru'
 
 	def __repr__(self):
-		if self.kol == 1:
-			return self.ran+'♤'
-		elif self.kol == 2:
-			return self.ran+'♡'
-		elif self.kol == 3:
-			return self.ran+'♢'
-		elif self.kol == 4:
-			return self.ran+'♧'
-		else:
-			return 'zła wartość koloru'
+		return str(self)
 
 class talia:
 	def __init__(self, lista_kart=[]):
@@ -110,23 +101,12 @@ class talia:
 		else:
 			self.cards = lista_kart
 	def deal(self, n=1):
-		res = []
-		for i in range(n):
-			res.append(self.cards.pop())
-		return res
+		return [self.cards.pop() for i in range(n)]
 	def combine(self, karty):
 		self.cards.extend(karty)
 	def __str__(self):
 		return str(self.cards)
 	def tasuj(self):
-		# l=0
-		# first = self.cards[0]
-		# while(l!=1):
-		# 	last = self.cards.pop()
-		# 	rnd = random.randint(0,len(self.cards)-1)
-		# 	self.cards.insert(rnd, last)
-		# 	if last==first:
-		# 		l=1
 		random.shuffle(self.cards)
 
 
@@ -266,10 +246,8 @@ class board:
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
-				# print('Dozwolone ruchy tej Damki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
 				self.swap(a,b)
 				self.brd[b].ruszony = True
-				
 				return True
 		else:	
 			if b in self.brd[a].dozwolony(karta,self):
@@ -278,14 +256,11 @@ class board:
 				if self.is_empty(b)==0:
 					self.bicie = True
 					self.zbite.append(self.brd[b])
-				# print('Dozwolone ruchy tej bierki.. \n {}'.format(self.brd[a].dozwolony(karta,self)))
 				self.brd[b] = self.brd[a]
 				self.brd[b].pozycja = b
 				self.brd[b].ruszony = True
 				self.brd[a] = ' '
 				return True
-		# else:
-			# print('ruch nie jest dozwolony')
 		return False
 
 	def __str__(self):

@@ -54,6 +54,7 @@ def odejmij(a,b):
 		out.extend(b)
 		return out
 	else:
+		assert len(out)==5
 		return out
 
 
@@ -114,7 +115,6 @@ class rozgrywka:
 		self.karty = talia()
 		self.karty.combine(talia().cards)
 		self.karty.tasuj()
-		self.karty.tasuj()
 		tpr = rozd(self.karty)
 		self.gracze = (gracz(1,'b',tpr[0]), gracz(2,'c',tpr[1]))
 		self.karty = tpr[2]
@@ -147,7 +147,7 @@ class rozgrywka:
 		czworka = False
 		ok_zbicie = True
 		kpik = []
-		kkier = ['as']
+		kkier = []
 		gr = self.get_gracz('c')
 ###########
 		###  ROZGRYWKA
@@ -156,7 +156,7 @@ class rozgrywka:
 		while(not self.mat and not self.pat):
 			licznik += 1
 			if licznik > 1500:
-				print('1500 ruchów')
+				print('\n1500 ruchów')
 				return 'too_long'
 			# if rnd:
 				# print ("\rRuchów: ", licznik, end="")
@@ -260,9 +260,10 @@ class rozgrywka:
 				licz = 0
 				while(war1 or war2 or war3 or war4 or war5):
 					licz += 1
-					if licz > 1000:
-						print('oo, cieżko wybrać kartę')
+					if licz > 400:
+						print('\noo, cieżko wybrać kartę')
 						print(gr.reka)
+						print('szach = {}'.format(self.szach))
 						return None
 					if rnd:
 						rando = random.randint(0,4)
@@ -385,6 +386,11 @@ class rozgrywka:
 				# 		if not rnd:
 				# 			trj = input('Których kart chcesz się pozbyć? [podaj miejsca np. 1 2 4]')
 				# 		else:
+
+
+					##### zrob to inaczej poprzez random.sample!
+
+
 				# 			a = random.randint(0,4)
 				# 			b = random.randint(0,4)
 				# 			c = random.randint(0,4)
@@ -396,11 +402,14 @@ class rozgrywka:
 				# 				cond = a != b and a!= c and b!=c
 
 				# 			# print(a,b,c)
-				# 			self.spalone.append(gr.reka[a])
-				# 			self.spalone.append(gr.reka[b])
-				# 			self.spalone.append(gr.reka[c])
 
-				# 			o = sorted([a,b,c])
+
+							# t = random.sample([0,1,2,3,4], 3)
+				# 			self.spalone.append(gr.reka[t[0]])
+				# 			self.spalone.append(gr.reka[t[1]])
+				# 			self.spalone.append(gr.reka[t[2]])
+
+				# 			o = sorted(t)
 				# 			del gr.reka[o[-1]]
 				# 			del gr.reka[o[-2]]
 				# 			del gr.reka[o[0]]
