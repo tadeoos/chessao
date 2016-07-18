@@ -712,6 +712,10 @@ class rozgrywka:
 		# assert 
 		a = self.plansza.mapdict[ruch[0]]
 		b = self.plansza.mapdict[ruch[1]]
+
+		# tu niweluje enpassant jeśli było, ale problem jak cofnąć ruszoność, jeśli była pierwsza. 
+		self.plansza.enpass = 300
+		
 		if self.zamiana:
 			self.plansza.brd[b] = pionek(kolor,b)
 		if self.plansza.bicie:
@@ -721,6 +725,7 @@ class rozgrywka:
 			self.plansza.swap(a,b)
 		else:
 			self.plansza.swap(a,b)
+		assert not self.plansza.is_empty(a) or not self.plansza.is_empty(b)
 
 	def przetasuj(self):
 		kup_1=self.kupki[0][-1]
