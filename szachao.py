@@ -256,8 +256,10 @@ class board:
 			self.bicie = True
 			if self.brd[a].kolor == 'b':
 				self.zbite.append(self.brd[b-10])
+				self.brd[b-10] = ' '
 			else:
 				self.zbite.append(self.brd[b+10])
+				self.brd[b+10] = ' '				
 			self.brd[b] = self.brd[a]
 			self.brd[b].pozycja = b
 			self.brd[b].ruszony = True

@@ -737,3 +737,4 @@ class rozgrywka:
 # wprowadzam rozwiazanie ze roszady nie można zrobić na królu..
 
 
+# rozgrywka zawsze zaczyna się od białych więc nie można konynuować...

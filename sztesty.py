@@ -3,7 +3,7 @@ import traceback
 
 
 print('-----------------')
-print('SZACHAO TESTY')
+print('SZACHAO TESTING')
 
 li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '7'),karta(1, '8')],
@@ -14,7 +14,7 @@ li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '8'),karta(1, '9')]
 ]
 
-def test(n, rnd = True, test = True):
+def test(n=5, rnd = True, test = True):
 	t1 = time.time()
 	print('n: {}'.format(n))
 	avr_moves = 0
@@ -24,7 +24,7 @@ def test(n, rnd = True, test = True):
 	bad = []
 	licznik = 0
 	for i in range(n):
-		print ("\rPostęp: {:.0f}%".format((licznik/n)*100), end="")
+		print ("\rCALCULATING: {:.1f}%".format((licznik/n)*100), end="")
 		licznik+=1
 		if licznik%2==0:
 			randa = 0
@@ -56,18 +56,20 @@ def test(n, rnd = True, test = True):
 			p += 1
 		else:
 			err += 1
-	print ("\rPostęp: {:.1f}%".format((licznik/n)*100))		
-	print('\nMatów: {}, Patów: {}, Błędów: {} Średnia ilość ruchów: {:.0f}'.format(m,p,err, avr_moves/n))
+	print('\r'+' '*20, end='')
+	print ("\rDONE: {:.0f}%".format((licznik/n)*100))		
+	print('Matów: {}, Patów: {}, Błędów: {} Średnia ilość ruchów: {:.0f}'.format(m,p,err, avr_moves/n))
 	t2 = time.time()
-	print('czas: {:.2f} min'.format((t2-t1)/60))
+	print('TIME: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-bad = test(10, True, True)
+bad = test(12, True, True)
 
 
 
 
 def test_err():
+	print('Testing -- test_err()')
 	roz = rozgrywka()
 	
 	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
@@ -80,10 +82,14 @@ def test_err():
 	print('po pierwszej')
 	while (a == 'koniec' and licznik<100):
 		licznik += 1
+		if licznik%2==0:
+			randa = 0
+		else:
+			randa = 1
 		print ("\rPostęp: {:.0f}%".format(licznik), end="")
-		roz = rozgrywka()
+		roz = rozgrywka(randa)
 		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
-			roz = rozgrywka()
+			roz = rozgrywka(randa)
 		a = roz.graj(rnd=1, test=1)
 
 # test_err()
