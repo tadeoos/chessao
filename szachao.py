@@ -9,7 +9,26 @@ def odwrot(a):
 	else:
 		return 'b'
 
+def get_fen_rep(piece):
+	if piece.kolor=='b':
+		return piece.name[0].upper()
+	else:
+		return piece.name[0].lower()
 
+def fen_row(row):
+	res = ''
+	empty_counter = 0
+	for i in row:
+		if i==' ':
+			empty_counter += 1
+		elif empty_counter==0:
+			res += get_fen_rep(i)
+		else:
+			res += str(empty_counter)+get_fen_rep(i)
+			empty_counter = 0
+	if empty_counter > 0:
+		res += str(empty_counter)
+	return res
 
 def pod_biciem(pole, plansza, kolor):
 	for i in (1,-1,10,-10,9,11,-9,-11):
@@ -235,6 +254,8 @@ class board:
 		self.zbite = []
 		self.enpass = 300
 		self.stanpocz = self.repdict()
+		self.fullmove = 0
+		self.halfmoveclock = 0
 
 
 	def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
@@ -264,6 +285,9 @@ class board:
 			self.brd[b].pozycja = b
 			self.brd[b].ruszony = True
 			self.brd[a] = ' '
+			self.halfmoveclock = 0
+			if self.brd[b].kolor == 'c':
+				self.fullmove += 1
 			return True
 		# potem ustawiam	
 		if self.brd[a].name == 'pionek'and self.brd[a].ruszony==False and abs(a-b)==20:
@@ -286,6 +310,9 @@ class board:
 			self.brd[rook_pos[1]].pozycja = rook_pos[1]
 			self.brd[rook_pos[1]].ruszony = True
 			self.brd[rook_pos[0]] = ' '
+			self.halfmoveclock += 1
+			if self.brd[b].kolor == 'c':
+				self.fullmove += 1
 			return True
 
 		# checking for Queen card and valid Queen move
@@ -295,18 +322,29 @@ class board:
 					return True
 				self.swap(a,b)
 				self.brd[b].ruszony = True
+				self.halfmoveclock += 1
+				if self.brd[b].kolor == 'c':
+					self.fullmove += 1
 				return True
-		else:	
+		else:
+		# default move
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
+				if self.brd[a].name == 'pionek':
+					self.halfmoveclock = 0
+				else:
+					self.halfmoveclock += 1
 				if self.is_empty(b)==0:
 					self.bicie = True
+					self.halfmoveclock = 0
 					self.zbite.append(self.brd[b])
 				self.brd[b] = self.brd[a]
 				self.brd[b].pozycja = b
 				self.brd[b].ruszony = True
 				self.brd[a] = ' '
+				if self.brd[b].kolor == 'c':
+					self.fullmove += 1
 				return True
 		return False
 
@@ -408,8 +446,36 @@ class board:
 		d['if']=cntr
 		return d
 
+	def fen(self):
+		res = ''
+		for i in range(2,10):
+			start = i*10 + 1
+			end = start + 8
+			row = self.brd[start:end]
+			res += fen_row(row)+'/'
+		wc = self.fen_castle('b')
+		bc = self.fen_castle('c').lower()
+		jc = wc+bc
+		c = '-' if jc == '--' else jc
+		enp = '-' if self.enpass not in self.mapdict.values() else [k for (k,v) in self.mapdict.items() if v == self.enpass][0]
+
+		return [res[:-1], c, enp, self.halfmoveclock, self.fullmove]
 
 
+	def fen_castle(self, kol):
+		res = ''
+		k = self.pozycja_bierki('krol', kol)[0]
+		w = self.pozycja_bierki('wieza', kol)
+		w.sort()
+		if self.brd[k].ruszony:
+			return '-'
+		if self.brd[w[1]].ruszony == False:
+			res += 'K'
+		if self.brd[w[0]].ruszony == False:
+			res += 'Q'
+		if len(res)==0:
+			res = '-'
+		return res
 
 #######
 ######## SZACHY
