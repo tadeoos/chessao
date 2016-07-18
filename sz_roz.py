@@ -124,6 +124,7 @@ class rozgrywka:
 		self.pat = False
 		self.spalone = []
 		self.historia = []
+		self.dicthist = [self.plansza.repdict()]
 		self.zamiana = False
 
 		# self.blotki = (5,6,7,8,9,10)
@@ -149,6 +150,8 @@ class rozgrywka:
 		kpik = []
 		kkier = []
 		gr = self.get_gracz('c')
+
+		# hist_dict = {'gracz':gr,'szach':self.czy_szach(odwrot(kolej)),'last card':last_card,'now card': now_card, 'last_move': last_move, 'walet': walet, 'trojka': trojka, 'czworka': czworka, 'ok_zbicie': ok_zbicie, 'kpik':kpik, 'kkier':kkier, 'spalona': spalona, 'ominięta': False}
 ###########
 		###  ROZGRYWKA
 
@@ -324,11 +327,12 @@ class rozgrywka:
 
 				# if len(self.karty.cards)<len(kar):
 				# 		pass #przetasowanie talii
-
+				hist_dict = {'gracz':gr,'szach':self.czy_szach(odwrot(kolej)),'last card':last_card,'now card': now_card, 'move': last_move, 'walet': walet, 'trojka': trojka, 'czworka': czworka, 'ok_zbicie': ok_zbicie, 'kpik':kpik, 'kkier':kkier, 'spalona': spalona, 'ominięta': False}
 				if not spalona:
 					# AS
 					if kar[-1].ran == 'A':
 						self.historia.append([gr]+kar+last_move)
+						self.dicthist.append(hist_dict)
 						for g in self.gracze:
 							g.kol = odwrot(g.kol)
 						last_card = kar[-1]
@@ -338,6 +342,7 @@ class rozgrywka:
 						assert licznik > 2
 						kpik = self.historia[-1][-2:]
 						self.historia.append([gr]+kar)
+						self.dicthist.append(hist_dict)
 						last_card = kar[-1]
 						self.cofnij(odwrot(kolej))
 						kolej = odwrot(kolej)
@@ -350,7 +355,8 @@ class rozgrywka:
 						try:
 							type(kkier)==str
 						except Exception as e:
-							print('kkier: {}, karta: {}'.format(kkier, now_card))
+							print('\nkkier: {}, karta: {}'.format(kkier, now_card))
+							print(e)
 						assert type(kkier)==str
 
 					# WALET
@@ -450,6 +456,8 @@ class rozgrywka:
 					if not test:
 						print('nie mam ruchu!!! KPIK')
 					self.historia.append([gr, 'ominięta'])
+					hist_dict['ominięta']=True
+					self.dicthist.append(hist_dict)
 					last_card = karta(1,'5')
 					kolej = odwrot(kolej)
 					continue
@@ -466,6 +474,8 @@ class rozgrywka:
 					if not test:
 						print('bierka zbita, tracisz kolejke, KKIER')
 					self.historia.append([gr, 'ominięta']+kar)
+					hist_dict['ominięta']=True
+					self.dicthist.append(hist_dict)
 					last_card = now_card
 					kolej = odwrot(kolej)
 					continue
@@ -475,6 +485,8 @@ class rozgrywka:
 					if not test:
 						print('nie mam ruchu!!! KKIER')
 					self.historia.append([gr, 'ominięta']+kar)
+					hist_dict['ominięta']=True
+					self.dicthist.append(hist_dict)
 					last_card = now_card
 					kolej = odwrot(kolej)
 					continue
@@ -491,10 +503,15 @@ class rozgrywka:
 						print('nie możesz się ruszyć, tracisz kolejke, WALET')
 
 					if spalona:
-						self.historia.append([gr, 'ominięta', 'spalona']+kar)
+						self.historia.append([gr, 'ominięta', 'spalona']+
+							kar)
+						hist_dict['ominięta']=True
+						self.dicthist.append(hist_dict)
 						last_card = karta(1, '5')
 					else:
 						self.historia.append([gr, 'ominięta']+kar)
+						hist_dict['ominięta']=True
+						self.dicthist.append(hist_dict)
 						last_card = now_card						
 
 					kolej = odwrot(kolej)
@@ -512,9 +529,13 @@ class rozgrywka:
 
 				if spalona:
 					self.historia.append([gr, 'ominięta', 'spalona']+kar)
+					hist_dict['ominięta']=True
+					self.dicthist.append(hist_dict)
 					last_card = karta(1, '5')
 				else:
 					self.historia.append([gr, 'ominięta']+kar)
+					hist_dict['ominięta']=True
+					self.dicthist.append(hist_dict)
 					last_card = now_card	
 
 				kolej = odwrot(kolej)
@@ -624,9 +645,13 @@ class rozgrywka:
 
 				if spalona:
 					self.historia.append([gr,'spalona']+[now_card]+z)
+					hist_dict['last_move']=z
+					self.dicthist.append(hist_dict)
 					last_card = karta(1,'5')
 				else:
 					self.historia.append([gr]+[now_card]+z)
+					hist_dict['last_move']=z
+					self.dicthist.append(hist_dict)
 					last_card = now_card
 				
 				last_move = z

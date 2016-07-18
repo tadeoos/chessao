@@ -42,6 +42,7 @@ def test(n=5, rnd = True, test = True):
 			print('\n ERROR')
 			print(roz)
 			print(roz.historia[-10:])
+			print(roz.dicthist)
 			print('spalone {}'.format(roz.spalone[-4:]))
 			traceback.print_exc()
 			bad.append((e,roz))
