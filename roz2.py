@@ -200,7 +200,7 @@ class rozgrywka:
 			tas = self.karty.deal(len(kar))
 			player.reka.extend(tas)
 
-	def play(self, rnd = False, test=False):
+	def graj(self, rnd = False, test=False):
 		while not self.mat or not self.pat:
 			self.get_card()
 			m = self.get_move()
@@ -209,7 +209,11 @@ class rozgrywka:
 		return True
 
 	def get_card(self):
+		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
+
 		player = self.get_gracz(self.to_move)
+
+
 		card = player.choose_card()
 		self.burned = card[0]
 		self.do_card_buisness(card[1])
@@ -219,18 +223,18 @@ class rozgrywka:
 		if self.now_card.ran == '4' and not self.burned:
 			self.capture = False
 
+
 	def get_move(self):
 		player = self.get_gracz(self.to_move)
 		# after ace or king of spikes there is no move
 		if not self.burned and (self.now_card.ran=='A' or (self.now_card.ran=='K' and self.now_card.kol==1)):
+
 			return []
 
 		w = self.what_happened()
-		#checking if the turn is lost
-		
-		
 
-		all_moves = ?
+		if w == 0:
+			all_moves = all_ruchy(self.plansza, self.to_move, self.capture, self.now_card, self.burned)
 
 		move = player.choose_move(all_moves)
 
@@ -247,6 +251,8 @@ class rozgrywka:
 				self.mat = True
 			elif self.czy_pat(self.to_move):
 				self.pat = True
+
+
 			#udpating history
 			record = '{color} {car}'.format(color=odwrot(self.to_move), car=card)
 			self.historia.append(record)
@@ -287,7 +293,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burned}{car} {piece}{from}:{to}{check}{mate}'.format(color=odwrot(self.to_move), burned = '!' if self.burned else '', car=card, piece = get_fen_rep(self.plansza.get_piece(where[1])), from = where[0], to = where[1], check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burned}{car} {piece}{from}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burned = '!' if self.burned else '', car=card, piece = get_fen_rep(self.plansza.get_piece(where[1])), from = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
@@ -361,20 +367,22 @@ class rozgrywka:
 	# this function is parsing the history to make sense of the situation. returns ints that code a situation.
 	# 1 = turn loosing, 2 - king of spades, 3 - king of hearts, 4 - jack
 		s = self.historia[-1]
+		s2 = self.historia[-2]
+		ind = s2.index(':')
 		what = s[2]
 		# if the card was burned or there is a check, last card doesn't matter
 		if what == '!' or self.szach:
-			return 0
+			return (0)
 		elif what == '4' and self.now_card.ran != '4':
-			return 1
+			return (1)
 		elif what == 'K' and s[3] == '♤':
-			return 2
+			return (2, [s2[i:][-2:],s2[i+1:][:2]])
 		elif what == 'K' and s[3] == '♡':
-			return 3
+			return (3, s2[i+1:][:2])
 		elif what == 'J' and self.now_card.ran != 'J':
-			return 4
+			return (4, self.jack)
 		else:
-			return 0
+			return (0)
 
 #### bugi
 

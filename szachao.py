@@ -140,24 +140,25 @@ def jaki_typ_zostal(plansza, kolor):
 	return res
 
 
-def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5')):
-	assert type(okzbi)==bool
+def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, flag = 0):
+	if burned:
+		kar = karta(1,'5')
+
 	d = {v:k for (k,v) in plansza.mapdict.items()}
+	
 	if kolor==2:
 		a = plansza.all_taken()
+	
 	elif kar.ran=='Q' and len(plansza.pozycja_bierki('dama',kolor))>0:
 		if jaki_typ_zostal(plansza, kolor) != {'krol', 'dama'}:
 			a = plansza.pozycja_bierki('dama',kolor)
 		else:
 			kar = karta(1, '5')
 			a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
-	# elif kar.ran=='K' and kar.kol==1:
-		# a = 
-		# pass
 	else:
 		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
 
-		# print('a: {}\nd: {}'.format(a, d.items()))
+
 	res = {}
 	for i in a:
 		skad = d[i]
@@ -168,12 +169,6 @@ def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5')):
 
 		if len(gdzie)>0:
 			res[skad]=gdzie
-		# print(skad)
-		# print(gdzie)
-	# print(res.items())
-	# if len(res) == 0:
-	# 	print('\nkarta: {}, okzbi = {} a: {}'.format(kar, okzbi, a))
-	# assert len(res) > 0
 	return res
 
 
