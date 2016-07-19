@@ -280,6 +280,7 @@ class rozgrywka:
 						if a == 'E':
 							return 'exit';
 						kar = rozpakuj_input(a)
+
 					war1 = self.szach and (kar[-1].ran=='Q' or kar[-1].ran=='A')
 					war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
 					war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
@@ -600,7 +601,7 @@ class rozgrywka:
 				assert z[0] == kkier
 
 			if last_card.ran=='J' and now_card.ran != 'J' and not spalona:
-				self.plansza.brd[self.plansza.mapdict[z[0]]].name==walet
+				assert self.plansza.brd[self.plansza.mapdict[z[0]]].name==walet
 			
 			## CZYSZCZENIA
 			# czyszczenie waleta, może nie warto?

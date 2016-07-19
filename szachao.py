@@ -289,7 +289,7 @@ class board:
 			if self.brd[b].kolor == 'c':
 				self.fullmove += 1
 			return True
-		# potem ustawiam	
+		# potem ustawiam enpassant
 		if self.brd[a].name == 'pionek'and self.brd[a].ruszony==False and abs(a-b)==20:
 			self.enpass = (a+b)/2
 		else:
@@ -346,6 +346,7 @@ class board:
 				if self.brd[b].kolor == 'c':
 					self.fullmove += 1
 				return True
+		print('\n !!! ERROR W BOARD.RUSZ DOSTAŁEM ZŁY INPUT!!!!')
 		return False
 
 	def __str__(self):
@@ -383,6 +384,9 @@ class board:
 
 	def pozycja_bierki(self, naz, kol):
 		return [i for i in self.all_taken() if self.brd[i].name==naz and self.brd[i].kolor==kol]
+
+	def get_piece(self, pos):
+		return self.brd[self.mapdict[pos]]
 
 	def repdict(self):
 		return { p : self.brd[p] for p in range(21,89) }
