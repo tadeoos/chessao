@@ -1,4 +1,4 @@
-from sz_roz import *
+from roz2 import *
 import traceback
 
 

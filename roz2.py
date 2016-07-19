@@ -1,6 +1,7 @@
 from szachao import *
 import random
 import time
+import re
 
 def rozd(tal):
 	a=[]
@@ -12,6 +13,24 @@ def rozd(tal):
 
 def karta_z_str(s):
 	return karta(int(s[-1]), s[:-1])
+
+def decode_card_color(s):
+	if s == '♤':
+		return 1 
+	elif s == '♡':
+		return 2
+	elif s == '♢':
+		return 3
+	elif s == '♧':
+		return 4
+	else:
+		raise ValueError
+
+def decode_card(s):
+	b = 1 if s[0]=='!' else 0
+	col = decode_card_color(s[-1])
+	rank = s[:-1] if b == 0 else s[1:-1]
+	return (b, karta(col, rank))
 
 def nawaleta(c):
 	if c == 'p':
@@ -111,10 +130,12 @@ class gracz:
 		self.name = name
 		self.bot = bot
 
-	def choose_card(self):
+	def choose_card(self, talie):
 		if self.bot:
 			burn = random.randint(0,1)
 			card = random.choice(self.reka)
+			if not ok_karta([card], talie):
+				burn = 1
 			if not burn and card.ran=='J':
 				choice = random.choice(['p', 'w', 's', 'g', 'd'])
 				return (burn, [card], nawaleta(choice))
@@ -201,7 +222,7 @@ class rozgrywka:
 			player.reka.extend(tas)
 
 	def graj(self, rnd = False, test=False):
-		while not self.mat or not self.pat:
+		while not self.mat and not self.pat:
 			self.get_card()
 			m = self.get_move()
 			self.move(self.now_card, m)
@@ -209,34 +230,38 @@ class rozgrywka:
 		return True
 
 	def get_card(self):
-		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
-
 		player = self.get_gracz(self.to_move)
-
-
-		card = player.choose_card()
+		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
+		w  = self.what_happened()
+		if w[0]==2:
+			self.cofnij(self.to_move, w[1])
+			card = [w[2]]
+			# tu jeszcze jest kłopot co z waletem
+		else:
+			card = player.choose_card(self.kupki)
 		self.burned = card[0]
 		self.do_card_buisness(card[1])
 		self.now_card = card[1][0]
 		if len(card)==3:
 			self.jack = card[2]
+			assert self.jack in jaki_typ_zostal(self.plansza, odwrot(self.to_move))
 		if self.now_card.ran == '4' and not self.burned:
 			self.capture = False
 
 
 	def get_move(self):
+		self.zamiana = False	
 		player = self.get_gracz(self.to_move)
 		# after ace or king of spikes there is no move
 		if not self.burned and (self.now_card.ran=='A' or (self.now_card.ran=='K' and self.now_card.kol==1)):
-
 			return []
 
 		w = self.what_happened()
-
-		if w == 0:
-			all_moves = all_ruchy(self.plansza, self.to_move, self.capture, self.now_card, self.burned)
-
+		all_moves = all_ruchy(self.plansza, self.to_move, self.capture, self.now_card, self.burned, w)
+		if len(all_moves)==0:
+			return []
 		move = player.choose_move(all_moves)
+		return move
 
 	def move(self, card, where):
 		player = self.get_gracz(self.to_move)
@@ -265,6 +290,7 @@ class rozgrywka:
 			self.plansza.rusz(where[0], where[1], card)
 
 		#checking if pawn is getting promoted
+		q = 'BŁĄD!!'
 		zam = czy_pion_na_koncu(self.plansza, self.to_move)
 		if zam>0:
 			self.zamiana = True	
@@ -293,7 +319,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burned}{car} {piece}{from}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burned = '!' if self.burned else '', car=card, piece = get_fen_rep(self.plansza.get_piece(where[1])), from = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car} {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
@@ -325,11 +351,11 @@ class rozgrywka:
 	def get_gracz(self, k):
 		return [g for g in self.gracze if g.kol == k][0]
 
-	def cofnij(self, kolor):
+	def cofnij(self, kolor, ruch):
 		assert len(self.historia)>1
-		assert self.historia[-1][-1]==karta(1,'K')
+		# assert self.historia[-1][-1]==karta(1,'K')
 		# tu problem w przypadku omijania kolejki
-		ruch = self.historia[-2][-2:]
+		# ruch = self.historia[-2][-2:]
 		# assert 
 		a = self.plansza.mapdict[ruch[0]]
 		b = self.plansza.mapdict[ruch[1]]
@@ -361,28 +387,34 @@ class rozgrywka:
 		out.combine(self.karty.cards)
 		self.karty = out
 		self.kupki=([kup_1], [kup_2])
-		assert len(self.karty)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)==104
+		assert len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)==104
 
 	def what_happened(self):
 	# this function is parsing the history to make sense of the situation. returns ints that code a situation.
 	# 1 = turn loosing, 2 - king of spades, 3 - king of hearts, 4 - jack
 		s = self.historia[-1]
-		s2 = self.historia[-2]
-		ind = s2.index(':')
+		s2 = self.historia[-2] if len(self.historia)>1 else ''
+		ind = s2.index(':') if ':' in s2 else None
 		what = s[2]
 		# if the card was burned or there is a check, last card doesn't matter
 		if what == '!' or self.szach:
-			return (0)
+			return (0,)
 		elif what == '4' and self.now_card.ran != '4':
-			return (1)
-		elif what == 'K' and s[3] == '♤':
-			return (2, [s2[i:][-2:],s2[i+1:][:2]])
-		elif what == 'K' and s[3] == '♡':
-			return (3, s2[i+1:][:2])
+			return (1,)
+		elif what == 'K' and s[3] == '♤' and ind != None:
+			r = re.search('\s(.+)\s',s2)
+			c = r.group(1)
+			return (2, [s2[ind:][-2:],s2[ind+1:][:2]], decode_card(c))
+		elif what == 'K' and s[3] == '♡' and ind != None:
+			if self.plansza.get_piece(s2[ind+1:][:2]).kolor!=self.to_move:
+				return (1,)
+			return (3, s2[ind+1:][:2])
 		elif what == 'J' and self.now_card.ran != 'J':
+			if self.jack not in jaki_typ_zostal(self.plansza, self.to_move):
+				return (1,)
 			return (4, self.jack)
 		else:
-			return (0)
+			return (0,)
 
 #### bugi
 

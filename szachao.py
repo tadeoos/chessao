@@ -140,7 +140,7 @@ def jaki_typ_zostal(plansza, kolor):
 	return res
 
 
-def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, flag = 0):
+def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, flag = (0,)):
 	if burned:
 		kar = karta(1,'5')
 
@@ -149,12 +149,22 @@ def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, fl
 	if kolor==2:
 		a = plansza.all_taken()
 	
+	elif flag[0]==1:
+		return {}
+
 	elif kar.ran=='Q' and len(plansza.pozycja_bierki('dama',kolor))>0:
+		assert flag[0]==0 or flag[0]==3 or flag[0]==4
 		if jaki_typ_zostal(plansza, kolor) != {'krol', 'dama'}:
 			a = plansza.pozycja_bierki('dama',kolor)
 		else:
 			kar = karta(1, '5')
 			a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
+	elif flag[0]==2: # king of spades
+		a = [plansza.mapdict[flag[1][0]]]
+	elif flag[0]==3: # king of hearts
+		a = [plansza.mapdict[flag[1]]]
+	elif flag[0]==4:
+		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor and plansza.brd[i].name==flag[1]]
 	else:
 		a = [i for i in plansza.all_taken() if plansza.brd[i].kolor == kolor]
 
@@ -166,6 +176,9 @@ def all_ruchy(plansza, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, fl
 			gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol]
 		else:
 			gdzie = [d[a] for a in plansza.brd[i].dozwolony(kar, plansza) if type(plansza.brd[a])!=krol and (plansza.is_empty(a) or plansza.brd[a].kolor == kolor)]
+
+		if flag[0]==2:
+			gdzie.remove(flag[1][1])
 
 		if len(gdzie)>0:
 			res[skad]=gdzie
@@ -468,6 +481,9 @@ class board:
 		w.sort()
 		if self.brd[k].ruszony:
 			return '-'
+		# just temporarily
+		if len(w)<2:
+			return	'-'
 		if self.brd[w[1]].ruszony == False:
 			res += 'K'
 		if self.brd[w[0]].ruszony == False:
