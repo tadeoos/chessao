@@ -29,11 +29,19 @@ def decode_card_color(s):
 
 def decode_card(s):
 	b = 1 if s[0]=='!' else 0
-	col = decode_card_color(s[-1])
-	rank = s[:-1] if b == 0 else s[1:-1]
-	return (b, karta(col, rank))
 
-def nawaleta(c):
+	if ';' in s:
+		col = decode_card_color(s[-3])
+		rank = s[:-3] if b == 0 else s[1:-3]
+		w = s[-1]
+		return (b, karta(col, rank), nawaleta(w))
+	else:
+		col = decode_card_color(s[-1])
+		rank = s[:-1] if b == 0 else s[1:-1]
+		return (b, karta(col, rank))
+
+def nawaleta(s):
+	c = s.lower()
 	if c == 'p':
 		return 'pionek'
 	elif c == 'w':
@@ -241,7 +249,6 @@ class rozgrywka:
 		player = self.get_gracz(self.to_move)
 		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
 
-		# i gdzies trzeba dopisać czyszczenie capture!
 		w  = self.what_happened()
 		if w[0]==2:
 			self.cofnij(self.to_move, w[1])
@@ -439,22 +446,25 @@ class rozgrywka:
 		else:
 			return (0,)
 
-	def check_if_move(self, n)
+	def check_if_move(self, n):
 	# check if n turnes ago there was a move made
 	# if true this means three possible scenarios happened - kspades,ace or lost turn
 		return ':' in self.historia[-n]
 
-	def check_card(self, n, r, cl=None)
+	def check_card(self, n, r, cl=None):
 	# check if card played n turns ago has a rank==ran (and color = col)
+	#if card was burned returns
 		c = from_history_get_card(n)
-		return c.ran == r and c.kol == cl if cl != None: else c.ran == r
+		if c[0] == 1:
+			return False
+		return c[1].ran == r and c[1].kol == cl if cl != None else c[1].ran == r
 
-	def from_history_get_card(self, n)
+	def from_history_get_card(self, n):
 	# returns a card played n turns ago 
 		if n > len(self.historia):
 			return None
 		s = self.historia[-n]
-		r = re.search('\s(.+)\s',s)
+		r = re.search('\s(.+?)\s',s)
 		c = r.group(1)
 		return decode_card(c)
 
