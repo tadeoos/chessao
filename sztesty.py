@@ -2,7 +2,7 @@ from roz2 import *
 import traceback
 import os
 
-
+os.system('clear')
 print('-----------------')
 print('SZACHAO TESTING')
 
@@ -43,6 +43,7 @@ def test(n=5, rnd = True, test = True):
 			# print(i)
 		except Exception as e:
 			# print('\n ERROR')
+			os.system('clear')
 			print(roz)
 			print(roz.historia)
 			# print(roz.dicthist)
@@ -60,14 +61,15 @@ def test(n=5, rnd = True, test = True):
 			p += 1
 		else:
 			err += 1
-	print('\r'+' '*20, end='')
+	print('\r'+' '*30, end='')
 	print ("\rDONE: {:.0f}%".format((licznik/n)*100))		
 	print('Matów: {}, Patów: {}, Błędów: {} Średnia ilość ruchów: {:.0f}'.format(m,p,err, avr_moves/n))
 	t2 = time.time()
 	print('TIME: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-bad = test(1, True, True)
+
+bad = test(10, True, True)
 
 
 

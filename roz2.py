@@ -224,13 +224,13 @@ class rozgrywka:
 
 	def graj(self, rnd = False, test=False):
 		while not self.mat and not self.pat:
-			os.system('clear')
+			# os.system('clear')
 			self.get_card()
 			m = self.get_move()
 			self.move(self.now_card, m)
-			print('\r{}'.format(self))
+			# print('\r{}'.format(self))
 			# os.system('clear')
-			time.sleep(3)
+			# time.sleep(3)
 			# self.to_move = odwrot(self.to_move)
 		return True
 
@@ -288,6 +288,13 @@ class rozgrywka:
 			#udpating history
 			record = '{color} {car}'.format(color=odwrot(self.to_move), car=card)
 			self.historia.append(record)
+
+			#checking for Ace, and switching color
+			if self.now_card.ran = 'A':
+				self.to_move = odwrot(self.to_move)
+				for g in self.gracze:
+					g.kol = odwrot(g.kol)
+
 			return None
 
 		# actual move happens
