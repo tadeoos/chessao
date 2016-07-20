@@ -291,7 +291,7 @@ class rozgrywka:
 
 
 			#udpating history
-			record = '{color} {car}'.format(color=odwrot(self.to_move), car=card)
+			record = '{color} {car} '.format(color=odwrot(self.to_move), car=card)
 			self.historia.append(record)
 
 			#checking for Ace, and switching color
@@ -425,9 +425,9 @@ class rozgrywka:
 		elif what == '4' and self.now_card.ran != '4':
 			return (1,)
 		elif what == 'K' and s[3] == '♤' and ind != None:
-			r = re.search('\s(.+)\s',s2)
-			c = r.group(1)
-			return (2, [s2[ind:][-2:],s2[ind+1:][:2]], decode_card(c))
+			# r = re.search('\s(.+)\s',s2)
+			c = from_history_get_card(-2)
+			return (2, [s2[ind:][-2:],s2[ind+1:][:2]], c)
 		elif what == 'K' and s[3] == '♡' and ind != None:
 			if self.plansza.get_piece(s2[ind+1:][:2]).kolor!=self.to_move:
 				return (1,)
@@ -440,9 +440,24 @@ class rozgrywka:
 			return (0,)
 
 	def check_if_move(self, n)
-	# check if n times ago there was a move made
+	# check if n turnes ago there was a move made
 	# if true this means three possible scenarios happened - kspades,ace or lost turn
 		return ':' in self.historia[-n]
+
+	def check_card(self, n, r, cl=None)
+	# check if card played n turns ago has a rank==ran (and color = col)
+		c = from_history_get_card(n)
+		return c.ran == r and c.kol == cl if cl != None: else c.ran == r
+
+	def from_history_get_card(self, n)
+	# returns a card played n turns ago 
+		if n > len(self.historia):
+			return None
+		s = self.historia[-n]
+		r = re.search('\s(.+)\s',s)
+		c = r.group(1)
+		return decode_card(c)
+
 #### bugi
 
 # ♤
