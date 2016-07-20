@@ -25,7 +25,7 @@ def test(n=5, rnd = True, test = True):
 	bad = []
 	licznik = 0
 	for i in range(n):
-		print ("\rCALCULATING: {:.1f}%".format((licznik/n)*100), end="")
+		print ("\rCALCULATING: {:.1f}% ".format((licznik/n)*100), end="")
 		licznik+=1
 		if licznik%2==0:
 			randa = 1
@@ -45,9 +45,10 @@ def test(n=5, rnd = True, test = True):
 			# print('\n ERROR')
 			os.system('clear')
 			print(roz)
-			print(roz.historia)
-			# print(roz.dicthist)
 			print('spalone {}'.format(roz.spalone[-4:]))
+			print('{}\n'.format(roz.historia))
+			print('szach: {}, zamiana {}, to_move {}, burned {}, now_card {}, jack {}, four {}, capture {}\n'.format(roz.szach, roz.zamiana, roz.to_move, roz.burned, roz.now_card, roz.jack, roz.four, roz.capture))
+
 			traceback.print_exc()
 			bad.append((e,roz))
 		# except KeyError as ek:

@@ -235,8 +235,13 @@ class rozgrywka:
 		return True
 
 	def get_card(self):
+		# clearing self.capture
+		self.capture = True
+
 		player = self.get_gracz(self.to_move)
 		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
+
+		# i gdzies trzeba dopisać czyszczenie capture!
 		w  = self.what_happened()
 		if w[0]==2:
 			self.cofnij(self.to_move, w[1])
@@ -290,7 +295,7 @@ class rozgrywka:
 			self.historia.append(record)
 
 			#checking for Ace, and switching color
-			if self.now_card.ran = 'A':
+			if self.now_card.ran == 'A' and not self.burned:
 				self.to_move = odwrot(self.to_move)
 				for g in self.gracze:
 					g.kol = odwrot(g.kol)
@@ -321,6 +326,10 @@ class rozgrywka:
 				self.plansza.brd[zam] = wieza(self.to_move, zam)
 			else:
 				print('wrong input')
+
+		# after my move I must not be checked
+		assert not self.czy_szach(self.to_move)
+
 		# changing the color to move
 		self.to_move = odwrot(self.to_move)
 
@@ -333,7 +342,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
@@ -430,6 +439,10 @@ class rozgrywka:
 		else:
 			return (0,)
 
+	def check_if_move(self, n)
+	# check if n times ago there was a move made
+	# if true this means three possible scenarios happened - kspades,ace or lost turn
+		return ':' in self.historia[-n]
 #### bugi
 
 # ♤
