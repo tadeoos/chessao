@@ -379,7 +379,7 @@ class board:
 					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse'] ), end=' | {}\n'.format(r))
 				
 		print('-----------------')
-		return ' {} {} {} {} {} {} {} {}'.format('A','B', 'C', 'D', 'E','F','G','H')
+		return '{} {} {} {} {} {} {} {}'.format('A','B', 'C', 'D', 'E','F','G','H')
 
 	def is_empty(self, i):
 		return self.brd[i]==' '

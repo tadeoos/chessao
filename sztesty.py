@@ -1,5 +1,6 @@
 from roz2 import *
 import traceback
+import os
 
 
 print('-----------------')
@@ -27,9 +28,9 @@ def test(n=5, rnd = True, test = True):
 		print ("\rCALCULATING: {:.1f}%".format((licznik/n)*100), end="")
 		licznik+=1
 		if licznik%2==0:
-			randa = 0
-		else:
 			randa = 1
+		else:
+			randa = 0
 		roz = rozgrywka(randa)
 		# while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
 		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
@@ -37,11 +38,13 @@ def test(n=5, rnd = True, test = True):
 
 		# print('Rozgrywka nr {}'.format(licznik))
 		try:
+			print(i)
 			roz.graj(rnd, test)
+			# print(i)
 		except Exception as e:
-			print('\n ERROR')
+			# print('\n ERROR')
 			print(roz)
-			print(roz.historia[-10:])
+			print(roz.historia)
 			# print(roz.dicthist)
 			print('spalone {}'.format(roz.spalone[-4:]))
 			traceback.print_exc()
@@ -64,7 +67,8 @@ def test(n=5, rnd = True, test = True):
 	print('TIME: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
-bad = test(12, True, True)
+bad = test(1, True, True)
+
 
 
 

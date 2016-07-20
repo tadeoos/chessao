@@ -2,6 +2,7 @@ from szachao import *
 import random
 import time
 import re
+import os
 
 def rozd(tal):
 	a=[]
@@ -195,9 +196,9 @@ class rozgrywka:
 		# self.roz = ('A', 3, 4, 'J', 'K', 'Q')
 
 	def __str__(self):
-		print(self.plansza)
-		print('\nKupki:   |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
-		print('Gracz 1: {}, kolor: {}'.format(self.gracze[0].reka, self.gracze[0].kol))
+		print('\r{}'.format(self.plansza))
+		print('\r\nKupki:   |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
+		print('\rGracz 1: {}, kolor: {}'.format(self.gracze[0].reka, self.gracze[0].kol))
 		print('Gracz 2: {}. kolor: {}'.format(self.gracze[1].reka, self.gracze[1].kol))
 		print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
 		return ''
@@ -223,9 +224,13 @@ class rozgrywka:
 
 	def graj(self, rnd = False, test=False):
 		while not self.mat and not self.pat:
+			os.system('clear')
 			self.get_card()
 			m = self.get_move()
 			self.move(self.now_card, m)
+			print('\r{}'.format(self))
+			# os.system('clear')
+			time.sleep(3)
 			# self.to_move = odwrot(self.to_move)
 		return True
 
@@ -245,6 +250,8 @@ class rozgrywka:
 		if len(card)==3:
 			self.jack = card[2]
 			assert self.jack in jaki_typ_zostal(self.plansza, odwrot(self.to_move))
+		else:
+			self.jack = None
 		if self.now_card.ran == '4' and not self.burned:
 			self.capture = False
 
@@ -319,7 +326,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burn}{car} {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
