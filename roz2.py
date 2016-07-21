@@ -34,11 +34,11 @@ def decode_card(s):
 		col = decode_card_color(s[-3])
 		rank = s[:-3] if b == 0 else s[1:-3]
 		w = s[-1]
-		return (b, karta(col, rank), nawaleta(w))
+		return (b, [karta(col, rank)], nawaleta(w))
 	else:
 		col = decode_card_color(s[-1])
 		rank = s[:-1] if b == 0 else s[1:-1]
-		return (b, karta(col, rank))
+		return (b, [karta(col, rank)])
 
 def nawaleta(s):
 	c = s.lower()
@@ -139,18 +139,23 @@ class gracz:
 		self.name = name
 		self.bot = bot
 
-	def choose_card(self, talie):
+	def choose_card(self, talie, plansza):
 		if self.bot:
 			burn = random.randint(0,1)
 			card = random.choice(self.reka)
 			if not ok_karta([card], talie):
 				burn = 1
 			if not burn and card.ran=='J':
-				choice = random.choice(['p', 'w', 's', 'g', 'd'])
+				ch = [s[0] for s in jaki_typ_zostal(plansza,odwrot(self.kol)) if s!='krol']
+				# here is a problem with jack loosing its ability when there is only king left..
+				if len(ch)==0:
+					return (burn, [card])
+				choice = random.choice(ch)
 				return (burn, [card], nawaleta(choice))
 			return (burn, [card])
 		else:
 			ask = input('Karta: ')
+			return None
 			# trza dokończyć..
 
 	def choose_move(self, d):
@@ -252,12 +257,15 @@ class rozgrywka:
 		w  = self.what_happened()
 		if w[0]==2:
 			self.cofnij(self.to_move, w[1])
-			card = [w[2]]
+			card = w[2]
 			# tu jeszcze jest kłopot co z waletem
 		else:
-			card = player.choose_card(self.kupki)
+			# tu powinno być jakieś checkowanie kart...
+			card = player.choose_card(self.kupki, self.plansza)
+			while(not self.card_ok_to_play(card)):
+				card = player.choose_card(self.kupki, self.plansza)
 		self.burned = card[0]
-		self.do_card_buisness(card[1])
+		if w[0]!=2: self.do_card_buisness(card[1])
 		self.now_card = card[1][0]
 		if len(card)==3:
 			self.jack = card[2]
@@ -269,7 +277,7 @@ class rozgrywka:
 
 
 	def get_move(self):
-		self.zamiana = False	
+		self.zamiana = False
 		player = self.get_gracz(self.to_move)
 		# after ace or king of spikes there is no move
 		if not self.burned and (self.now_card.ran=='A' or (self.now_card.ran=='K' and self.now_card.kol==1)):
@@ -417,7 +425,10 @@ class rozgrywka:
 		out.combine(self.karty.cards)
 		self.karty = out
 		self.kupki=([kup_1], [kup_2])
-		assert len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)==104
+		all_cards = len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)
+		if all_cards!=104:
+			print('\nALL CARDS: {}'.format(all_cards))
+		assert all_cards==104
 
 	def what_happened(self):
 	# this function is parsing the history to make sense of the situation. returns ints that code a situation.
@@ -433,8 +444,8 @@ class rozgrywka:
 			return (1,)
 		elif what == 'K' and s[3] == '♤' and ind != None:
 			# r = re.search('\s(.+)\s',s2)
-			c = from_history_get_card(-2)
-			return (2, [s2[ind:][-2:],s2[ind+1:][:2]], c)
+			c = self.from_history_get_card(-2)
+			return (2, [s2[:ind][-2:],s2[ind+1:][:2]], c)
 		elif what == 'K' and s[3] == '♡' and ind != None:
 			if self.plansza.get_piece(s2[ind+1:][:2]).kolor!=self.to_move:
 				return (1,)
@@ -468,6 +479,22 @@ class rozgrywka:
 		c = r.group(1)
 		return decode_card(c)
 
+	def card_ok_to_play(self, crd):
+		# conditions that if met block the card
+		if crd[0] == 1:
+			return True
+
+		c = crd[1][0]
+		cond1 = self.szach and (c.ran=='A' or c.ran=='Q')
+		# war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
+		# war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
+		# war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
+		# war5 = kar[-1].ran=='4' and self.szach and len(all_ruchy(self.plansza, kolej, False, kar[-1]))==0
+
+		if cond1:
+			return False
+
+		return True
 #### bugi
 
 # ♤

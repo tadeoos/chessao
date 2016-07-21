@@ -412,10 +412,10 @@ class board:
 		for k in ('c','b'):
 			poz_k = self.pozycja_bierki('krol', k)
 
-			# if len(poz_k) != 1:
-			# 	print('\n{}'.format(self))
+			if len(poz_k) != 1:
+				print('\n{}'.format(self))
 				
-			# assert len(poz_k) == 1
+			assert len(poz_k) == 1
 
 			if pod_biciem(poz_k[0],self,k):
 				res.append((True, k))

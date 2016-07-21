@@ -38,7 +38,7 @@ def test(n=5, rnd = True, test = True):
 
 		# print('Rozgrywka nr {}'.format(licznik))
 		try:
-			print(i)
+			# print(i)
 			roz.graj(rnd, test)
 			# print(i)
 		except Exception as e:
