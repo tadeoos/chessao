@@ -33,7 +33,7 @@ def test(n=5, rnd = True, test = True):
 			randa = 0
 		roz = rozgrywka(randa)
 		# while(roz.plansza.czy_szach()==2 or karta(1,'K') not in roz.gracze[1].reka):
-		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+		while(roz.plansza.czy_szach('c')==(True, 'c')):
 			roz = rozgrywka(randa)
 
 		# print('Rozgrywka nr {}'.format(licznik))

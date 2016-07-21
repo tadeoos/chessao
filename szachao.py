@@ -65,17 +65,11 @@ def pod_biciem(pole, plansza, kolor):
 					break
 			a += i
 
-	if kolor == 'b':
-		for i in (9,11):
-			a = pole + i
-			if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
-
-				return True
-	else:
-		for i in (-9,-11):
-			a = pole + i
-			if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
-				return True
+	where = (9,11) if kolor == 'b' else (-9,-11)
+	for i in where:
+		a = pole + i
+		if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
+			return True
 
 	return False
 
@@ -198,8 +192,7 @@ class board:
 		self.brd = [0 for i in range(120)]
 		a = 21
 		while(a < 99):
-			if (a % 10 != 0):
-				if(a % 10 != 9):
+			if (a % 10 != 0) and (a % 10 != 9):
 					self.brd[a] = ' '
 			a += 1
 		if not rnd:
@@ -227,7 +220,7 @@ class board:
 				for i in range(rand):
 					rand2 = random.randint(31,78)
 					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
+						rand2 = random.randint(31,78)
 					self.brd[rand2] = pionek(k, rand2)
 				rand = random.randint(0,2)
 				for i in range(rand):
@@ -407,33 +400,17 @@ class board:
 			self.brd[b].pozycja = b
 		self.brd[a].pozycja = a
 
-	def czy_szach(self, karta=karta(1,'5')):
+	def czy_szach(self, color):
 		res = []
-		for k in ('c','b'):
-			poz_k = self.pozycja_bierki('krol', k)
-
-			if len(poz_k) != 1:
-				print('\n{}'.format(self))
-				
-			assert len(poz_k) == 1
-
-			if pod_biciem(poz_k[0],self,k):
-				res.append((True, k))
-		if len(res)==1:
-			return res[0]
-		elif len(res)==2:
-			# print('mam oba')
-			return 2
-			# for i in [a for a in self.all_taken() if self.brd[a].kolor!=k]:
-			# 	if poz_k[0] in self.brd[i].dozwolony(karta, self):
-			# 		return (True, k)
-		return False
+		poz_k = self.pozycja_bierki('krol', color)			
+		assert len(poz_k) == 1
+		return (True, color) if pod_biciem(poz_k[0],self,color) else False
 
 	def check_castle(self, kol):
 		k = self.pozycja_bierki('krol', kol)[0]
 		w = self.pozycja_bierki('wieza', kol)
 		d = {'if': 0, 'lng': 0, 'shrt': 0}
-		if self.brd[k].ruszony == True or len(w)==0 or self.czy_szach()==(True, kol):	
+		if self.brd[k].ruszony == True or len(w)==0 or self.czy_szach(kol)==(True, kol):	
 			return d
 		cntr = 0
 		for r in w:
@@ -508,7 +485,7 @@ class pionek:
 	def dozwolony(self, karta, plansza):
 		# poz = self.pozycja
 		# plansza.brd[self.pozycja] = ' '
-		# if plansza.czy_szach()==(True, self.kolor):
+		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
 		# 	plansza.brd[self.pozycja] = self
 		# 	print('jestem tu')
 		# 	return []
@@ -550,7 +527,7 @@ class pionek:
 			x = pln.brd[r]
 			pln.brd[self.pozycja] = ' '
 			pln.brd[r] = self
-			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+			if pln.czy_szach(self.kolor)==(True, self.kolor):
 				# print(r)
 				res.remove(r)
 			pln.brd[self.pozycja] = self
@@ -572,7 +549,7 @@ class wieza:
 		self.ruszony = False
 	def dozwolony(self, karta, plansza):
 		# plansza.brd[self.pozycja] = ' '
-		# if plansza.czy_szach()==(True, self.kolor):
+		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
 		# 	plansza.brd[self.pozycja] = self
 		# 	return []
 		# plansza.brd[self.pozycja] = self
@@ -598,14 +575,14 @@ class wieza:
 			x = pln.brd[r]
 			pln.brd[self.pozycja] = ' '
 			pln.brd[r] = self
-			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+			if pln.czy_szach(self.kolor)==(True, self.kolor):
 				# print(r)
 				res.remove(r)
 			pln.brd[self.pozycja] = self
 			pln.brd[r] = x
 
 		# plansza.brd[self.pozycja] = ' '
-		# if plansza.czy_szach()==(True, self.kolor):
+		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
 		# 	plansza.brd[self.pozycja] = self
 		# 	return []
 		# plansza.brd[self.pozycja] = self
@@ -641,7 +618,7 @@ class skoczek:
 			x = pln.brd[r]
 			pln.brd[self.pozycja] = ' '
 			pln.brd[r] = self
-			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+			if pln.czy_szach(self.kolor)==(True, self.kolor):
 				# print(r)
 				res.remove(r)
 			pln.brd[self.pozycja] = self
@@ -681,7 +658,7 @@ class goniec:
 			x = pln.brd[r]
 			pln.brd[self.pozycja] = ' '
 			pln.brd[r] = self
-			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+			if pln.czy_szach(self.kolor)==(True, self.kolor):
 				# print(r)
 				res.remove(r)
 			pln.brd[self.pozycja] = self
@@ -725,7 +702,7 @@ class dama:
 			x = pln.brd[r]
 			pln.brd[self.pozycja] = ' '
 			pln.brd[r] = self
-			if pln.czy_szach()==(True, self.kolor) or pln.czy_szach()==2:
+			if pln.czy_szach(self.kolor)==(True, self.kolor):
 				# print(r)
 				res.remove(r)
 			pln.brd[self.pozycja] = self
@@ -797,13 +774,13 @@ def szach_po_ruchu(plansza, ruch, kol, karta):
 	plan = deepcopy(plansza)
 	if karta.ran == 'Q' and plan.brd[a].name == 'dama':
 		plan.swap(a,b)
-		return plan.czy_szach() != (True, kol)
+		return plan.czy_szach(self.kolor) != (True, kol)
 	else:
 		plan.brd[b] = plan.brd[a]
 		plan.brd[b].pozycja = b
 		plan.brd[b].ruszony = True
 		plan.brd[a] = ' '
-		return plan.czy_szach() != (True, kol)
+		return plan.czy_szach(self.kolor) != (True, kol)
 # 
 	print('Coś się rozjebało w szach_po_ruchu')
 	return 'error'
@@ -820,10 +797,10 @@ def testy():
 	# w = wieza('c', 91)
 
 	pla_los = board(rnd=1)
-	while(pla_los.czy_szach()!=(True, 'b')):
+	while(pla_los.czy_szach(self.kolor)!=(True, 'b')):
 		pla_los = board(rnd=1)
 	print(pla_los)
-	print('Czy szach? {}'.format(pla_los.czy_szach()) )
+	print('Czy szach? {}'.format(pla_los.czy_szach(self.kolor)) )
 	# print(pla)
 	# print(p1.dozwolony(2))
 	# print(p2.dozwolony(7))
@@ -863,7 +840,7 @@ def testy():
 	# pla.rusz('D7','D6')
 	# pla.rusz('D7','D6')
 	# print(pla)
-	# print(pla.czy_szach())
+	# print(pla.czy_szach(self.kolor))
 	# print(pla.pozycja_bierki('krol', 'b'))
 	# print(pla.brd[pla.mapdict['B4']].dozwolony(5, pla))
 	return pla_los

@@ -362,7 +362,7 @@ class rozgrywka:
 		return True
 
 	def czy_szach(self, k):
-		s = self.plansza.czy_szach()
+		s = self.plansza.czy_szach(k)
 		if s == (True, k):
 			return True
 		elif s == 2:
