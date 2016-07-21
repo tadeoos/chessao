@@ -1,3 +1,5 @@
+# Author: Tadek Teleżyński
+
 from roz2 import *
 import traceback
 import os
@@ -70,7 +72,7 @@ def test(n=5, rnd = True, test = True):
 	return bad
 
 
-bad = test(10, True, True)
+# bad = test(10, True, True)
 
 
 
@@ -80,7 +82,7 @@ def test_err():
 	print('Testing -- test_err()')
 	roz = rozgrywka()
 	
-	while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+	while(roz.plansza.czy_szach('c')==(True, 'c')):
 		roz = rozgrywka()
 	print('po rozgrywce')
 	
@@ -88,15 +90,16 @@ def test_err():
 	licznik = 0
 	a = roz.graj(rnd=1, test=1)
 	print('po pierwszej')
-	while (a == 'koniec' and licznik<100):
+	number_of_games = 200
+	while (a == True and licznik<number_of_games):
 		licznik += 1
 		if licznik%2==0:
 			randa = 0
 		else:
 			randa = 1
-		print ("\rPostęp: {:.0f}%".format(licznik), end="")
+		print ("\rPostęp: {:.1f}%".format(licznik/number_of_games), end="")
 		roz = rozgrywka(randa)
-		while(roz.plansza.czy_szach()==2 or roz.plansza.czy_szach()==(True, 'c')):
+		while(roz.plansza.czy_szach('c')==(True, 'c')):
 			roz = rozgrywka(randa)
 		a = roz.graj(rnd=1, test=1)
 

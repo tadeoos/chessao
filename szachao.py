@@ -1,4 +1,7 @@
-# próby do szachao
+# Author: Tadek Teleżyński
+# Board and Pieces classes from Szachao module
+# pieces value according to Hans Berliner's system (https://en.wikipedia.org/wiki/Chess_piece_relative_value)
+
 import random
 from copy import deepcopy
 from termcolor import colored, cprint
@@ -169,42 +172,29 @@ class board:
 				self.brd[i[0]+8] = wieza(i[1], i[0]+8)
 		else:
 			for k in ('c', 'b'):
-				for i in range(1):
-					rand2 = random.randint(21,98)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
-					self.brd[rand2] = krol(k, rand2)
+				rand2 = random.choice(self.all_empty())
+				self.brd[rand2] = krol(k, rand2)
 				rand = random.randint(0,8)
 				for i in range(rand):
-					rand2 = random.randint(31,78)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(31,78)
+					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = pionek(k, rand2)
 				rand = random.randint(0,2)
 				for i in range(rand):
-					rand2 = random.randint(21,98)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
+					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = goniec(k, rand2)
 				rand = random.randint(0,2)
 				for i in range(rand):
-					rand2 = random.randint(21,98)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
+					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = skoczek(k, rand2)
 				rand = random.randint(0,2)
 				for i in range(rand):
-					rand2 = random.randint(21,98)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
+					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = wieza(k, rand2)
 				rand = random.randint(0,1)
 				for i in range(rand):
-					rand2 = random.randint(21,98)
-					while(self.brd[rand2]!=' '):
-						rand2 = random.randint(21,98)
+					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = dama(k, rand2)
-				# rand = random.randint(0,1)
+
 
 
 
@@ -212,7 +202,6 @@ class board:
 		self.bicie = False
 		self.zbite = []
 		self.enpass = 300
-		self.stanpocz = self.repdict()
 		self.fullmove = 0
 		self.halfmoveclock = 0
 
@@ -221,14 +210,10 @@ class board:
 		self.bicie = False
 		a = self.mapdict[c]
 		if self.is_empty(a):
-			return False
-		if d == None:
-			res = [key for (key,val) in self.mapdict.items() if val in self.brd[a].dozwolony(karta,self.brd)]
-			return 'Gdzie chcesz się ruszyć?\nMożliwe pola: {}'.format(res)
+			raise ValueError
 		b = self.mapdict[d]
-		# en passant
 
-		#najpierw sprawdzam czy jest bicie w przelocie
+		# first check if the move is an enappsant one
 		if self.brd[a].name == 'pionek' and self.enpass == b:
 			if only_bool:
 					return True
@@ -248,7 +233,7 @@ class board:
 			if self.brd[b].kolor == 'c':
 				self.fullmove += 1
 			return True
-		# potem ustawiam enpassant
+		# then set enpassant if possible
 		if self.brd[a].name == 'pionek'and self.brd[a].mvs_number == 0 and abs(a-b)==20:
 			self.enpass = (a+b)/2
 		else:
@@ -347,8 +332,15 @@ class board:
 	def get_piece(self, pos):
 		return self.brd[self.mapdict[pos]]
 
-	def repdict(self):
-		return { p : self.brd[p] for p in range(21,89) }
+	def get_points(self, col):
+		return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].kolor == col])
+
+	def simulate_move(self, fro, to, card):
+		fro = self.mapdict[fro] if type(fro) != int else fro
+		to = self.mapdict[to] if type(to) != int else to
+		copy = deepcopy(self)
+		copy.rusz(fro, to, card)
+		return copy
 
 	def swap(self, a, b):
 		tym = self.brd[b]
@@ -427,6 +419,9 @@ class board:
 			res = '-'
 		return res
 
+
+
+
 #######
 ######## SZACHY
 ########
@@ -438,6 +433,7 @@ class pionek:
 	def __init__(self, kolor, pozycja, mvs = 0):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 1
 		self.mvs_number = mvs
 		self.name = 'pionek'
 	def dozwolony(self, karta, plansza):
@@ -477,17 +473,11 @@ class pionek:
 		res = [self.pozycja+i if self.kolor=='b' else self.pozycja-i for i in dop]
 
 		res2 = deepcopy(res)
-		pln = deepcopy(plansza)
-
 		for r in res2:
-			x = pln.brd[r]
-			pln.brd[self.pozycja] = ' '
-			pln.brd[r] = self
+			pln = plansza.simulate_move(self.position, r, karta)
 			if pln.czy_szach(self.kolor)==(True, self.kolor):
-				# print(r)
 				res.remove(r)
-			pln.brd[self.pozycja] = self
-			pln.brd[r] = x
+
 
 		return res
 
@@ -501,6 +491,7 @@ class wieza:
 	def __init__(self, kolor, pozycja):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 5.1
 		self.name = 'wieza'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
@@ -519,29 +510,14 @@ class wieza:
 						break
 					else:
 						break
-				# print(a)
-				# print(plansza.is_empty(a))
 				res.append(a)
 				a+=i
 
 		res2 = deepcopy(res)
-		pln = deepcopy(plansza)
-
 		for r in res2:
-			x = pln.brd[r]
-			pln.brd[self.pozycja] = ' '
-			pln.brd[r] = self
+			pln = plansza.simulate_move(self.position, r, karta)
 			if pln.czy_szach(self.kolor)==(True, self.kolor):
-				# print(r)
 				res.remove(r)
-			pln.brd[self.pozycja] = self
-			pln.brd[r] = x
-
-		# plansza.brd[self.pozycja] = ' '
-		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
-		# 	plansza.brd[self.pozycja] = self
-		# 	return []
-		# plansza.brd[self.pozycja] = self
 
 		return res
 
@@ -555,6 +531,7 @@ class skoczek:
 	def __init__(self, kolor, pozycja):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 3.2
 		self.name='skoczek'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
@@ -568,17 +545,10 @@ class skoczek:
 					res.append(a)
 
 		res2 = deepcopy(res)
-		pln = deepcopy(plansza)
-
 		for r in res2:
-			x = pln.brd[r]
-			pln.brd[self.pozycja] = ' '
-			pln.brd[r] = self
+			pln = plansza.simulate_move(self.position, r, karta)
 			if pln.czy_szach(self.kolor)==(True, self.kolor):
-				# print(r)
 				res.remove(r)
-			pln.brd[self.pozycja] = self
-			pln.brd[r] = x
 		return res
 
 	def __str__(self):
@@ -591,6 +561,7 @@ class goniec:
 	def __init__(self, kolor, pozycja):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 3.33
 		self.name='goniec'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
@@ -608,17 +579,10 @@ class goniec:
 				a+=i
 
 		res2 = deepcopy(res)
-		pln = deepcopy(plansza)
-
 		for r in res2:
-			x = pln.brd[r]
-			pln.brd[self.pozycja] = ' '
-			pln.brd[r] = self
+			pln = plansza.simulate_move(self.position, r, karta)
 			if pln.czy_szach(self.kolor)==(True, self.kolor):
-				# print(r)
 				res.remove(r)
-			pln.brd[self.pozycja] = self
-			pln.brd[r] = x
 		return res
 
 	def __str__(self):
@@ -632,6 +596,7 @@ class dama:
 	def __init__(self, kolor, pozycja):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 8.8
 		self.name='dama'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
@@ -652,17 +617,10 @@ class dama:
 				res.append(a)
 				a+=i
 		res2 = deepcopy(res)
-		pln = deepcopy(plansza)
-
 		for r in res2:
-			x = pln.brd[r]
-			pln.brd[self.pozycja] = ' '
-			pln.brd[r] = self
+			pln = plansza.simulate_move(self.position, r, karta)
 			if pln.czy_szach(self.kolor)==(True, self.kolor):
-				# print(r)
-				res.remove(r)
-			pln.brd[self.pozycja] = self
-			pln.brd[r] = x		
+				res.remove(r)	
 		return res
 
 	def __str__(self):
@@ -676,6 +634,7 @@ class krol:
 	def __init__(self, kolor, pozycja):
 		self.kolor = kolor
 		self.pozycja = pozycja
+		self.val = 10
 		self.name = 'krol'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
@@ -700,7 +659,7 @@ class krol:
 				else:
 					continue
 
-		# print(res)
+		# cannot move to a position under check
 		res2 = deepcopy(res)
 		plansza.brd[self.pozycja] = ' '
 		for r in res2:

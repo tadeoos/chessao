@@ -1,3 +1,5 @@
+# Author: Tadek Teleżyński
+
 from szachao import *
 import random
 import time
@@ -392,15 +394,11 @@ class rozgrywka:
 		return [g for g in self.gracze if g.kol == k][0]
 
 	def cofnij(self, kolor, ruch):
-		assert len(self.historia)>1
-		# assert self.historia[-1][-1]==karta(1,'K')
-		# tu problem w przypadku omijania kolejki
-		# ruch = self.historia[-2][-2:]
-		# assert 
+		assert len(self.historia)>2
 		a = self.plansza.mapdict[ruch[0]]
 		b = self.plansza.mapdict[ruch[1]]
 
-		# tu niweluje enpassant jeśli było, ale problem jak cofnąć ruszoność, jeśli była pierwsza. 
+		# clearing enpassant and subtracting move counter
 		self.plansza.enpass = 300
 		self.plansza.brd[b].mvs_number -= 1
 
@@ -420,18 +418,17 @@ class rozgrywka:
 		kup_1=self.kupki[0][-1]
 		kup_2=self.kupki[1][-1]
 		do_tasu = self.kupki[0][:-1] + self.kupki[1][:-1] + self.spalone
-		# assert len(do_tasu) > 3
+
 		out = talia(do_tasu)
-		# assert len(out.cards) < 100
-		# assert len(out.cards) > 3
+
 		self.spalone = []
 		out.tasuj()
 		out.combine(self.karty.cards)
 		self.karty = out
 		self.kupki=([kup_1], [kup_2])
 		all_cards = len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)
-		if all_cards!=104:
-			print('\nALL CARDS: {}'.format(all_cards))
+		# if all_cards!=104:
+		# 	print('\nALL CARDS: {}'.format(all_cards))
 		assert all_cards==104
 
 	def what_happened(self):
@@ -468,14 +465,14 @@ class rozgrywka:
 
 	def check_card(self, n, r, cl=None):
 	# check if card played n turns ago has a rank==ran (and color = col)
-	#if card was burned returns
+	#if card was burned returns False
 		c = from_history_get_card(n)
 		if c[0] == 1:
 			return False
 		return c[1].ran == r and c[1].kol == cl if cl != None else c[1].ran == r
 
 	def from_history_get_card(self, n):
-	# returns a card played n turns ago 
+	# returns a card played n turns AGO 
 		if n > len(self.historia):
 			return None
 		s = self.historia[-n]
@@ -500,16 +497,13 @@ class rozgrywka:
 
 		return True
 
-	def possible_moves(self, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, flag = (0,)):
+	def possible_moves(self, kolor, okzbi=True, kar=karta(1,'5'), burned = False, flag = (0,)):
 		if burned:
 			kar = karta(1,'5')
 	
 		d = {v:k for (k,v) in self.plansza.mapdict.items()}
 		
-		if kolor==2:
-			a = self.plansza.all_taken()
-		
-		elif flag[0]==1:
+		if flag[0]==1:
 			return {}
 	
 		elif kar.ran=='Q' and len(self.plansza.pozycja_bierki('dama',kolor))>0:
