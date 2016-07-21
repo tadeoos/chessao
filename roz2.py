@@ -284,7 +284,7 @@ class rozgrywka:
 			return []
 
 		w = self.what_happened()
-		all_moves = all_ruchy(self.plansza, self.to_move, self.capture, self.now_card, self.burned, w)
+		all_moves = self.possible_moves(self.to_move, self.capture, self.now_card, self.burned, w)
 		if len(all_moves)==0:
 			return []
 		move = player.choose_move(all_moves)
@@ -377,11 +377,11 @@ class rozgrywka:
 			if ok_karta([kar], self.kupki):
 				if szach and kar.ran=='Q':
 					continue
-				res = all_ruchy(self.plansza, k, True, kar)
+				res = self.possible_moves(k, True, kar)
 				if len(res)>0:
 					return False
 			else:
-				res = all_ruchy(self.plansza, k)
+				res = self.possible_moves(k)
 				if len(res)>0:
 					return False
 		return True
@@ -489,12 +489,59 @@ class rozgrywka:
 		# war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
 		# war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
 		# war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
-		# war5 = kar[-1].ran=='4' and self.szach and len(all_ruchy(self.plansza, kolej, False, kar[-1]))==0
+		# war5 = kar[-1].ran=='4' and self.szach and len(self.possible_moves(kolej, False, kar[-1]))==0
 
 		if cond1:
 			return False
 
 		return True
+
+	def possible_moves(self, kolor=2, okzbi=True, kar=karta(1,'5'), burned = False, flag = (0,)):
+		if burned:
+			kar = karta(1,'5')
+	
+		d = {v:k for (k,v) in self.plansza.mapdict.items()}
+		
+		if kolor==2:
+			a = self.plansza.all_taken()
+		
+		elif flag[0]==1:
+			return {}
+	
+		elif kar.ran=='Q' and len(self.plansza.pozycja_bierki('dama',kolor))>0:
+			assert flag[0]==0 or flag[0]==3 or flag[0]==4
+			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
+				a = self.plansza.pozycja_bierki('dama',kolor)
+			else:
+				kar = karta(1, '5')
+				a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
+		elif flag[0]==2: # king of spades
+			a = [self.plansza.mapdict[flag[1][0]]]
+		elif flag[0]==3: # king of hearts
+			a = [self.plansza.mapdict[flag[1]]]
+		elif flag[0]==4:
+			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor and self.plansza.brd[i].name==flag[1]]
+		else:
+			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
+	
+	
+		res = {}
+		for i in a:
+			skad = d[i]
+			if okzbi:
+				gdzie = [d[a] for a in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[a])!=krol]
+			else:
+				gdzie = [d[a] for a in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[a])!=krol and (self.plansza.is_empty(a) or self.plansza.brd[a].kolor == kolor)]
+	
+			if flag[0]==2:
+				gdzie.remove(flag[1][1])
+	
+			if len(gdzie)>0:
+				res[skad]=gdzie
+		return res
+
+
+
 #### bugi
 
 # ♤
@@ -503,7 +550,7 @@ class rozgrywka:
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
 # - dokleiłem jeszcze w dozwolonym damki warunek na typ ktory zostal
 # król się zbija w pewnym momencie (jakim?)
-# - dokleilem w all_ruchy by wywalal pozycje krola
+# - dokleilem w self.possible_moves ozycje krola
 # kkier unhashable type karta
 #  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
