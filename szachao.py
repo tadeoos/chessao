@@ -242,14 +242,14 @@ class board:
 				self.brd[b+10] = ' '				
 			self.brd[b] = self.brd[a]
 			self.brd[b].pozycja = b
-			self.brd[b].ruszony = True
+			self.brd[b].mvs_number += 1
 			self.brd[a] = ' '
 			self.halfmoveclock = 0
 			if self.brd[b].kolor == 'c':
 				self.fullmove += 1
 			return True
 		# potem ustawiam enpassant
-		if self.brd[a].name == 'pionek'and self.brd[a].ruszony==False and abs(a-b)==20:
+		if self.brd[a].name == 'pionek'and self.brd[a].mvs_number == 0 and abs(a-b)==20:
 			self.enpass = (a+b)/2
 		else:
 			self.enpass = 300
@@ -262,12 +262,12 @@ class board:
 			# moving the king
 			self.brd[b] = self.brd[a]
 			self.brd[b].pozycja = b
-			self.brd[b].ruszony = True
+			self.brd[b].mvs_number += 1
 			self.brd[a] = ' '
 			# moving the rook
 			self.brd[rook_pos[1]] = self.brd[rook_pos[0]]
 			self.brd[rook_pos[1]].pozycja = rook_pos[1]
-			self.brd[rook_pos[1]].ruszony = True
+			self.brd[rook_pos[1]].mvs_number += 1
 			self.brd[rook_pos[0]] = ' '
 			self.halfmoveclock += 1
 			if self.brd[b].kolor == 'c':
@@ -280,7 +280,7 @@ class board:
 				if only_bool:
 					return True
 				self.swap(a,b)
-				self.brd[b].ruszony = True
+				self.brd[b].mvs_number += 1
 				self.halfmoveclock += 1
 				if self.brd[b].kolor == 'c':
 					self.fullmove += 1
@@ -300,7 +300,7 @@ class board:
 					self.zbite.append(self.brd[b])
 				self.brd[b] = self.brd[a]
 				self.brd[b].pozycja = b
-				self.brd[b].ruszony = True
+				self.brd[b].mvs_number += 1
 				self.brd[a] = ' '
 				if self.brd[b].kolor == 'c':
 					self.fullmove += 1
@@ -368,11 +368,11 @@ class board:
 		k = self.pozycja_bierki('krol', kol)[0]
 		w = self.pozycja_bierki('wieza', kol)
 		d = {'if': 0, 'lng': 0, 'shrt': 0}
-		if self.brd[k].ruszony == True or len(w)==0 or self.czy_szach(kol)==(True, kol):	
+		if self.brd[k].mvs_number > 0 or len(w)==0 or self.czy_szach(kol)==(True, kol):	
 			return d
 		cntr = 0
 		for r in w:
-			if self.brd[r].ruszony == True:
+			if self.brd[r].mvs_number > 0:
 				continue
 			if r<k:
 				where = [i for i in range(r+1, k)]
@@ -414,14 +414,14 @@ class board:
 		k = self.pozycja_bierki('krol', kol)[0]
 		w = self.pozycja_bierki('wieza', kol)
 		w.sort()
-		if self.brd[k].ruszony:
+		if self.brd[k].mvs_number > 0:
 			return '-'
 		# just temporarily
 		if len(w)<2:
 			return	'-'
-		if self.brd[w[1]].ruszony == False:
+		if self.brd[w[1]].mvs_number == 0:
 			res += 'K'
-		if self.brd[w[0]].ruszony == False:
+		if self.brd[w[0]].mvs_number == 0:
 			res += 'Q'
 		if len(res)==0:
 			res = '-'
@@ -435,10 +435,10 @@ class board:
 
 
 class pionek:
-	def __init__(self, kolor, pozycja):
+	def __init__(self, kolor, pozycja, mvs = 0):
 		self.kolor = kolor
 		self.pozycja = pozycja
-		self.ruszony = False
+		self.mvs_number = mvs
 		self.name = 'pionek'
 	def dozwolony(self, karta, plansza):
 		# poz = self.pozycja
@@ -448,9 +448,7 @@ class pionek:
 		# 	print('jestem tu')
 		# 	return []
 		# plansza.brd[self.pozycja] = self
-		dop = [10,20]
-		if self.ruszony:
-			dop = [10]
+		dop = [10,20] if self.mvs_number > 0 else [10]
 		if karta.ran == '2':
 			dop.append(dop[-1]+10)
 		if self.kolor == 'b':
@@ -504,7 +502,7 @@ class wieza:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name = 'wieza'
-		self.ruszony = False
+		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
 		# plansza.brd[self.pozycja] = ' '
 		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
@@ -558,7 +556,7 @@ class skoczek:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='skoczek'
-		self.ruszony = False
+		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
 		res = []
 		for i in (-12,-21,-19,-8,8,19,21,12):
@@ -594,7 +592,7 @@ class goniec:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='goniec'
-		self.ruszony = False
+		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
 		res = []
 		for i in (9,11,-11,-9):
@@ -635,7 +633,7 @@ class dama:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name='dama'
-		self.ruszony = False
+		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
 		if karta.ran == 'Q' and jaki_typ_zostal(plansza, self.kolor) != {'krol', 'dama'}:
 			res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[i].name in ('pionek', 'goniec','skoczek','wieza'))]
@@ -679,7 +677,7 @@ class krol:
 		self.kolor = kolor
 		self.pozycja = pozycja
 		self.name = 'krol'
-		self.ruszony = False
+		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
 		res = []
 		if karta.ran == 'K' and karta.kol in (3,4):

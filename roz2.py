@@ -264,9 +264,11 @@ class rozgrywka:
 			card = player.choose_card(self.kupki, self.plansza)
 			while(not self.card_ok_to_play(card)):
 				card = player.choose_card(self.kupki, self.plansza)
+
 		self.burned = card[0]
 		if w[0]!=2: self.do_card_buisness(card[1])
 		self.now_card = card[1][0]
+
 		if len(card)==3:
 			self.jack = card[2]
 			assert self.jack in jaki_typ_zostal(self.plansza, odwrot(self.to_move))
@@ -400,9 +402,11 @@ class rozgrywka:
 
 		# tu niweluje enpassant jeśli było, ale problem jak cofnąć ruszoność, jeśli była pierwsza. 
 		self.plansza.enpass = 300
+		self.plansza.brd[b].mvs_number -= 1
 
 		if self.zamiana:
-			self.plansza.brd[b] = pionek(kolor,b)
+			nr = self.plansza.brd[b].mvs_number
+			self.plansza.brd[b] = pionek(kolor,b,nr)
 		if self.plansza.bicie:
 			assert self.plansza.is_empty(a)
 			rezurekt = self.plansza.zbite.pop()
@@ -444,7 +448,7 @@ class rozgrywka:
 			return (1,)
 		elif what == 'K' and s[3] == '♤' and ind != None:
 			# r = re.search('\s(.+)\s',s2)
-			c = self.from_history_get_card(-2)
+			c = self.from_history_get_card(2)
 			return (2, [s2[:ind][-2:],s2[ind+1:][:2]], c)
 		elif what == 'K' and s[3] == '♡' and ind != None:
 			if self.plansza.get_piece(s2[ind+1:][:2]).kolor!=self.to_move:
@@ -509,7 +513,7 @@ class rozgrywka:
 			return {}
 	
 		elif kar.ran=='Q' and len(self.plansza.pozycja_bierki('dama',kolor))>0:
-			assert flag[0]==0 or flag[0]==3 or flag[0]==4
+			# assert flag[0]==0 or flag[0]==3 or flag[0]==4
 			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
 				a = self.plansza.pozycja_bierki('dama',kolor)
 			else:
