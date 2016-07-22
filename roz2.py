@@ -84,7 +84,11 @@ def odejmij(a,b):
 		out.extend(b)
 		return out
 	else:
-		assert len(out)==5
+		try:
+			assert len(out)==5 or len(out)==2 or len(out)==0
+		except Exception as e:
+			print('\n out: {} a:  [] b: {}'.format(out,a ,b))
+			# raise Exception
 		return out
 
 
@@ -160,6 +164,13 @@ class gracz:
 			return None
 			# trza dokończyć..
 
+	def get_three(self):
+		if self.bot:
+			return random.sample(self.reka, 3)
+		else:
+			# functionality foe humans
+			return None
+
 	def choose_move(self, d):
 		if self.bot:
 			random_ruch = random.choice(list(d.keys()))
@@ -185,6 +196,7 @@ class gracz:
 
 class rozgrywka:
 	def __init__(self, rnd=1):
+		random.seed()
 		self.plansza = board(rnd)
 		self.karty = talia()
 		self.karty.combine(talia().cards)
@@ -203,6 +215,7 @@ class rozgrywka:
 		self.burned = False
 		self.now_card = None
 		self.jack = None
+		self.three = 0
 		self.four = False
 		self.capture = True
 
@@ -218,9 +231,12 @@ class rozgrywka:
 		print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
 		return ''
 
-	def do_card_buisness(self, kar):
+	def do_card_buisness(self, kar, three = False):
 		player = self.get_gracz(self.to_move)
+		
 		if self.burned:
+			if not three:
+				assert len(kar) == 1
 			player.reka = odejmij(player.reka, kar)
 			self.spalone.extend(kar)
 			if len(self.karty.cards)<len(kar):
@@ -237,16 +253,17 @@ class rozgrywka:
 			tas = self.karty.deal(len(kar))
 			player.reka.extend(tas)
 
-	def graj(self, rnd = False, test=False):
+	def graj(self, video = False):
 		while not self.mat and not self.pat:
-			# os.system('clear')
+			if video:
+				os.system('clear')
 			self.get_card()
 			m = self.get_move()
 			self.move(self.now_card, m)
-			# print('\r{}'.format(self))
-			# os.system('clear')
-			# time.sleep(3)
-			# self.to_move = odwrot(self.to_move)
+			if video:
+				print('{}'.format(self))
+				time.sleep(1)
+
 		return True
 
 	def get_card(self):
@@ -254,21 +271,30 @@ class rozgrywka:
 		self.capture = True
 
 		player = self.get_gracz(self.to_move)
-		# tu trzeba dopisać, że jak jest król pik to zmykam od razu i cofnąć przy tej okazji plansze!
 
 		w  = self.what_happened()
+
+		# if king of spades was played get card from history (2 halfmoves ago)
 		if w[0]==2:
 			self.cofnij(self.to_move, w[1])
 			card = w[2]
-			# tu jeszcze jest kłopot co z waletem
+
 		else:
-			# tu powinno być jakieś checkowanie kart...
+
 			card = player.choose_card(self.kupki, self.plansza)
 			while(not self.card_ok_to_play(card)):
 				card = player.choose_card(self.kupki, self.plansza)
 
 		self.burned = card[0]
-		if w[0]!=2: self.do_card_buisness(card[1])
+
+		if self.three > 0 and (card[1][0].ran!='3' or self.burned):
+			self.burned = 1
+			tmpcar = player.get_three() if self.three == 3 else player.reka
+			self.do_card_buisness(tmpcar, three=True)
+			self.three = 0
+		elif w[0]!=2: self.do_card_buisness(card[1])
+
+		#now_card birth
 		self.now_card = card[1][0]
 
 		if len(card)==3:
@@ -278,7 +304,10 @@ class rozgrywka:
 			self.jack = None
 		if self.now_card.ran == '4' and not self.burned:
 			self.capture = False
-
+		if self.now_card.ran == '3' and not self.burned:
+			add = sum([3 for c in card[1] if c.ran=='3'])
+			assert add>2
+			self.three += add
 
 	def get_move(self):
 		self.zamiana = False
@@ -427,8 +456,9 @@ class rozgrywka:
 		self.karty = out
 		self.kupki=([kup_1], [kup_2])
 		all_cards = len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)
-		# if all_cards!=104:
-		# 	print('\nALL CARDS: {}'.format(all_cards))
+		if all_cards!=104:
+			print('\nALL CARDS: {}'.format(all_cards))
+		# 
 		assert all_cards==104
 
 	def what_happened(self):
@@ -506,19 +536,20 @@ class rozgrywka:
 		if flag[0]==1:
 			return {}
 	
-		elif kar.ran=='Q' and len(self.plansza.pozycja_bierki('dama',kolor))>0:
-			# assert flag[0]==0 or flag[0]==3 or flag[0]==4
-			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
-				a = self.plansza.pozycja_bierki('dama',kolor)
-			else:
-				kar = karta(1, '5')
-				a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
+
 		elif flag[0]==2: # king of spades
 			a = [self.plansza.mapdict[flag[1][0]]]
 		elif flag[0]==3: # king of hearts
 			a = [self.plansza.mapdict[flag[1]]]
-		elif flag[0]==4:
+		elif flag[0]==4: #jack
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor and self.plansza.brd[i].name==flag[1]]
+		elif kar.ran=='Q' and len(self.plansza.position_bierki('dama',kolor))>0:
+			# assert flag[0]==0 or flag[0]==3 or flag[0]==4
+			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
+				a = self.plansza.position_bierki('dama',kolor)
+			else:
+				kar = karta(1, '5')
+				a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
 		else:
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
 	
@@ -536,7 +567,16 @@ class rozgrywka:
 	
 			if len(gdzie)>0:
 				res[skad]=gdzie
-		return res
+
+		res2 = deepcopy(res)
+		for key in res2:
+			for where in res2[key]:
+				pln = self.plansza.simulate_move(key, where, kar)
+				if pln.czy_szach(kolor)==(True, kolor):
+					res[key].remove(where)
+				del pln
+		final = {k:v for (k,v) in res.items() if v != []}			
+		return final
 
 
 

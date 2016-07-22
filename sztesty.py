@@ -17,7 +17,7 @@ li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '8'),karta(1, '9')]
 ]
 
-def test(n=5, rnd = True, test = True):
+def test(n=5, vid = False):
 	t1 = time.time()
 	print('n: {}'.format(n))
 	avr_moves = 0
@@ -41,8 +41,7 @@ def test(n=5, rnd = True, test = True):
 		# print('Rozgrywka nr {}'.format(licznik))
 		try:
 			# print(i)
-			roz.graj(rnd, test)
-			# print(i)
+			roz.graj(vid)
 		except Exception as e:
 			# print('\n ERROR')
 			os.system('clear')
@@ -72,13 +71,17 @@ def test(n=5, rnd = True, test = True):
 	return bad
 
 
-# bad = test(10, True, True)
+bad = test(10)
+
+
+# VIDEO
+# test(1, True)
 
 
 
 
 
-def test_err():
+def test_err(n):
 	print('Testing -- test_err()')
 	roz = rozgrywka()
 	
@@ -88,9 +91,9 @@ def test_err():
 	
 	
 	licznik = 0
-	a = roz.graj(rnd=1, test=1)
+	a = roz.graj()
 	print('po pierwszej')
-	number_of_games = 200
+	number_of_games = n
 	while (a == True and licznik<number_of_games):
 		licznik += 1
 		if licznik%2==0:
@@ -101,9 +104,13 @@ def test_err():
 		roz = rozgrywka(randa)
 		while(roz.plansza.czy_szach('c')==(True, 'c')):
 			roz = rozgrywka(randa)
-		a = roz.graj(rnd=1, test=1)
+		try:
+			a = roz.graj()
+		except Exception as e:
+			traceback.print_exc()
+			return (e, roz)
 
-# test_err()
+# test_err(200)
 
 # prezentacja humana
 # roz.graj(rnd=1)
