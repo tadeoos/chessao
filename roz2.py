@@ -88,7 +88,7 @@ def odejmij(a,b):
 			assert len(out)==5 or len(out)==2 or len(out)==0
 		except Exception as e:
 			print('\n out: {} a:  [] b: {}'.format(out,a ,b))
-			# raise Exception
+			raise AssertionError
 		return out
 
 
@@ -237,7 +237,10 @@ class rozgrywka:
 		if self.burned:
 			if not three:
 				assert len(kar) == 1
-			player.reka = odejmij(player.reka, kar)
+			try:
+				player.reka = odejmij(player.reka, kar)
+			except AssertionError as e:
+				print('\n three: {} reka {}'.format(self.three, player.reka))
 			self.spalone.extend(kar)
 			if len(self.karty.cards)<len(kar):
 				self.przetasuj()
@@ -252,6 +255,8 @@ class rozgrywka:
 				self.przetasuj()
 			tas = self.karty.deal(len(kar))
 			player.reka.extend(tas)
+
+		assert len(player.reka)==5
 
 	def graj(self, video = False):
 		while not self.mat and not self.pat:
@@ -431,7 +436,7 @@ class rozgrywka:
 		self.plansza.enpass = 300
 		self.plansza.brd[b].mvs_number -= 1
 
-		if self.zamiana:
+		if '=' in self.historia[-2]:
 			nr = self.plansza.brd[b].mvs_number
 			self.plansza.brd[b] = pionek(kolor,b,nr)
 		if self.plansza.bicie:
