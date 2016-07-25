@@ -5,6 +5,7 @@
 import random
 from copy import deepcopy
 from termcolor import colored, cprint
+from math import floor
 
 def odwrot(a):
 	if a=='b':
@@ -149,14 +150,14 @@ def jaki_typ_zostal(plansza, kolor):
 
 
 class board:
-	def __init__(self, rnd=False):
+	def __init__(self, rnd=False, fenrep=False):
 		self.brd = [0 for i in range(120)]
 		a = 21
 		while(a < 99):
 			if (a % 10 != 0) and (a % 10 != 9):
 					self.brd[a] = ' '
 			a += 1
-		if not rnd:
+		if not rnd and fenrep==False:
 			for i in range(31,39):
 				self.brd[i] = pionek('b', i)
 			for i in range(81,89):
@@ -170,13 +171,13 @@ class board:
 				self.brd[i[0]+6] = goniec(i[1], i[0]+6)
 				self.brd[i[0]+7] = skoczek(i[1], i[0]+7)
 				self.brd[i[0]+8] = wieza(i[1], i[0]+8)
-		else:
+		elif fenrep==False:
 			for k in ('c', 'b'):
 				rand2 = random.choice(self.all_empty())
 				self.brd[rand2] = krol(k, rand2)
 				rand = random.randint(0,8)
 				for i in range(rand):
-					rand2 = random.choice(self.all_empty())
+					rand2 = random.choice([i for i in self.all_empty() if floor(i/10) not in (2,9)])
 					self.brd[rand2] = pionek(k, rand2)
 				rand = random.randint(0,2)
 				for i in range(rand):
@@ -194,6 +195,9 @@ class board:
 				for i in range(rand):
 					rand2 = random.choice(self.all_empty())
 					self.brd[rand2] = dama(k, rand2)
+		else:
+			for (k,v) in self.parse_fen(fenrep).items():
+				self.brd[k]=v
 
 
 
@@ -234,7 +238,7 @@ class board:
 				self.fullmove += 1
 			return True
 		# then set enpassant if possible
-		if self.brd[a].name == 'pionek'and self.brd[a].mvs_number == 0 and abs(a-b)==20:
+		if self.brd[a].name=='pionek' and self.brd[a].mvs_number == 0 and abs(a-b)==20:
 			self.enpass = (a+b)/2
 		else:
 			self.enpass = 300
@@ -291,32 +295,38 @@ class board:
 				if self.brd[b].kolor == 'c':
 					self.fullmove += 1
 				return True
-		print('\n !!! ERROR W BOARD.RUSZ DOSTAŁEM ZŁY INPUT!!!!')
+
+		print('skad {} dokad {} karta {} mvs {}, enpas {}'.format(c,d,karta, self.brd[a].mvs_number, self.enpass))
+		raise ValueError
 		return False
 
 	def __str__(self):
+		print('    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}'.format('A','B', 'C', 'D', 'E','F','G','H'))
+		# print('    -----------------')
 		for i in range(len(self.brd)):
-			tpr = [[]]
 			r = int(((i-(i%10))/10)-1)
 			if self.brd[i]==0:
 				continue
 			if r%2==1:
+				if i%10 == 1:
+					print('    ', end="")
 				if i%10!=8 and (i%10)%2==1:
 					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse']),end='')
 				elif i%10!=8:
 					print(colored('{!s:} '.format(self.brd[i]), 'white', attrs=['reverse']),end='')
 				else:
-					print(colored('{!s:} '.format(self.brd[i]), 'white', attrs=['reverse'] ), end=' | {}\n'.format(r))
+					print(colored('{!s:} '.format(self.brd[i]), 'white', attrs=['reverse'] ), end=' {}\n'.format(r))
 			else:
+				if i%10 == 1:
+					print('    ', end="")
 				if i%10!=8 and (i%10)%2==1:
 					print(colored('{!s:} '.format(self.brd[i]), 'white', attrs=['reverse']),end='')
 				elif i%10!=8:
 					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse']),end='')
 				else:
-					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse'] ), end=' | {}\n'.format(r))
+					print(colored('{!s:} '.format(self.brd[i]), 'grey', attrs=['reverse'] ), end=' {}\n'.format(r))
 				
-		print('-----------------')
-		return '{} {} {} {} {} {} {} {}'.format('A','B', 'C', 'D', 'E','F','G','H')
+		return ''
 
 	def is_empty(self, i):
 		return self.brd[i]==' '
@@ -340,7 +350,11 @@ class board:
 		# d = {v:k for (k,v) in self.mapdict.items()}
 		# a = d[fro]
 		# b = d[to]
-		copy = deepcopy(self)
+		fenstr = self.fen().split()[0]
+		enp = self.fen().split()[2]
+		copy = board(fenrep=fenstr)
+		copy.enpass = 300 if enp=='-' else self.mapdict[enp]
+		# copy = deepcopy(self)
 		copy.rusz(fro, to, card)
 		return copy
 
@@ -399,8 +413,8 @@ class board:
 		jc = wc+bc
 		c = '-' if jc == '--' else jc
 		enp = '-' if self.enpass not in self.mapdict.values() else [k for (k,v) in self.mapdict.items() if v == self.enpass][0]
-
-		return [res[:-1], c, enp, self.halfmoveclock, self.fullmove]
+		ret = [res[:-1], c, str(enp), str(self.halfmoveclock), str(self.fullmove)]
+		return ' '.join(ret)
 
 
 	def fen_castle(self, kol):
@@ -421,6 +435,61 @@ class board:
 			res = '-'
 		return res
 
+	def parse_fen(self, fen):
+		# return dictionary (pos:piece)
+		rows = fen.split('/')
+		res_dict = {}
+		for i in range(len(rows)):
+			res_dict.update(self.parse_row_fen(rows[i], (i+2)*10))
+		return res_dict
+
+	def parse_row_fen(self, s, i):
+		pos = i + 1
+		dic = {}
+		y=0
+		while y<len(s) and pos<i+9:
+			if s[y].isnumeric():
+				pos += int(s[y])
+			elif s[y]=='P':
+				dic[pos]=pionek('b', pos)
+				pos += 1
+			elif s[y]=='W':
+				dic[pos]=wieza('b', pos)
+				pos += 1
+			elif s[y]=='S':
+				dic[pos]=skoczek('b', pos)
+				pos += 1
+			elif s[y]=='G':
+				dic[pos]=goniec('b', pos)
+				pos += 1
+			elif s[y]=='D':
+				dic[pos]=dama('b', pos)
+				pos += 1
+			elif s[y]=='K':
+				dic[pos]=krol('b', pos)
+				pos += 1
+			elif s[y]=='p':
+				dic[pos]=pionek('c', pos)
+				pos += 1
+			elif s[y]=='w':
+				dic[pos]=wieza('c', pos)
+				pos += 1
+			elif s[y]=='s':
+				dic[pos]=skoczek('c', pos)
+				pos += 1
+			elif s[y]=='g':
+				dic[pos]=goniec('c', pos)
+				pos += 1
+			elif s[y]=='d':
+				dic[pos]=dama('c', pos)
+				pos += 1
+			elif s[y]=='k':
+				dic[pos]=krol('c', pos)
+				pos += 1
+			else:
+				raise ValueError
+			y+=1
+		return dic
 
 
 
@@ -429,7 +498,14 @@ class board:
 ########
 
 
-
+# class Piece():
+# 	def __init__(self, color, position, mvs = 0):
+# 		self._color = color
+# 		self._position = position
+# 		self._mvs_number = mvs
+# 		self._history = []
+# 		self._name = 'piece'
+# 		self._val = 1
 
 class pionek:
 	def __init__(self, kolor, position, mvs = 0):
@@ -439,14 +515,7 @@ class pionek:
 		self.mvs_number = mvs
 		self.name = 'pionek'
 	def dozwolony(self, karta, plansza):
-		# poz = self.position
-		# plansza.brd[self.position] = ' '
-		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
-		# 	plansza.brd[self.position] = self
-		# 	print('jestem tu')
-		# 	return []
-		# plansza.brd[self.position] = self
-		dop = [10,20] if self.mvs_number > 0 else [10]
+		dop = [10,20] if self.mvs_number == 0 else [10]
 		if karta.ran == '2':
 			dop.append(dop[-1]+10)
 		if self.kolor == 'b':
@@ -467,19 +536,12 @@ class pionek:
 			a = (-9, -11)
 
 		for i in a:
-			if (plansza.brd[self.position+i]!=0 and plansza.brd[self.position+i]!=' ' and plansza.brd[self.position+i].kolor!=self.kolor) or plansza.enpass==self.position+i:
+			if (plansza.brd[self.position+i]!=0 and plansza.brd[self.position+i]!=' ' and plansza.brd[self.position+i].kolor!=self.kolor) or (plansza.enpass==self.position+i):
 				# print('bicie pionka', self.position, i)
 				dop.append(abs(i))
 
 		# if karta in (3,4,5,6,7,8,9,10):
 		res = [self.position+i if self.kolor=='b' else self.position-i for i in dop]
-
-		# res2 = deepcopy(res)
-		# for r in res2:
-		# 	pln = plansza.simulate_move(self.position, r, karta)
-		# 	if pln.czy_szach(self.kolor)==(True, self.kolor):
-		# 		res.remove(r)
-
 
 		return res
 
@@ -685,22 +747,6 @@ class krol:
 
 
 ## testy
-def szach_po_ruchu(plansza, ruch, kol, karta):
-	a = ruch[0]
-	b = ruch[1]
-	plan = deepcopy(plansza)
-	if karta.ran == 'Q' and plan.brd[a].name == 'dama':
-		plan.swap(a,b)
-		return plan.czy_szach(self.kolor) != (True, kol)
-	else:
-		plan.brd[b] = plan.brd[a]
-		plan.brd[b].position = b
-		plan.brd[b].ruszony = True
-		plan.brd[a] = ' '
-		return plan.czy_szach(self.kolor) != (True, kol)
-# 
-	print('Coś się rozjebało w szach_po_ruchu')
-	return 'error'
 
 
 

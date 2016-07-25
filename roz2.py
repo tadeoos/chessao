@@ -77,19 +77,23 @@ def ok_karta(karta, talie):
 	return False
 
 def odejmij(a,b):
-	out = [x for x in a if x not in b]
-	if len(out) == len(a) - len(b):
-		return out
-	elif len(b)==1:
-		out.extend(b)
-		return out
-	else:
-		try:
-			assert len(out)==5 or len(out)==2 or len(out)==0
-		except Exception as e:
-			print('\n out: {} a:  [] b: {}'.format(out,a ,b))
-			raise AssertionError
-		return out
+	# out = [x for x in a if x not in b]
+	for k in b:
+		a.remove(k)
+	return a
+	# if len(out) == len(a) - len(b):
+	# 	return out
+	# elif len(b)==1:
+	# 	assert len(out)==3
+	# 	out.extend(b)
+	# 	return out
+	# else:
+	# 	try:
+	# 		assert len(out)==5 or len(out)==2 or len(out)==0
+	# 	except Exception as e:
+	# 		print('\n out: {} a: {} b: {}'.format(out,a ,b))
+	# 		raise AssertionError
+	# 	return out
 
 
 def ktora_kupka(karta, kupki, rnd=False):
@@ -160,13 +164,13 @@ class gracz:
 				return (burn, [card], nawaleta(choice))
 			return (burn, [card])
 		else:
-			ask = input('Karta: ')
-			return None
+			ask = int(input('Karta: (1,2,3,4,5)?')) - 1
+			return self.reka[ask]
 			# trza dokończyć..
 
-	def get_three(self):
+	def get_three(self, n):
 		if self.bot:
-			return random.sample(self.reka, 3)
+			return random.sample(self.reka, n)
 		else:
 			# functionality foe humans
 			return None
@@ -214,21 +218,25 @@ class rozgrywka:
 		self.to_move = 'b'
 		self.burned = False
 		self.now_card = None
+		self.now_move = None
 		self.jack = None
 		self.three = 0
 		self.four = False
 		self.capture = True
 
-		# self.blotki = (5,6,7,8,9,10)
-		# self.indy = (2,'K')
-		# self.roz = ('A', 3, 4, 'J', 'K', 'Q')
 
 	def __str__(self):
-		print('\r{}'.format(self.plansza))
-		print('\r\nKupki:   |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
-		print('\rGracz 1: {}, kolor: {}'.format(self.gracze[0].reka, self.gracze[0].kol))
-		print('Gracz 2: {}. kolor: {}'.format(self.gracze[1].reka, self.gracze[1].kol))
-		print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
+		gb = self.get_gracz('b')
+		gc = self.get_gracz('c')
+		print('\nKupki: |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
+		print('\nKARTA:  {}'.format(self.now_card))
+		print('\n{} (white): {}\n'.format(gb.name, gb.reka))
+		print('{}'.format(self.plansza))
+		print('{} (black): {}'.format(gc.name, gc.reka))
+		
+		
+		
+		# print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
 		return ''
 
 	def do_card_buisness(self, kar, three = False):
@@ -239,8 +247,9 @@ class rozgrywka:
 				assert len(kar) == 1
 			try:
 				player.reka = odejmij(player.reka, kar)
+				# assert len(player.reka)==5
 			except AssertionError as e:
-				print('\n three: {} reka {}'.format(self.three, player.reka))
+				print('\n three: {} reka {}, kar {}'.format(self.three, player.reka, kar))
 			self.spalone.extend(kar)
 			if len(self.karty.cards)<len(kar):
 				self.przetasuj()
@@ -263,11 +272,16 @@ class rozgrywka:
 			if video:
 				os.system('clear')
 			self.get_card()
-			m = self.get_move()
-			self.move(self.now_card, m)
+			self.now_move =  self.get_move()
+			self.move(self.now_card, self.now_move)
 			if video:
 				print('{}'.format(self))
 				time.sleep(1)
+
+		if video:
+			os.system('clear')
+			print('\n\n    {}    \n'.format('MAT !' if self.mat else 'PAT !'))
+			print(self)
 
 		return True
 
@@ -292,9 +306,11 @@ class rozgrywka:
 
 		self.burned = card[0]
 
+		# checking for three
 		if self.three > 0 and (card[1][0].ran!='3' or self.burned):
+			#if you don't defend yourself on three you have to burn the card (makes three more powerful)
 			self.burned = 1
-			tmpcar = player.get_three() if self.three == 3 else player.reka
+			tmpcar = player.get_three(3) if self.three == 3 else player.get_three(5)
 			self.do_card_buisness(tmpcar, three=True)
 			self.three = 0
 		elif w[0]!=2: self.do_card_buisness(card[1])
@@ -365,7 +381,8 @@ class rozgrywka:
 		q = 'BŁĄD!!'
 		zam = czy_pion_na_koncu(self.plansza, self.to_move)
 		if zam>0:
-			self.zamiana = True	
+			self.zamiana = True
+			self.plansza.zbite.append(self.plansza.brd[zam])
 			q = player.choose_prom()
 			if q == 'E':
 				return 'exit'
@@ -395,7 +412,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])) if not self.zamiana else 'p', fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
@@ -403,12 +420,12 @@ class rozgrywka:
 		s = self.plansza.czy_szach(k)
 		if s == (True, k):
 			return True
-		elif s == 2:
-			return 2
+		# elif s == 2:
+		# 	return 2
 		return False
 
 	def czy_pat(self, k):
-		if len(self.plansza.all_taken())==2:
+		if self.plansza.halfmoveclock==100 or len(self.plansza.all_taken())==2:
 			return True
 		szach = self.czy_szach(k)
 		for kar in self.get_gracz(k).reka:
@@ -433,12 +450,14 @@ class rozgrywka:
 		b = self.plansza.mapdict[ruch[1]]
 
 		# clearing enpassant and subtracting move counter
-		self.plansza.enpass = 300
+		self.plansza.enpass = 300 
+		if '=' in self.historia[-2]:
+			# nr = self.plansza.brd[b].mvs_number
+			# assert nr >= 0
+			self.plansza.brd[b] = self.plansza.zbite.pop()
+
 		self.plansza.brd[b].mvs_number -= 1
 
-		if '=' in self.historia[-2]:
-			nr = self.plansza.brd[b].mvs_number
-			self.plansza.brd[b] = pionek(kolor,b,nr)
 		if self.plansza.bicie:
 			assert self.plansza.is_empty(a)
 			rezurekt = self.plansza.zbite.pop()
@@ -468,13 +487,13 @@ class rozgrywka:
 
 	def what_happened(self):
 	# this function is parsing the history to make sense of the situation. returns ints that code a situation.
-	# 1 = turn loosing, 2 - king of spades, 3 - king of hearts, 4 - jack
+	# 0 = nothing special, 1 = turn loosing, 2 - king of spades, 3 - king of hearts, 4 - jack
 		s = self.historia[-1]
 		s2 = self.historia[-2] if len(self.historia)>1 else ''
 		ind = s2.index(':') if ':' in s2 else None
 		what = s[2]
 		# if the card was burned or there is a check, last card doesn't matter
-		if what == '!' or self.szach:
+		if what == '!' or self.szach or len(self.historia)==1:
 			return (0,)
 		elif what == '4' and self.now_card.ran != '4':
 			return (1,)
@@ -516,12 +535,13 @@ class rozgrywka:
 		return decode_card(c)
 
 	def card_ok_to_play(self, crd):
-		# conditions that if met block the card
+		# if card is to be burned its always ok to play it
 		if crd[0] == 1:
 			return True
-
 		c = crd[1][0]
+		# conditions that if met block the card
 		cond1 = self.szach and (c.ran=='A' or c.ran=='Q')
+
 		# war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
 		# war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
 		# war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
@@ -568,15 +588,22 @@ class rozgrywka:
 				gdzie = [d[a] for a in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[a])!=krol and (self.plansza.is_empty(a) or self.plansza.brd[a].kolor == kolor)]
 	
 			if flag[0]==2:
-				gdzie.remove(flag[1][1])
-	
+				try:
+					gdzie.remove(flag[1][1])
+				except Exception as e:
+					print('\n Error in remove! kolor:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}'.format(kolor, okzbi, kar, burned, flag, gdzie, skad, a))
+					raise e
 			if len(gdzie)>0:
 				res[skad]=gdzie
 
 		res2 = deepcopy(res)
 		for key in res2:
 			for where in res2[key]:
-				pln = self.plansza.simulate_move(key, where, kar)
+				try:
+					pln = self.plansza.simulate_move(key, where, kar)
+				except Exception as e:
+					print('\n {} {} {} {}'.format(self.now_card, self.now_move, self.plansza.enpass, self.to_move))
+					raise e
 				if pln.czy_szach(kolor)==(True, kolor):
 					res[key].remove(where)
 				del pln
@@ -587,13 +614,15 @@ class rozgrywka:
 
 #### bugi
 
-# ♤
+# [x for x in [] if x not in [szachao.karta(4,'2'), szachao.karta(2,'8'), szachao.karta(2,'10'), szachao.karta(4,'J'), szachao.karta(2,'8')]]
+
+# 
 # ♡
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
 # - dokleiłem jeszcze w dozwolonym damki warunek na typ ktory zostal
 # król się zbija w pewnym momencie (jakim?)
-# - dokleilem w self.possible_moves ozycje krola
+# - dokleilem w self.possible_moves pozycje krola
 # kkier unhashable type karta
 #  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
@@ -609,5 +638,3 @@ class rozgrywka:
 # co jesli chce zagrać roszadę na królu trefl?
 # wprowadzam rozwiazanie ze roszady nie można zrobić na królu..
 
-
-# rozgrywka zawsze zaczyna się od białych więc nie można konynuować...

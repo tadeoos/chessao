@@ -19,7 +19,7 @@ li = [
 
 def test(n=5, vid = False):
 	t1 = time.time()
-	print('n: {}'.format(n))
+	print('Games to play: {}'.format(n))
 	avr_moves = 0
 	m = 0
 	p = 0
