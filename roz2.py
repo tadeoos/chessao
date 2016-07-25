@@ -151,7 +151,8 @@ class gracz:
 
 	def choose_card(self, talie, plansza):
 		if self.bot:
-			burn = random.randint(0,1)
+			los = random.randint(0,4)
+			burn = 1 if los==0 else 0
 			card = random.choice(self.reka)
 			if not ok_karta([card], talie):
 				burn = 1
@@ -172,7 +173,7 @@ class gracz:
 		if self.bot:
 			return random.sample(self.reka, n)
 		else:
-			# functionality foe humans
+			# functionality for humans
 			return None
 
 	def choose_move(self, d):
@@ -229,7 +230,7 @@ class rozgrywka:
 		gb = self.get_gracz('b')
 		gc = self.get_gracz('c')
 		print('\nKupki: |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
-		print('\nKARTA:  {}'.format(self.now_card))
+		print('\nKARTA:  {}{}'.format('!' if self.burned else '',self.now_card))
 		print('\n{} (white): {}\n'.format(gb.name, gb.reka))
 		print('{}'.format(self.plansza))
 		print('{} (black): {}'.format(gc.name, gc.reka))
@@ -560,7 +561,6 @@ class rozgrywka:
 		
 		if flag[0]==1:
 			return {}
-	
 
 		elif flag[0]==2: # king of spades
 			a = [self.plansza.mapdict[flag[1][0]]]
@@ -569,7 +569,7 @@ class rozgrywka:
 		elif flag[0]==4: #jack
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor and self.plansza.brd[i].name==flag[1]]
 		elif kar.ran=='Q' and len(self.plansza.position_bierki('dama',kolor))>0:
-			# assert flag[0]==0 or flag[0]==3 or flag[0]==4
+			assert flag[0]==0
 			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
 				a = self.plansza.position_bierki('dama',kolor)
 			else:
@@ -578,14 +578,13 @@ class rozgrywka:
 		else:
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
 	
-	
 		res = {}
 		for i in a:
 			skad = d[i]
 			if okzbi:
-				gdzie = [d[a] for a in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[a])!=krol]
+				gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[c])!=krol]
 			else:
-				gdzie = [d[a] for a in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[a])!=krol and (self.plansza.is_empty(a) or self.plansza.brd[a].kolor == kolor)]
+				gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[c])!=krol and (self.plansza.is_empty(c) or self.plansza.brd[c].kolor == kolor)]
 	
 			if flag[0]==2:
 				try:
@@ -602,12 +601,12 @@ class rozgrywka:
 				try:
 					pln = self.plansza.simulate_move(key, where, kar)
 				except Exception as e:
-					print('\n {} {} {} {}'.format(self.now_card, self.now_move, self.plansza.enpass, self.to_move))
+					print('\n kolor: {} from {} to {} karta {}'.format(kolor, key, where, kar))
 					raise e
 				if pln.czy_szach(kolor)==(True, kolor):
 					res[key].remove(where)
 				del pln
-		final = {k:v for (k,v) in res.items() if v != []}			
+		final = {k:v for (k,v) in res.items() if v != []}		
 		return final
 
 
