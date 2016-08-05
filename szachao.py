@@ -236,6 +236,8 @@ class board:
 			self.halfmoveclock = 0
 			if self.brd[b].kolor == 'c':
 				self.fullmove += 1
+			#clearing enpass after enpass -> problem in pat functiong
+			self.enpass = 300
 			return True
 		# then set enpassant if possible
 		if self.brd[a].name=='pionek' and self.brd[a].mvs_number == 0 and abs(a-b)==20:

@@ -176,7 +176,7 @@ class gracz:
 			# functionality for humans
 			return None
 
-	def choose_move(self, d):
+	def choose_move(self, d, plansza, karta):
 		if self.bot:
 			random_ruch = random.choice(list(d.keys()))
 			random_nr = random.randint(0,len(d[random_ruch])-1)
@@ -195,6 +195,24 @@ class gracz:
 	def __repr__(self):
 		return 'Gracz {}'.format(self.nr)
 
+class gracz_str(gracz):
+
+	def choose_move(self, d, plansza, karta):
+		move_list = [[skad,gdzie] for skad in d.keys() for gdzie in d[skad]]
+		rating_list = []
+		for m in move_list:
+			brd = plansza.simulate_move(m[0],m[1], karta)
+			check = 0.5 if brd.czy_szach(odwrot(self.kol)) else 0
+			# mat = 100 if brd.czy_szach(odwrot(self.kol)) and brd.czy_pat(odwrot(self.kol)) else 0
+			broniony = 12 if pod_biciem(plansza.mapdict[m[1]],plansza,self.kol) else 0
+			atakowany = 2 if pod_biciem(plansza.mapdict[m[1]],plansza,odwrot(self.kol)) else 0
+			rating = (brd.get_points(self.kol) - brd.get_points(odwrot(self.kol))) + (check * broniony) + broniony/3 - atakowany
+			rating_list.append((rating, m))
+		maks = sorted(rating_list)[-1][0]
+		return random.choice([move for (a,move) in rating_list if a==maks])
+
+	def choose_prom(self):
+		return 'D'
 
 
 ######## SZACHAO CLASS
@@ -207,7 +225,7 @@ class rozgrywka:
 		self.karty.combine(talia().cards)
 		self.karty.tasuj()
 		tpr = rozd(self.karty)
-		self.gracze = (gracz(1,'b',tpr[0]), gracz(2,'c',tpr[1]))
+		self.gracze = (gracz(1,'b',tpr[0]), gracz_str(2,'c',tpr[1]))
 		self.karty = tpr[2]
 		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()])
 		self.szach = False
@@ -231,9 +249,9 @@ class rozgrywka:
 		gc = self.get_gracz('c')
 		print('\nKupki: |{0:>3} |  |{1:>3} |'.format(str(self.kupki[0][-1]), str(self.kupki[1][-1])))
 		print('\nKARTA:  {}{}'.format('!' if self.burned else '',self.now_card))
-		print('\n{} (white): {}\n'.format(gb.name, gb.reka))
+		print('\n{} {} (white): {}\n'.format(gb.name, gb.nr, gb.reka))
 		print('{}'.format(self.plansza))
-		print('{} (black): {}'.format(gc.name, gc.reka))
+		print('{} {} (black): {}'.format(gc.name, gc.nr, gc.reka))
 		
 		
 		
@@ -342,7 +360,8 @@ class rozgrywka:
 		all_moves = self.possible_moves(self.to_move, self.capture, self.now_card, self.burned, w)
 		if len(all_moves)==0:
 			return []
-		move = player.choose_move(all_moves)
+		crd = self.now_card if not self.burned else karta(1, '5')
+		move = player.choose_move(all_moves, self.plansza, crd)
 		return move
 
 	def move(self, card, where):
@@ -413,7 +432,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])) if not self.zamiana else 'p', fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
@@ -451,11 +470,15 @@ class rozgrywka:
 		b = self.plansza.mapdict[ruch[1]]
 
 		# clearing enpassant and subtracting move counter
-		self.plansza.enpass = 300 
+		self.plansza.enpass = 300
+
+		# see if a promotion had been made
 		if '=' in self.historia[-2]:
-			# nr = self.plansza.brd[b].mvs_number
-			# assert nr >= 0
-			self.plansza.brd[b] = self.plansza.zbite.pop()
+			# if gambit teleżyńskiego occured...
+			if 'q' in self.historia[-2].lower():
+				self.plansza.brd[a] = self.plansza.zbite.pop()
+			else:
+				self.plansza.brd[b] = self.plansza.zbite.pop() 
 
 		self.plansza.brd[b].mvs_number -= 1
 

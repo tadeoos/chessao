@@ -59,6 +59,7 @@ def test(n=5, vid = False):
 		avr_moves += len(roz.historia)
 		if roz.mat:
 			m += 1
+			# print('')
 		elif roz.pat:
 			p += 1
 		else:
