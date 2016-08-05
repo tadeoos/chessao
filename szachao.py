@@ -7,75 +7,8 @@ from copy import deepcopy
 from termcolor import colored, cprint
 from math import floor
 
-def odwrot(a):
-	if a=='b':
-		return 'c'
-	else:
-		return 'b'
 
-def get_fen_rep(piece):
-	if piece.kolor=='b':
-		return piece.name[0].upper()
-	else:
-		return piece.name[0].lower()
 
-def fen_row(row):
-	res = ''
-	empty_counter = 0
-	for i in row:
-		if i==' ':
-			empty_counter += 1
-		elif empty_counter==0:
-			res += get_fen_rep(i)
-		else:
-			res += str(empty_counter)+get_fen_rep(i)
-			empty_counter = 0
-	if empty_counter > 0:
-		res += str(empty_counter)
-	return res
-
-def pod_biciem(pole, plansza, kolor):
-	for i in (1,-1,10,-10,9,11,-9,-11):
-		a = pole + i
-		if (type(plansza.brd[a])==krol and plansza.brd[a].kolor!=kolor):
-			return True
-
-	for i in (-12,-21,-19,-8,8,19,21,12):
-		a = pole + i
-		if (type(plansza.brd[a])==skoczek and plansza.brd[a].kolor!=kolor):
-			return True
-	for i in (1,10,-1,-10):
-		a = pole + i
-		while (plansza.brd[a]!=0):
-			if plansza.is_empty(a)==0:
-				if plansza.brd[a].kolor!=kolor:
-				 	if type(plansza.brd[a])==wieza or type(plansza.brd[a])==dama:
-				 		return True
-				 	else:
-				 		break
-				else:
-					break
-			a += i
-	for i in (9,11,-11,-9):
-		a = pole + i
-		while (plansza.brd[a]!=0):
-			if plansza.is_empty(a)==0:
-				if plansza.brd[a].kolor!=kolor:
-				 	if type(plansza.brd[a])==goniec or type(plansza.brd[a])==dama:
-				 		return True
-				 	else:
-				 		break
-				else:
-					break
-			a += i
-
-	where = (9,11) if kolor == 'b' else (-9,-11)
-	for i in where:
-		a = pole + i
-		if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
-			return True
-
-	return False
 
 
 
@@ -125,19 +58,6 @@ class talia:
 		return str(self.cards)
 	def tasuj(self):
 		random.shuffle(self.cards)
-
-
-
-
-
-#######  ALL RUCHY
-
-def jaki_typ_zostal(plansza, kolor):
-	a = plansza.all_taken()
-	res = {plansza.brd[i].name for i in a if plansza.brd[i].kolor == kolor}
-	return res
-
-
 
 
 
@@ -267,7 +187,7 @@ class board:
 			return True
 
 		# checking for Queen card and valid Queen move
-		if karta.ran == 'Q' and self.brd[a].name == 'dama' and jaki_typ_zostal(self, self.brd[a].kolor) != {'krol', 'dama'}:
+		if karta.ran == 'Q' and self.brd[a].name == 'dama' and self.jaki_typ_zostal(self.brd[a].kolor) != {'krol', 'dama'}:
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
@@ -342,6 +262,11 @@ class board:
 	def position_bierki(self, naz, kol):
 		return [i for i in self.all_taken() if self.brd[i].name==naz and self.brd[i].kolor==kol]
 
+	def jaki_typ_zostal(self, kolor):
+		a = self.all_taken()
+		return {self.brd[i].name for i in a if self.brd[i].kolor == kolor}
+
+
 	def get_piece(self, pos):
 		return self.brd[self.mapdict[pos]]
 
@@ -372,7 +297,7 @@ class board:
 		res = []
 		poz_k = self.position_bierki('krol', color)			
 		assert len(poz_k) == 1
-		return (True, color) if pod_biciem(poz_k[0],self,color) else False
+		return (True, color) if self.pod_biciem(poz_k[0],self,color) else False
 
 	def check_castle(self, kol):
 		k = self.position_bierki('krol', kol)[0]
@@ -390,7 +315,7 @@ class board:
 				where = [i for i in range(k+1, r)]
 			c = 0
 			for pos in where:
-				if self.is_empty(pos)==0 or pod_biciem(pos,self,kol):
+				if self.is_empty(pos)==0 or self.pod_biciem(pos,self,kol):
 					break
 				else:
 					c+=1
@@ -409,7 +334,7 @@ class board:
 			start = i*10 + 1
 			end = start + 8
 			row = self.brd[start:end]
-			res += fen_row(row)+'/'
+			res += self.fen_row(row)+'/'
 		wc = self.fen_castle('b')
 		bc = self.fen_castle('c').lower()
 		jc = wc+bc
@@ -492,8 +417,70 @@ class board:
 				raise ValueError
 			y+=1
 		return dic
+	
+	def get_fen_rep(piece):
+		if piece.kolor=='b':
+			return piece.name[0].upper()
+		else:
+			return piece.name[0].lower()
 
+	def fen_row(row):
+		res = ''
+		empty_counter = 0
+		for i in row:
+			if i==' ':
+				empty_counter += 1
+			elif empty_counter==0:
+				res += self.get_fen_rep(i)
+			else:
+				res += str(empty_counter)+self.get_fen_rep(i)
+				empty_counter = 0
+		if empty_counter > 0:
+			res += str(empty_counter)
+		return res
 
+	def pod_biciem(pole, plansza, kolor):
+		for i in (1,-1,10,-10,9,11,-9,-11):
+			a = pole + i
+			if (type(plansza.brd[a])==krol and plansza.brd[a].kolor!=kolor):
+				return True
+
+		for i in (-12,-21,-19,-8,8,19,21,12):
+			a = pole + i
+			if (type(plansza.brd[a])==skoczek and plansza.brd[a].kolor!=kolor):
+				return True
+		for i in (1,10,-1,-10):
+			a = pole + i
+			while (plansza.brd[a]!=0):
+				if plansza.is_empty(a)==0:
+					if plansza.brd[a].kolor!=kolor:
+					 	if type(plansza.brd[a])==wieza or type(plansza.brd[a])==dama:
+					 		return True
+					 	else:
+					 		break
+					else:
+						break
+				a += i
+		for i in (9,11,-11,-9):
+			a = pole + i
+			while (plansza.brd[a]!=0):
+				if plansza.is_empty(a)==0:
+					if plansza.brd[a].kolor!=kolor:
+					 	if type(plansza.brd[a])==goniec or type(plansza.brd[a])==dama:
+					 		return True
+					 	else:
+					 		break
+					else:
+						break
+				a += i
+
+		where = (9,11) if kolor == 'b' else (-9,-11)
+		for i in where:
+			a = pole + i
+			if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
+				return True
+
+		return False
 
 #######
 ######## SZACHY
@@ -666,7 +653,7 @@ class dama:
 		self.name='dama'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
-		if karta.ran == 'Q' and jaki_typ_zostal(plansza, self.kolor) != {'krol', 'dama'}:
+		if karta.ran == 'Q' and plansza.jaki_typ_zostal(self.kolor) != {'krol', 'dama'}:
 			res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[i].name in ('pionek', 'goniec','skoczek','wieza'))]
 			return res
 
@@ -729,7 +716,7 @@ class krol:
 		res2 = deepcopy(res)
 		plansza.brd[self.position] = ' '
 		for r in res2:
-			if pod_biciem(r, plansza, self.kolor):
+			if plansza.pod_biciem(r, plansza, self.kolor):
 				res.remove(r)
 		plansza.brd[self.position] = self
 

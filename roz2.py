@@ -6,6 +6,12 @@ import time
 import re
 import os
 
+def odwrot(a):
+	if a=='b':
+		return 'c'
+	else:
+		return 'b'
+
 def rozd(tal):
 	a=[]
 	b=[]
@@ -157,7 +163,7 @@ class gracz:
 			if not ok_karta([card], talie):
 				burn = 1
 			if not burn and card.ran=='J':
-				ch = [s[0] for s in jaki_typ_zostal(plansza,odwrot(self.kol)) if s!='krol']
+				ch = [s[0] for s in plansza.jaki_typ_zostal(odwrot(self.kol)) if s!='krol']
 				# here is a problem with jack loosing its ability when there is only king left..
 				if len(ch)==0:
 					return (burn, [card])
@@ -339,7 +345,7 @@ class rozgrywka:
 
 		if len(card)==3:
 			self.jack = card[2]
-			assert self.jack in jaki_typ_zostal(self.plansza, odwrot(self.to_move))
+			assert self.jack in self.plansza.jaki_typ_zostal(odwrot(self.to_move))
 		else:
 			self.jack = None
 		if self.now_card.ran == '4' and not self.burned:
@@ -475,7 +481,7 @@ class rozgrywka:
 		# see if a promotion had been made
 		if '=' in self.historia[-2]:
 			# if gambit teleżyńskiego occured...
-			if 'q' in self.historia[-2].lower():
+			if 'q' in self.historia[-2].split()[2].lower():
 				self.plansza.brd[a] = self.plansza.zbite.pop()
 			else:
 				self.plansza.brd[b] = self.plansza.zbite.pop() 
@@ -530,7 +536,7 @@ class rozgrywka:
 				return (1,)
 			return (3, s2[ind+1:][:2])
 		elif what == 'J' and self.now_card.ran != 'J':
-			if self.jack not in jaki_typ_zostal(self.plansza, self.to_move):
+			if self.jack not in self.plansza.jaki_typ_zostal(self.to_move):
 				return (1,)
 			return (4, self.jack)
 		else:
@@ -593,7 +599,7 @@ class rozgrywka:
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor and self.plansza.brd[i].name==flag[1]]
 		elif kar.ran=='Q' and len(self.plansza.position_bierki('dama',kolor))>0:
 			assert flag[0]==0
-			if jaki_typ_zostal(self.plansza, kolor) != {'krol', 'dama'}:
+			if self.plansza.jaki_typ_zostal(kolor) != {'krol', 'dama'}:
 				a = self.plansza.position_bierki('dama',kolor)
 			else:
 				kar = karta(1, '5')
