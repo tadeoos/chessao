@@ -297,7 +297,7 @@ class board:
 		res = []
 		poz_k = self.position_bierki('krol', color)			
 		assert len(poz_k) == 1
-		return (True, color) if self.pod_biciem(poz_k[0],self,color) else False
+		return (True, color) if self.pod_biciem(poz_k[0],color) else False
 
 	def check_castle(self, kol):
 		k = self.position_bierki('krol', kol)[0]
@@ -315,7 +315,7 @@ class board:
 				where = [i for i in range(k+1, r)]
 			c = 0
 			for pos in where:
-				if self.is_empty(pos)==0 or self.pod_biciem(pos,self,kol):
+				if self.is_empty(pos)==0 or self.pod_biciem(pos,kol):
 					break
 				else:
 					c+=1
@@ -418,13 +418,13 @@ class board:
 			y+=1
 		return dic
 	
-	def get_fen_rep(piece):
+	def get_fen_rep(self, piece):
 		if piece.kolor=='b':
 			return piece.name[0].upper()
 		else:
 			return piece.name[0].lower()
 
-	def fen_row(row):
+	def fen_row(self, row):
 		res = ''
 		empty_counter = 0
 		for i in row:
@@ -439,22 +439,22 @@ class board:
 			res += str(empty_counter)
 		return res
 
-	def pod_biciem(pole, plansza, kolor):
+	def pod_biciem(self, pole, kolor):
 		for i in (1,-1,10,-10,9,11,-9,-11):
 			a = pole + i
-			if (type(plansza.brd[a])==krol and plansza.brd[a].kolor!=kolor):
+			if (type(self.brd[a])==krol and self.brd[a].kolor!=kolor):
 				return True
 
 		for i in (-12,-21,-19,-8,8,19,21,12):
 			a = pole + i
-			if (type(plansza.brd[a])==skoczek and plansza.brd[a].kolor!=kolor):
+			if (type(self.brd[a])==skoczek and self.brd[a].kolor!=kolor):
 				return True
 		for i in (1,10,-1,-10):
 			a = pole + i
-			while (plansza.brd[a]!=0):
-				if plansza.is_empty(a)==0:
-					if plansza.brd[a].kolor!=kolor:
-					 	if type(plansza.brd[a])==wieza or type(plansza.brd[a])==dama:
+			while (self.brd[a]!=0):
+				if self.is_empty(a)==0:
+					if self.brd[a].kolor!=kolor:
+					 	if type(self.brd[a])==wieza or type(self.brd[a])==dama:
 					 		return True
 					 	else:
 					 		break
@@ -463,10 +463,10 @@ class board:
 				a += i
 		for i in (9,11,-11,-9):
 			a = pole + i
-			while (plansza.brd[a]!=0):
-				if plansza.is_empty(a)==0:
-					if plansza.brd[a].kolor!=kolor:
-					 	if type(plansza.brd[a])==goniec or type(plansza.brd[a])==dama:
+			while (self.brd[a]!=0):
+				if self.is_empty(a)==0:
+					if self.brd[a].kolor!=kolor:
+					 	if type(self.brd[a])==goniec or type(self.brd[a])==dama:
 					 		return True
 					 	else:
 					 		break
@@ -477,7 +477,7 @@ class board:
 		where = (9,11) if kolor == 'b' else (-9,-11)
 		for i in where:
 			a = pole + i
-			if (type(plansza.brd[a])==pionek and plansza.brd[a].kolor!=kolor):
+			if (type(self.brd[a])==pionek and self.brd[a].kolor!=kolor):
 				return True
 
 		return False
@@ -716,7 +716,7 @@ class krol:
 		res2 = deepcopy(res)
 		plansza.brd[self.position] = ' '
 		for r in res2:
-			if plansza.pod_biciem(r, plansza, self.kolor):
+			if plansza.pod_biciem(r, self.kolor):
 				res.remove(r)
 		plansza.brd[self.position] = self
 

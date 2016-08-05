@@ -208,11 +208,11 @@ class gracz_str(gracz):
 		rating_list = []
 		for m in move_list:
 			brd = plansza.simulate_move(m[0],m[1], karta)
-			check = 0.5 if brd.czy_szach(odwrot(self.kol)) else 0
+			check = 1 if brd.czy_szach(odwrot(self.kol)) else 0
 			# mat = 100 if brd.czy_szach(odwrot(self.kol)) and brd.czy_pat(odwrot(self.kol)) else 0
-			broniony = 12 if pod_biciem(plansza.mapdict[m[1]],plansza,self.kol) else 0
-			atakowany = 2 if pod_biciem(plansza.mapdict[m[1]],plansza,odwrot(self.kol)) else 0
-			rating = (brd.get_points(self.kol) - brd.get_points(odwrot(self.kol))) + (check * broniony) + broniony/3 - atakowany
+			broniony = 4 if plansza.pod_biciem(plansza.mapdict[m[1]],self.kol) else 0
+			atakowany = 4 if plansza.pod_biciem(plansza.mapdict[m[1]],odwrot(self.kol)) else 0
+			rating = (brd.get_points(self.kol) - brd.get_points(odwrot(self.kol))) + (check * broniony) + broniony - atakowany
 			rating_list.append((rating, m))
 		maks = sorted(rating_list)[-1][0]
 		return random.choice([move for (a,move) in rating_list if a==maks])
