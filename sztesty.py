@@ -17,6 +17,16 @@ li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '8'),karta(1, '9')]
 ]
 
+# tough cases
+# fen = '1d6/w1pw1S1g/3D4/p3p1k1/3Pp2K/pp6/3P3S/G7 KQkq - 0 0'
+
+def simulate(fen = False, moves)
+	game = rozgrywka(fenrep=fen)
+	i = 0
+	while i < len(moves):
+		game.move(moves[i][0], game.now_move[i][1])
+		i+=1
+
 def test(n=5, vid = False):
 	t1 = time.time()
 	print('Games to play: {}'.format(n))

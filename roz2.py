@@ -171,8 +171,13 @@ class gracz:
 				return (burn, [card], nawaleta(choice))
 			return (burn, [card])
 		else:
-			ask = int(input('Karta: (1,2,3,4,5)?')) - 1
-			return self.reka[ask]
+			print('\nKupki: |{0:>3} |  |{1:>3} |'.format(str(talie[0][-1]), str(talie[1][-1])))
+			print(plansza)
+			print(self.reka)
+
+			ask = int(input('Karta: (1,2,3,4,5)? ')) - 1
+			ask_burn = int(input('Do you want to burn that card? (0/1) '))
+			return (ask_burn, [self.reka[ask]])
 			# trza dokończyć..
 
 	def get_three(self, n):
@@ -180,7 +185,8 @@ class gracz:
 			return random.sample(self.reka, n)
 		else:
 			# functionality for humans
-			return None
+			return random.sample(self.reka, n)
+			# return None
 
 	def choose_move(self, d, plansza, karta):
 		if self.bot:
@@ -189,7 +195,7 @@ class gracz:
 			return [random_ruch, d[random_ruch][random_nr]]
 		else:
 			ask = input('Ruch: ')
-			return None
+			return ask.split()
 
 	def choose_prom(self):
 		if self.bot:
@@ -197,9 +203,9 @@ class gracz:
 		else:
 			return input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n').upper()
 	def __str__(self):
-		return 'Gracz {}'.format(self.nr)
+		return '{} {}'.format(self.name, self.nr)
 	def __repr__(self):
-		return 'Gracz {}'.format(self.nr)
+		return '{} {}'.format(self.name, self.nr)
 
 class gracz_str(gracz):
 
@@ -224,14 +230,14 @@ class gracz_str(gracz):
 ######## SZACHAO CLASS
 
 class rozgrywka:
-	def __init__(self, rnd=1):
+	def __init__(self, rnd=1, fenrep=False, b = True):
 		random.seed()
-		self.plansza = board(rnd)
+		self.plansza = board(rnd, fenrep)
 		self.karty = talia()
 		self.karty.combine(talia().cards)
 		self.karty.tasuj()
 		tpr = rozd(self.karty)
-		self.gracze = (gracz(1,'b',tpr[0]), gracz_str(2,'c',tpr[1]))
+		self.gracze = (gracz(1,'b',tpr[0], bot = b), gracz_str(2,'c',tpr[1]))
 		self.karty = tpr[2]
 		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()])
 		self.szach = False

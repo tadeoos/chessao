@@ -10,11 +10,7 @@ from math import floor
 
 
 
-
-
-
-
-################ KARTY
+####### CARDS #######
 
 
 class karta:
@@ -63,10 +59,7 @@ class talia:
 
 
 
-
-########## PLANSZA
-#######
-
+########## BOARD #######
 
 
 class board:
@@ -482,10 +475,10 @@ class board:
 
 		return False
 
-#######
-######## SZACHY
-########
 
+
+#######
+######## SZACHY  ########
 
 # class Piece():
 # 	def __init__(self, color, position, mvs = 0):
@@ -669,11 +662,6 @@ class dama:
 						break
 				res.append(a)
 				a+=i
-		# res2 = deepcopy(res)
-		# for r in res2:
-		# 	pln = plansza.simulate_move(self.position, r, karta)
-		# 	if pln.czy_szach(self.kolor)==(True, self.kolor):
-		# 		res.remove(r)	
 		return res
 
 	def __str__(self):
