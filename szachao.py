@@ -2,120 +2,85 @@
 # Board and Pieces classes from Szachao module
 # pieces value according to Hans Berliner's system (https://en.wikipedia.org/wiki/Chess_piece_relative_value)
 
-import random
 from copy import deepcopy
-from termcolor import colored, cprint
 from math import floor
+from termcolor import colored, cprint
+import random
 
 
 
 
 ####### CARDS #######
 
-
+KOLORY_KART = {1:'♤', 2:'♡', 3: '♢', 4: '♧'}
 class karta:
-
 	def __init__(self, kolor, ranga):
 		self.kol = kolor
 		self.ran = ranga
 
-
-	def __eq__(self, other):
-		return karta == type(other) and self.kol == other.kol and self.ran == other.ran 
+	def __eq__(self, o):
+		assert karta == type(o)
+		return self.kol == o.kol and self.ran == o.ran 
 
 	def __str__(self):
-		if self.kol == 1:
-			return self.ran+'♤'
-		elif self.kol == 2:
-			return self.ran+'♡'
-		elif self.kol == 3:
-			return self.ran+'♢'
-		elif self.kol == 4:
-			return self.ran+'♧'
-		else:
-			return 'zła wartość koloru'
+		return self.ran + KOLORY_KART[self.kol]
 
 	def __repr__(self):
 		return str(self)
 
 class talia:
-	def __init__(self, lista_kart=[]):
-		a = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','Q', 'K']
-		k = [1,2,3,4]
-		if len(lista_kart)==0:
+	def __init__(self, lista_kart=None):
+		if lista_kart is None:
+			a = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','Q', 'K']
+			k = [1, 2, 3, 4]
 			self.cards = [karta(b,c) for b in k for c in a]
 		else:
 			self.cards = lista_kart
+
 	def deal(self, n=1):
-		return [self.cards.pop() for i in range(n)]
+		return [self.cards.pop() for _ in range(n)]
+
 	def combine(self, karty):
 		self.cards.extend(karty)
-	def __str__(self):
-		return str(self.cards)
+
 	def tasuj(self):
 		random.shuffle(self.cards)
 
-
-
-
-
-########## BOARD #######
+	def __str__(self):
+		return str(self.cards)
 
 
 class board:
 	def __init__(self, rnd=False, fenrep=False):
 		self.brd = [0 for i in range(120)]
-		a = 21
-		while(a < 99):
+
+		for a in range(21,99+1):
 			if (a % 10 != 0) and (a % 10 != 9):
 					self.brd[a] = ' '
-			a += 1
+
 		if not rnd and fenrep==False:
 			for i in range(31,39):
 				self.brd[i] = pionek('b', i)
 			for i in range(81,89):
 				self.brd[i] = pionek('c', i)
-			for i in ([20,'b'],[90,'c']):
-				self.brd[i[0]+1] = wieza(i[1], i[0]+1)
-				self.brd[i[0]+2] = skoczek(i[1], i[0]+2)
-				self.brd[i[0]+3] = goniec(i[1], i[0]+3)
-				self.brd[i[0]+4] = dama(i[1], i[0]+4)
-				self.brd[i[0]+5] = krol(i[1], i[0]+5)
-				self.brd[i[0]+6] = goniec(i[1], i[0]+6)
-				self.brd[i[0]+7] = skoczek(i[1], i[0]+7)
-				self.brd[i[0]+8] = wieza(i[1], i[0]+8)
+			fun = [wieza,skoczek,goniec,dama,krol,goniec,skoczek,wieza]
+			for i in ([20,'b'],[90,'c']): 
+				for j in range(1,9):
+					self.brd[i[0]+j] = fun[j-1](i[1], i[0]+j)
 		elif fenrep==False:
 			for k in ('c', 'b'):
 				rand2 = random.choice(self.all_empty())
 				self.brd[rand2] = krol(k, rand2)
-				rand = random.randint(0,8)
-				for i in range(rand):
-					rand2 = random.choice([i for i in self.all_empty() if floor(i/10) not in (2,9)])
-					self.brd[rand2] = pionek(k, rand2)
-				rand = random.randint(0,2)
-				for i in range(rand):
-					rand2 = random.choice(self.all_empty())
-					self.brd[rand2] = goniec(k, rand2)
-				rand = random.randint(0,2)
-				for i in range(rand):
-					rand2 = random.choice(self.all_empty())
-					self.brd[rand2] = skoczek(k, rand2)
-				rand = random.randint(0,2)
-				for i in range(rand):
-					rand2 = random.choice(self.all_empty())
-					self.brd[rand2] = wieza(k, rand2)
-				rand = random.randint(0,1)
-				for i in range(rand):
-					rand2 = random.choice(self.all_empty())
-					self.brd[rand2] = dama(k, rand2)
+				for (t,s,a) in [(pionek,8,True),(goniec,2,False),(skoczek,2,False),(wieza,2,False),(dama,1,False)]:
+					rand = random.randint(0,s)
+					for i in range(rand):
+						pos = random.choice(self.all_empty(random_pawn=a))
+						self.brd[pos] = t(k,pos)
 		else:
 			for (k,v) in self.parse_fen(fenrep).items():
 				self.brd[k]=v
 
-
-
-
-		self.mapdict = {'A1': 21,'A2': 31,'A3': 41,'A4': 51,'A5': 61,'A6': 71,'A7': 81,'A8': 91,'B1': 22,'B2': 32,'B3': 42,'B4': 52,'B5': 62,'B6': 72,'B7': 82,'B8': 92,'C1': 23,'C2': 33,'C3': 43,'C4': 53,'C5': 63,'C6': 73,'C7': 83,'C8': 93,'D1': 24,'D2': 34,'D3': 44,'D4': 54,'D5': 64,'D6': 74,'D7': 84,'D8': 94,'E1': 25,'E2': 35,'E3': 45,'E4': 55,'E5': 65,'E6': 75,'E7': 85,'E8': 95,'F1': 26,'F2': 36,'F3': 46,'F4': 56,'F5': 66,'F6': 76,'F7': 86,'F8': 96,'G1': 27,'G2': 37,'G3': 47,'G4': 57,'G5': 67,'G6': 77,'G7': 87,'G8': 97,'H1': 28,'H2': 38,'H3': 48,'H4': 58,'H5': 68,'H6': 78,'H7': 88, 'H8': 98}
+		self.mapdict = {l+str(j-1) : 10*j+1+'ABCDEFGH'.index(l) for j in range(2,10) for l in 'ABCDEFGH'}
 		self.bicie = False
 		self.zbite = []
 		self.enpass = 300
@@ -246,7 +211,9 @@ class board:
 	def is_empty(self, i):
 		return self.brd[i]==' '
 
-	def all_empty(self):
+	def all_empty(self, random_pawn=False):
+		if random_pawn:
+			return [i for i in range(len(self.brd)) if self.brd[i]==' ' and floor(i/10) not in (2,9)]
 		return [i for i in range(len(self.brd)) if self.brd[i]==' ']
 
 	def all_taken(self):
@@ -259,7 +226,6 @@ class board:
 		a = self.all_taken()
 		return {self.brd[i].name for i in a if self.brd[i].kolor == kolor}
 
-
 	def get_piece(self, pos):
 		return self.brd[self.mapdict[pos]]
 
@@ -267,14 +233,10 @@ class board:
 		return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].kolor == col])
 
 	def simulate_move(self, fro, to, card):
-		# d = {v:k for (k,v) in self.mapdict.items()}
-		# a = d[fro]
-		# b = d[to]
 		fenstr = self.fen().split()[0]
 		enp = self.fen().split()[2]
 		copy = board(fenrep=fenstr)
 		copy.enpass = 300 if enp=='-' else self.mapdict[enp]
-		# copy = deepcopy(self)
 		copy.rusz(fro, to, card)
 		return copy
 
@@ -335,7 +297,6 @@ class board:
 		enp = '-' if self.enpass not in self.mapdict.values() else [k for (k,v) in self.mapdict.items() if v == self.enpass][0]
 		ret = [res[:-1], c, str(enp), str(self.halfmoveclock), str(self.fullmove)]
 		return ' '.join(ret)
-
 
 	def fen_castle(self, kol):
 		res = ''
@@ -496,6 +457,7 @@ class pionek:
 		self.val = 1
 		self.mvs_number = mvs
 		self.name = 'pionek'
+
 	def dozwolony(self, karta, plansza):
 		dop = [10,20] if self.mvs_number == 0 else [10]
 		if karta.ran == '2':
@@ -519,10 +481,8 @@ class pionek:
 
 		for i in a:
 			if (plansza.brd[self.position+i]!=0 and plansza.brd[self.position+i]!=' ' and plansza.brd[self.position+i].kolor!=self.kolor) or (plansza.enpass==self.position+i):
-				# print('bicie pionka', self.position, i)
 				dop.append(abs(i))
 
-		# if karta in (3,4,5,6,7,8,9,10):
 		res = [self.position+i if self.kolor=='b' else self.position-i for i in dop]
 
 		return res
@@ -580,6 +540,7 @@ class skoczek:
 		self.val = 3.2
 		self.name='skoczek'
 		self.mvs_number = 0
+
 	def dozwolony(self, karta, plansza):
 		res = []
 		for i in (-12,-21,-19,-8,8,19,21,12):
@@ -610,6 +571,7 @@ class goniec:
 		self.val = 3.33
 		self.name='goniec'
 		self.mvs_number = 0
+
 	def dozwolony(self, karta, plansza):
 		res = []
 		for i in (9,11,-11,-9):
@@ -645,6 +607,7 @@ class dama:
 		self.val = 8.8
 		self.name='dama'
 		self.mvs_number = 0
+
 	def dozwolony(self, karta, plansza):
 		if karta.ran == 'Q' and plansza.jaki_typ_zostal(self.kolor) != {'krol', 'dama'}:
 			res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[i].name in ('pionek', 'goniec','skoczek','wieza'))]

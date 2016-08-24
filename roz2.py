@@ -1,10 +1,11 @@
 # Author: Tadek Teleżyński
 
 from szachao import *
-import random
-import time
-import re
 import os
+import random
+import re
+import time
+
 
 def odwrot(a):
 	if a=='b':
@@ -444,7 +445,7 @@ class rozgrywka:
 		elif self.czy_pat(self.to_move):
 			self.pat = True
 		#updating history
-		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
+		record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move), burn = '!' if self.burned else '', car=card, jack = ';'+self.jack[0] if self.jack != None else '', piece = self.plansza.get_fen_rep(self.plansza.get_piece(where[1])), fro = where[0], to = where[1], prom = '='+q if self.zamiana else '', check = '+' if self.szach else '', mate = '#' if self.mat else '')
 		self.historia.append(record)
 		return True
 
