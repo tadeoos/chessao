@@ -234,8 +234,8 @@ class rozgrywka:
 	def __init__(self, rnd=1, fenrep=False, b = True):
 		random.seed()
 		self.plansza = board(rnd, fenrep)
-		self.karty = talia()
-		self.karty.combine(talia().cards)
+		self.karty = Talia()
+		self.karty.combine(Talia().cards)
 		self.karty.tasuj()
 		tpr = rozd(self.karty)
 		self.gracze = (gracz(1,'b',tpr[0], bot = b), gracz_str(2,'c',tpr[1]))
@@ -509,7 +509,7 @@ class rozgrywka:
 		kup_2=self.kupki[1][-1]
 		do_tasu = self.kupki[0][:-1] + self.kupki[1][:-1] + self.spalone
 
-		out = talia(do_tasu)
+		out = Talia(do_tasu)
 
 		self.spalone = []
 		out.tasuj()

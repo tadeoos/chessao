@@ -28,7 +28,7 @@ class karta:
 	def __repr__(self):
 		return str(self)
 
-class talia:
+class Talia:
 	def __init__(self, lista_kart=None):
 		if lista_kart is None:
 			a = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','Q', 'K']
@@ -86,7 +86,6 @@ class board:
 		self.enpass = 300
 		self.fullmove = 0
 		self.halfmoveclock = 0
-
 
 	def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
 		self.bicie = False
@@ -176,7 +175,7 @@ class board:
 					self.fullmove += 1
 				return True
 
-		print('skad {} dokad {} karta {} mvs {}, enpas {}'.format(c,d,karta, self.brd[a].mvs_number, self.enpass))
+		print('BŁĄD w funkcji rusz! skad {} dokad {} karta {} mvs {}, enpas {}'.format(c,d,karta, self.brd[a].mvs_number, self.enpass))
 		raise ValueError
 		return False
 
@@ -728,7 +727,7 @@ def testy():
 	# print(pla.rusz('G7'))
 	# print(pla)
 
-	# tal = talia()
+	# tal = Talia()
 	# print(tal.cards)
 	# # tal.deal()
 	# tal.tasuj()
