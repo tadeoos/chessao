@@ -13,12 +13,18 @@ def odwrot(a):
 	else:
 		return 'b'
 
-def rozd(tal):
+def rozd(tal, override=False):
 	a=[]
 	b=[]
 	for i in range(5):
 		a.append(tal.cards.pop())
 		b.append(tal.cards.pop())
+	if override:
+		a = override[0]
+		b = override[1]
+		for o in override:
+			for karta in o:
+				tal.cards.remove(karta)
 	return (a,b,tal)
 
 def karta_z_str(s):
@@ -65,6 +71,21 @@ def nawaleta(s):
 		return False
 
 def schodki_check(lis):
+	"""
+	>>> k=karta
+	>>> schodki_check([k(1,'6'),k(1,'7'),k(2,'7')])
+	True
+	>>> schodki_check([k(1,'2'),k(2,'3')])
+	False
+	>>> schodki_check([k(1,'7'),k(1,'6'),k(1,'5')])
+	True
+	>>> schodki_check([k(3,'6'),k(1,'6'),k(2,'6'),k(2,'6')k(4,'6')])
+	True
+	>>> schodki_check([k(2,'2'),k(1,'2'),k(1,'3')])
+	False
+	>>> schodki_check([k(2,'3'),k(1,'3'),k(4,'3')])
+	True
+	"""
 	# schodkom brakuje jeszcze opcji schodzenia w dół...
 	for i in range(len(lis)-1):
 		if lis[i].ran==lis[i+1].ran:
@@ -101,7 +122,6 @@ def odejmij(a,b):
 	# 		print('\n out: {} a: {} b: {}'.format(out,a ,b))
 	# 		raise AssertionError
 	# 	return out
-
 
 def ktora_kupka(karta, kupki, rnd=False):
 	res = []
@@ -174,10 +194,10 @@ class gracz:
 		else:
 			print('\nKupki: |{0:>3} |  |{1:>3} |'.format(str(talie[0][-1]), str(talie[1][-1])))
 			print(plansza)
-			print(self.reka)
+			print(self.kol, self.reka)
 
 			ask = int(input('Karta: (1,2,3,4,5)? ')) - 1
-			ask_burn = int(input('Do you want to burn that card? (0/1) '))
+			ask_burn = int(input('Do you want to burn that card? (0/1) ')) if ok_karta([self.reka[ask]], talie) else 1
 			return (ask_burn, [self.reka[ask]])
 			# trza dokończyć..
 
@@ -195,8 +215,13 @@ class gracz:
 			random_nr = random.randint(0,len(d[random_ruch])-1)
 			return [random_ruch, d[random_ruch][random_nr]]
 		else:
-			ask = input('Ruch: ')
-			return ask.split()
+			print('Possible moves: {}'.format(d))
+			while True:
+				ask = input('Ruch: ').upper().split()
+				if ask[0] in d.keys() and ask[1] in d[ask[0]]:
+					break
+				print('You cannot make this move, choose another one!')
+			return ask
 
 	def choose_prom(self):
 		if self.bot:
@@ -209,7 +234,6 @@ class gracz:
 		return '{} {}'.format(self.name, self.nr)
 
 class gracz_str(gracz):
-
 	def choose_move(self, d, plansza, karta):
 		move_list = [[skad,gdzie] for skad in d.keys() for gdzie in d[skad]]
 		rating_list = []
@@ -227,20 +251,23 @@ class gracz_str(gracz):
 	def choose_prom(self):
 		return 'D'
 
-
 ######## SZACHAO CLASS
 
 class rozgrywka:
-	def __init__(self, rnd=1, fenrep=False, b = True):
-		random.seed()
+	def __init__(self, rnd=1, fenrep=False, b = True, ovr=False, test=False):
+		# random.seed()
 		self.plansza = board(rnd, fenrep)
 		self.karty = Talia()
 		self.karty.combine(Talia().cards)
 		self.karty.tasuj()
-		tpr = rozd(self.karty)
-		self.gracze = (gracz(1,'b',tpr[0], bot = b), gracz_str(2,'c',tpr[1]))
+		tpr = rozd(self.karty, ovr)
+		# auto play
+		# self.gracze = (gracz(1,'b',tpr[0], bot = b), gracz_str(2,'c',tpr[1]))
+		# human vs human
+		self.gracze = (gracz(1,'b',tpr[0], bot = False), gracz(2,'c',tpr[1], bot= False))
+
 		self.karty = tpr[2]
-		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()])
+		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()]) if not test else ([self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=3))],[self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=4))])
 		self.szach = False
 		self.mat = False
 		self.pat = False
@@ -256,7 +283,6 @@ class rozgrywka:
 		self.four = False
 		self.capture = True
 
-
 	def __str__(self):
 		gb = self.get_gracz('b')
 		gc = self.get_gracz('c')
@@ -265,9 +291,6 @@ class rozgrywka:
 		print('\n{} {} (white): {}\n'.format(gb.name, gb.nr, gb.reka))
 		print('{}'.format(self.plansza))
 		print('{} {} (black): {}'.format(gc.name, gc.nr, gc.reka))
-		
-		
-		
 		# print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
 		return ''
 
@@ -317,24 +340,25 @@ class rozgrywka:
 
 		return True
 
-	def get_card(self):
+	def get_card(self, ovr=None):
 		# clearing self.capture
 		self.capture = True
 
 		player = self.get_gracz(self.to_move)
 
-		w  = self.what_happened()
+		w = self.what_happened()
 
 		# if king of spades was played get card from history (2 halfmoves ago)
 		if w[0]==2:
 			self.cofnij(self.to_move, w[1])
 			card = w[2]
-
 		else:
-
-			card = player.choose_card(self.kupki, self.plansza)
-			while(not self.card_ok_to_play(card)):
+			if ovr is not None:
+				card = ovr
+			else:
 				card = player.choose_card(self.kupki, self.plansza)
+				while(not self.card_ok_to_play(card)):
+					card = player.choose_card(self.kupki, self.plansza)
 
 		self.burned = card[0]
 
@@ -362,7 +386,7 @@ class rozgrywka:
 			assert add>2
 			self.three += add
 
-	def get_move(self):
+	def get_move(self, ovr = None):
 		self.zamiana = False
 		player = self.get_gracz(self.to_move)
 		# after ace or king of spikes there is no move
@@ -374,7 +398,7 @@ class rozgrywka:
 		if len(all_moves)==0:
 			return []
 		crd = self.now_card if not self.burned else karta(1, '5')
-		move = player.choose_move(all_moves, self.plansza, crd)
+		move = player.choose_move(all_moves, self.plansza, crd) if ovr is None else ovr
 		return move
 
 	def move(self, card, where):

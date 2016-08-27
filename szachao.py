@@ -43,7 +43,10 @@ class Talia:
 	def combine(self, karty):
 		self.cards.extend(karty)
 
-	def tasuj(self):
+	def get_card_index(self, rank='5', suit=1):
+		return self.cards.index(karta(suit,rank))
+
+	def tasuj(self, until=None):
 		random.shuffle(self.cards)
 
 	def __str__(self):
@@ -155,7 +158,7 @@ class board:
 					self.fullmove += 1
 				return True
 		else:
-		# default move
+			# default move
 			if b in self.brd[a].dozwolony(karta,self):
 				if only_bool:
 					return True
@@ -177,7 +180,6 @@ class board:
 
 		print('BŁĄD w funkcji rusz! skad {} dokad {} karta {} mvs {}, enpas {}'.format(c,d,karta, self.brd[a].mvs_number, self.enpass))
 		raise ValueError
-		return False
 
 	def __str__(self):
 		print('    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}'.format('A','B', 'C', 'D', 'E','F','G','H'))
@@ -248,6 +250,9 @@ class board:
 		self.brd[a].position = a
 
 	def czy_szach(self, color):
+		# for tests purposes there can be no king..
+		if 'krol' not in self.jaki_typ_zostal(color):
+			return False
 		res = []
 		poz_k = self.position_bierki('krol', color)			
 		assert len(poz_k) == 1
@@ -298,6 +303,8 @@ class board:
 		return ' '.join(ret)
 
 	def fen_castle(self, kol):
+		if 'wieza' not in self.jaki_typ_zostal(kol) or 'krol' not in self.jaki_typ_zostal(kol):
+			return '-' 
 		res = ''
 		k = self.position_bierki('krol', kol)[0]
 		w = self.position_bierki('wieza', kol)
@@ -500,11 +507,6 @@ class wieza:
 		self.name = 'wieza'
 		self.mvs_number = 0
 	def dozwolony(self, karta, plansza):
-		# plansza.brd[self.position] = ' '
-		# if plansza.czy_szach(self.kolor)==(True, self.kolor):
-		# 	plansza.brd[self.position] = self
-		# 	return []
-		# plansza.brd[self.position] = self
 		res = []
 		for i in (1,10,-1,-10):
 			a = self.position + i
@@ -517,12 +519,6 @@ class wieza:
 						break
 				res.append(a)
 				a+=i
-
-		# res2 = deepcopy(res)
-		# for r in res2:
-		# 	pln = plansza.simulate_move(self.position, r, karta)
-		# 	if pln.czy_szach(self.kolor)==(True, self.kolor):
-		# 		res.remove(r)
 
 		return res
 
@@ -543,18 +539,11 @@ class skoczek:
 	def dozwolony(self, karta, plansza):
 		res = []
 		for i in (-12,-21,-19,-8,8,19,21,12):
-			# print(self.position)
-			# print(i)
 			a = self.position + i
 			if plansza.brd[a]!=0:
 				if plansza.is_empty(a)==1 or plansza.brd[a].kolor!=self.kolor:
 					res.append(a)
 
-		# res2 = deepcopy(res)
-		# for r in res2:
-		# 	pln = plansza.simulate_move(self.position, r, karta)
-		# 	if pln.czy_szach(self.kolor)==(True, self.kolor):
-		# 		res.remove(r)
 		return res
 
 	def __str__(self):
@@ -585,11 +574,6 @@ class goniec:
 				res.append(a)
 				a+=i
 
-		# res2 = deepcopy(res)
-		# for r in res2:
-		# 	pln = plansza.simulate_move(self.position, r, karta)
-		# 	if pln.czy_szach(self.kolor)==(True, self.kolor):
-		# 		res.remove(r)
 		return res
 
 	def __str__(self):
@@ -597,7 +581,6 @@ class goniec:
 			return '♗'
 		else:
 			return '♝'
-
 
 class dama:
 	def __init__(self, kolor, position):
@@ -631,7 +614,6 @@ class dama:
 			return '♕'
 		else:
 			return '♛'
-
 
 class krol:
 	def __init__(self, kolor, position):

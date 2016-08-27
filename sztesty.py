@@ -1,8 +1,8 @@
 # Author: Tadek Teleżyński
 
 from roz2 import *
-import traceback
 import os
+import traceback
 
 os.system('clear')
 print('-----------------')

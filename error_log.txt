@@ -1,0 +1,5 @@
+ERRORS IN SZACHAO
+
+taka sekwencja: Gracz1 rzuca 4, Gracz2 nie broni się (traci kolejkę), Gracz1 może zagrać KRÓLA PIK, co cofa brak ruchu i oddaje kolej Graczowi 2, który może zbijać..
+
+pytanie czy król na specjalnej karcie może przechodzić przez pola które są szachowane (logika z roszady, wskazywałaby, że nie)
