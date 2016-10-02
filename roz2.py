@@ -79,7 +79,7 @@ def schodki_check(lis):
 	False
 	>>> schodki_check([k(1,'7'),k(1,'6'),k(1,'5')])
 	True
-	>>> schodki_check([k(3,'6'),k(1,'6'),k(2,'6'),k(2,'6')k(4,'6')])
+	>>> schodki_check([k(3,'6'),k(1,'6'),k(2,'6'),k(2,'6'),k(4,'6')])
 	True
 	>>> schodki_check([k(2,'2'),k(1,'2'),k(1,'3')])
 	False
@@ -254,7 +254,7 @@ class gracz_str(gracz):
 ######## SZACHAO CLASS
 
 class rozgrywka:
-	def __init__(self, rnd=1, fenrep=False, b = True, ovr=False, test=False):
+	def __init__(self, rnd=1, fenrep=False, auto = True, ovr=False, test=False):
 		# random.seed()
 		self.plansza = board(rnd, fenrep)
 		self.karty = Talia()
@@ -262,9 +262,7 @@ class rozgrywka:
 		self.karty.tasuj()
 		tpr = rozd(self.karty, ovr)
 		# auto play
-		# self.gracze = (gracz(1,'b',tpr[0], bot = b), gracz_str(2,'c',tpr[1]))
-		# human vs human
-		self.gracze = (gracz(1,'b',tpr[0], bot = False), gracz(2,'c',tpr[1], bot= False))
+		self.gracze = (gracz(1,'b',tpr[0], bot = True), gracz_str(2,'c',tpr[1])) if auto else (gracz(1,'b',tpr[0], bot = False), gracz(2,'c',tpr[1], bot= False))
 
 		self.karty = tpr[2]
 		self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()]) if not test else ([self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=3))],[self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=4))])

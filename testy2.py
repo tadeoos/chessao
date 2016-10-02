@@ -9,7 +9,7 @@ def pos_moves(fen,card):
 
 def seq_of_moves(boot, mvs):
 	r = roz2.rozgrywka(fenrep=boot[0], ovr=[boot[1][0],boot[1][1]], test=True)
-	print(r)
+	# print(r)
 	for card,move in mvs:
 		c = r.get_card(ovr=card)
 		m = r.get_move(ovr=move)
@@ -17,7 +17,11 @@ def seq_of_moves(boot, mvs):
 	return r
 
 k = roz2.karta_z_str
-roz = seq_of_moves(('Wdg5/8/8/8/8/8/8/8',[[k('J1'),k('Q1'),k('51'),k('61'),k('81')],[k('101'),k('Q2'),k('52'),k('62'),k('82')]]), (((0, [k('J1')], 'dama'), ['A1', 'B1']),))
+roz = seq_of_moves(('Wdg5/8/8/8/8/8/8/8',[[k('J1'),k('Q1'),k('51'),k('61'),k('81')],[k('101'),k('Q2'),k('K1'),k('62'),k('82')]]), (((0, [k('J1')], 'dama'), ['A1', 'B1']),((0,[k('K1')]),[]),))
+
+for i in range(1):
+	r = roz2.rozgrywka()
+	r.graj()
 
 def test1():
 	''' to jest dokumentacja 

@@ -10,7 +10,8 @@ if __name__ == "__main__":
 	cov.start()
 	import testy2
 	import roz2,szachao
-	doctest.testmod(testy2)
+	doctest.testmod(szachao)
+	doctest.testmod(roz2)
 	cov.stop()
 	modules=[szachao,roz2]
 	cov.report(modules, ignore_errors=1, show_missing=1)

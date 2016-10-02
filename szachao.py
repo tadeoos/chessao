@@ -30,6 +30,10 @@ class karta:
 
 class Talia:
 	def __init__(self, lista_kart=None):
+		"""
+		>>> print(Talia(lista_kart=[karta(1,'5')]))
+		[5♤]
+		"""
 		if lista_kart is None:
 			a = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J','Q', 'K']
 			k = [1, 2, 3, 4]
@@ -55,6 +59,10 @@ class Talia:
 
 class board:
 	def __init__(self, rnd=False, fenrep=False):
+		"""
+		>>> 'K' in board(rnd=1).fen()
+		True
+		"""
 		self.brd = [0 for i in range(120)]
 
 		for a in range(21,99+1):
@@ -91,6 +99,46 @@ class board:
 		self.halfmoveclock = 0
 
 	def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
+		"""
+		>>> board(fenrep='W3K2W/8/8/8/8/8/8/8').rusz('E1','B1')
+		True
+		>>> board(fenrep='W3K2W/8/8/pP6/8/SswWdDgG/8/7k').rusz('E1','G1')
+		True
+		>>> board(fenrep='W3K2W/8/8/D7/8/8/8/8').rusz('A4','A1', karta(1,'Q'))
+		True
+		>>> board(fenrep='W3K2W/8/8/P7/8/8/8/8').rusz('A4','A5', karta(1,'Q'))
+		True
+		>>> b = board()
+		>>> b.rusz('D2','D4')
+		True
+		>>> b.rusz('A7','A6')
+		True
+		>>> b.rusz('D4', 'D5')
+		True
+		>>> b.rusz('E7','E5')
+		True
+		>>> b.rusz('D5','E6')
+		True
+		>>> board().fen()
+		'WSGDKGSW/PPPPPPPP/8/8/8/8/pppppppp/wsgdkgsw KQkq - 0 0'
+		>>> board(fenrep='W3K2W/8/8/P7/d7/8/8/8').rusz('A5','A4', karta(1,'6'))
+		True
+		>>> board(fenrep='W3K2W/8/8/P7/d7/8/1S6/8').rusz('B7','A5', karta(1,'6'))
+		True
+		>>> b = board()
+		>>> b.rusz('D2','D4')
+		True
+		>>> b.rusz('A7','A5')
+		True
+		>>> b.rusz('A5', 'A4')
+		True
+		>>> b.rusz('B2','B4')
+		True
+		>>> b.rusz('A4','B3')
+		True
+		>>> b.rusz('H2', 'H5', only_bool=True)
+		False
+		"""
 		self.bicie = False
 		a = self.mapdict[c]
 		if self.is_empty(a):
@@ -231,6 +279,10 @@ class board:
 		return self.brd[self.mapdict[pos]]
 
 	def get_points(self, col):
+		"""
+		>>> board().get_points('b') > 50
+		True
+		"""
 		return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].kolor == col])
 
 	def simulate_move(self, fro, to, card):
@@ -400,6 +452,20 @@ class board:
 		return res
 
 	def pod_biciem(self, pole, kolor):
+		"""
+		>>> board(fenrep='W3K2W/8/8/8/8/8/8/8').pod_biciem(88,'b')
+		False
+		>>> board(fenrep='W3K2W/8/8/8/8/8/8/8').pod_biciem(35,'c')
+		True
+		>>> board(fenrep='g3K2W/8/8/8/8/8/8/8').pod_biciem(32,'b')
+		True
+		>>> board(fenrep='S3K2W/8/8/8/8/8/8/8').pod_biciem(33,'c')
+		True
+		>>> board(fenrep='W3K2W/8/8/8/8/8/8/8').pod_biciem(81,'c')
+		True
+		>>> board(fenrep='W3K2W/P7/8/8/8/8/8/8').pod_biciem(42,'c')
+		True
+		"""
 		for i in (1,-1,10,-10,9,11,-9,-11):
 			a = pole + i
 			if (type(self.brd[a])==krol and self.brd[a].kolor!=kolor):
@@ -665,70 +731,3 @@ class krol:
 		else:
 			return '♚'
 
-
-
-## testy
-
-
-
-
-
-def testy():
-	print('\n------ TESTY -------\n')
-	pla = board()
-	p1 = pionek('b', 31)
-	p2 = pionek('c', 81)
-	# w = wieza('c', 91)
-
-	pla_los = board(rnd=1)
-	while(pla_los.czy_szach(self.kolor)!=(True, 'b')):
-		pla_los = board(rnd=1)
-	print(pla_los)
-	print('Czy szach? {}'.format(pla_los.czy_szach(self.kolor)) )
-	# print(pla)
-	# print(p1.dozwolony(2))
-	# print(p2.dozwolony(7))
-	# print(pla.all_empty())
-	# print(pla)
-	# print(pla_los.position_bierki("goniec", 'b')[0])
-	# print(pla_los.brd[pla_los.position_bierki("goniec", 'b')[0]].dozwolony(karta(1, '5'), pla_los))
-	# print(pla_los.brd[pla_los.position_bierki("goniec", 'c')[0]].dozwolony(karta(1, '5'), pla_los))
-	# print(pla_los.brd[pla_los.position_bierki('dama', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
-	# print(pla_los.brd[pla_los.position_bierki('krol', 'b')[0]].dozwolony(karta(1, '5'), pla_los))
-	# print(pla.brd[92].dozwolony(7, pla))
-	# print(pla.brd[93].dozwolony(7, pla))
-	# print(pla.brd[94].dozwolony(7, pla))
-	# print(pla.brd[95].dozwolony(7, pla))
-	all_ruchy(pla_los, 'b')
-	# for i in pla_los.all_taken():
-	# 	d = {v:k for (k,v) in pla_los.mapdict.items()}
-	# 	print(d[i])
-	# 	print([d[a] for a in pla_los.brd[i].dozwolony(karta(1,'5'), pla_los)])
-	# pla.rusz('A7','A6')
-	# pla.rusz('E2','E4')
-	# print(pla.rusz('G7'))
-	# print(pla)
-
-	# tal = Talia()
-	# print(tal.cards)
-	# # tal.deal()
-	# tal.tasuj()
-	# print(tal.cards)
-	# tal.tasuj()
-	# print(tal.cards)
-	# print(len(tal.cards))
-	# print(pla.position_bierki('krol', 'b'))
-	# pla.rusz('E7','E6')
-	# pla.rusz('F8','B4')
-	# pla.rusz('D2','D3')
-	# pla.rusz('D7','D6')
-	# pla.rusz('D7','D6')
-	# print(pla)
-	# print(pla.czy_szach(self.kolor))
-	# print(pla.position_bierki('krol', 'b'))
-	# print(pla.brd[pla.mapdict['B4']].dozwolony(5, pla))
-	return pla_los
-
-# t = testy()
-
-# print('module szachao loaded')
