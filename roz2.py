@@ -32,7 +32,7 @@ def karta_z_str(s):
 
 def decode_card_color(s):
 	if s == '♤':
-		return 1 
+		return 1
 	elif s == '♡':
 		return 2
 	elif s == '♢':
@@ -146,7 +146,7 @@ def rozpakuj_input(inp):
 		return [karta_z_str(s) for s in inp.split(',')]
 	elif len(a)==2:
 		return a
-	return a 
+	return a
 
 def czy_pion_na_koncu(plansza, k):
 	assert k in ('b', 'c')
@@ -294,7 +294,7 @@ class rozgrywka:
 
 	def do_card_buisness(self, kar, three = False):
 		player = self.get_gracz(self.to_move)
-		
+
 		if self.burned:
 			if not three:
 				assert len(kar) == 1
@@ -325,7 +325,7 @@ class rozgrywka:
 			if video:
 				os.system('clear')
 			self.get_card()
-			self.now_move =  self.get_move()
+			self.now_move = self.get_move()
 			self.move(self.now_card, self.now_move)
 			if video:
 				print('{}'.format(self))
@@ -401,12 +401,12 @@ class rozgrywka:
 
 	def move(self, card, where):
 		player = self.get_gracz(self.to_move)
-		# passing a move 
+		# passing a move
 		if where == []:
 			# changing the color to move
 			self.to_move = odwrot(self.to_move)
 			#udapting check and mate although i think it shoudln't change
-			self.szach = self.czy_szach(self.to_move)	
+			self.szach = self.czy_szach(self.to_move)
 			if self.szach and self.czy_pat(self.to_move):
 				self.szach = False
 				self.mat = True
@@ -513,7 +513,7 @@ class rozgrywka:
 			if 'q' in self.historia[-2].split()[2].lower():
 				self.plansza.brd[a] = self.plansza.zbite.pop()
 			else:
-				self.plansza.brd[b] = self.plansza.zbite.pop() 
+				self.plansza.brd[b] = self.plansza.zbite.pop()
 
 		self.plansza.brd[b].mvs_number -= 1
 
@@ -541,7 +541,7 @@ class rozgrywka:
 		all_cards = len(self.karty.cards)+len(self.kupki[0])+len(self.kupki[1])+len(self.spalone)+len(self.gracze[0].reka)+len(self.gracze[1].reka)
 		if all_cards!=104:
 			print('\nALL CARDS: {}'.format(all_cards))
-		# 
+		#
 		assert all_cards==104
 
 	def what_happened(self):
@@ -585,7 +585,7 @@ class rozgrywka:
 		return c[1].ran == r and c[1].kol == cl if cl != None else c[1].ran == r
 
 	def from_history_get_card(self, n):
-	# returns a card played n turns AGO 
+	# returns a card played n turns AGO
 		if n > len(self.historia):
 			return None
 		s = self.historia[-n]
@@ -614,9 +614,9 @@ class rozgrywka:
 	def possible_moves(self, kolor, okzbi=True, kar=karta(1,'5'), burned = False, flag = (0,)):
 		if burned:
 			kar = karta(1,'5')
-	
+
 		d = {v:k for (k,v) in self.plansza.mapdict.items()}
-		
+
 		if flag[0]==1:
 			return {}
 
@@ -635,7 +635,7 @@ class rozgrywka:
 				a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
 		else:
 			a = [i for i in self.plansza.all_taken() if self.plansza.brd[i].kolor == kolor]
-	
+
 		res = {}
 		for i in a:
 			skad = d[i]
@@ -643,7 +643,7 @@ class rozgrywka:
 				gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[c])!=krol]
 			else:
 				gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(self.plansza.brd[c])!=krol and (self.plansza.is_empty(c) or self.plansza.brd[c].kolor == kolor)]
-	
+
 			if flag[0]==2:
 				try:
 					gdzie.remove(flag[1][1])
@@ -664,7 +664,7 @@ class rozgrywka:
 				if pln.czy_szach(kolor)==(True, kolor):
 					res[key].remove(where)
 				del pln
-		final = {k:v for (k,v) in res.items() if v != []}		
+		final = {k:v for (k,v) in res.items() if v != []}
 		return final
 
 
@@ -673,7 +673,7 @@ class rozgrywka:
 
 # [x for x in [] if x not in [szachao.karta(4,'2'), szachao.karta(2,'8'), szachao.karta(2,'10'), szachao.karta(4,'J'), szachao.karta(2,'8')]]
 
-# 
+#
 # ♡
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
@@ -690,8 +690,7 @@ class rozgrywka:
 
 
 # może być też tak, że król się gracz się sam wpierdoli w pata. Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król, który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję? Samopodpierdolenie na remis?
-# roboczo - tak 
+# roboczo - tak
 
 # co jesli chce zagrać roszadę na królu trefl?
 # wprowadzam rozwiazanie ze roszady nie można zrobić na królu..
-

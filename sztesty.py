@@ -4,9 +4,6 @@ from roz2 import *
 import os
 import traceback
 
-os.system('clear')
-print('-----------------')
-print('SZACHAO TESTING')
 
 li = [
 [karta(1, '5'), karta(1, '6'),karta(1, '7'),karta(1, '8')],
@@ -75,14 +72,14 @@ def test(n=5, vid = False):
 		else:
 			err += 1
 	print('\r'+' '*30, end='')
-	print ("\rDONE: {:.0f}%".format((licznik/n)*100))		
+	print ("\rDONE: {:.0f}%".format((licznik/n)*100))
 	print('Matów: {}, Patów: {}, Błędów: {} Średnia ilość ruchów: {:.0f}'.format(m,p,err, avr_moves/n))
 	t2 = time.time()
 	print('TIME: {:.2f} min'.format((t2-t1)/60))
 	return bad
 
 
-bad = test(10)
+# bad = test(10)
 
 
 # VIDEO
@@ -95,12 +92,12 @@ bad = test(10)
 def test_err(n):
 	print('Testing -- test_err()')
 	roz = rozgrywka()
-	
+
 	while(roz.plansza.czy_szach('c')==(True, 'c')):
 		roz = rozgrywka()
 	print('po rozgrywce')
-	
-	
+
+
 	licznik = 0
 	a = roz.graj()
 	print('po pierwszej')
@@ -121,7 +118,7 @@ def test_err(n):
 			traceback.print_exc()
 			return (e, roz)
 
-# test_err(200)
+
 
 # prezentacja humana
 # roz.graj(rnd=1)
@@ -142,13 +139,13 @@ def test_stat(n=5, m=2000):
 				res[1]+=1
 			else:
 				res[2]+=1
-		
+
 		# print(res)
 		res2.append(res)
 	return res2
 
 # t = test_stat(50)
-# t = test_stat(1000) 
+# t = test_stat(1000)
 def stat_avr(m=5, n=5, e=2000):
 	res = []
 	for i in range(m):
@@ -190,3 +187,10 @@ def stat_avr(m=5, n=5, e=2000):
 # 	time.sleep(0.1)
 # 	print ("\rComplete: ", i, "%", end="")
 # print ("\rComplete: 100% ")
+
+if __name__ == '__main__':
+	# test_err(30)
+	os.system('clear')
+	print('-----------------')
+	print('SZACHAO TESTING')
+	test(20)
