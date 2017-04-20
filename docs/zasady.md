@@ -2,7 +2,11 @@
 
 *Czym jest, skąd się wzięło i jak je uprawiać*
 
-Szachao to połączenie szachów i popularnej na całym świecie gry karcianej, polskim karciarzom znanej pod nazwą makao. Szachao wymyślili Jędrek Malko, Wiktor Wojciechowski i Tadeusz Teleżyński podczas pobytu w Tatrach w sierpniu 2009 roku. Na świecie istnieje trzech równorzędnych Arcymistrzów Szachao. Każdy z nich ma Medalion Arcymistrza. Arcymistrzem zostaje się poprzez pokonanie aktualnego Arcymistrza w oficjalnym turnieju, bądź w indywidualnym pojedynku, poprzedzonym wyzwaniem tegoż Arcymistrza drogą listowną lub poprzez ogłoszenie w prasie. Reguły gry w Szachao są następujące:
+*Szachao* to połączenie szachów i popularnej na całym świecie gry karcianej, polskim karciarzom znanej pod nazwą makao. Szachao wymyślili Jędrek Malko, Wiktor Wojciechowski i Tadek Teleżyński podczas pobytu w Tatrach w sierpniu 2009 roku. 
+
+Na świecie istnieje trzech równorzędnych Arcymistrzów Szachao. Każdy z nich ma Medalion Arcymistrza. Arcymistrzem zostaje się poprzez pokonanie aktualnego Arcymistrza w oficjalnym turnieju, bądź w indywidualnym pojedynku, poprzedzonym wyzwaniem tegoż Arcymistrza drogą listowną lub poprzez ogłoszenie w prasie. 
+
+Reguły gry w Szachao są następujące:
 
 1.	Do gry potrzebna jest szachownica z pełnym kompletem figur, a także dwie talie kart, najlepiej o takich samych rewersach. 
 2.	Wygrywa, tak jak w zwykłych szachach, ten kto pierwszy zamatuje przeciwnika.
