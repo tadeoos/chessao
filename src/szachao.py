@@ -1,12 +1,12 @@
-# Author: Tadek Teleżyński
+
 # Board and Pieces classes from Szachao module
 # pieces value according to Hans Berliner's system
 # (https://en.wikipedia.org/wiki/Chess_piece_relative_value)
 
+import random
 from copy import deepcopy
 from math import floor
-from termcolor import colored, cprint
-import random
+from termcolor import colored
 
 
 ####### CARDS #######

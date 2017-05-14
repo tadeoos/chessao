@@ -1,0 +1,39 @@
+<html>
+
+<head>
+<title>Explanation</title>
+</head>
+
+<body background='' bgcolor=#EEFFFF leftmargin=20 topmargin=20>
+<center>
+<H2><font color=blue>Chess diagrams</H2>
+</font>
+<table>
+<TR><td>The script "Imageless Horizontal Bars" allows the user to create web chess diagrams less then in a minute.</td></tr>
+</table>
+
+<H4>Implementation of the "Chess diagrams"</h4>
+</center>
+
+<OL>
+<LI>Download <a href='ChessDiagram.zip'>ChessDiagram.zip</a>
+<LI>Copy "chess.js" file to the main directory of your site.
+<LI>Copy a directory "img" with a chess font files (png format) to the main directory of your site.
+
+<LI>Cut and paste the following JavaScript lines in the body section of your HTML document when you need to create a chess diagram:
+<p>
+<TextArea cols=70 rows=8>
+<script type="text/javascript">
+<!--
+white = "a2,b2,c2,d2,e4,f2,g2,h2,Ra1,Nb1,Bc1,Qd1,Ke1,Bf1,ng1,rh1"
+black = "a7,b7,c7,d7,e5,f7,g7,h7,Ra8,Nb8,Bc8,Qd8,Ke8,Bf8,ng8,rh8"
+chessDiagram()
+//-->
+</script>
+</TextArea>
+<p>
+<LI>Replace description of the white and black pieces as required.
+<LI>Repeat the instruction number 4 and 5 to display the next position.
+</ol>
+</body>
+</html>
