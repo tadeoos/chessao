@@ -14,14 +14,14 @@ from termcolor import colored
 KOLORY_KART = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 
 
-class karta:
+class Card:
 
     def __init__(self, kolor, ranga):
         self.kol = kolor
         self.ran = ranga
 
     def __eq__(self, o):
-        assert karta == type(o)
+        assert Card == type(o)
         return self.kol == o.kol and self.ran == o.ran
 
     def __str__(self):
@@ -35,14 +35,14 @@ class Talia:
 
     def __init__(self, lista_kart=None):
         """
-        >>> print(Talia(lista_kart=[karta(1,'5')]))
+        >>> print(Talia(lista_kart=[Card(1,'5')]))
         [5♤]
         """
         if lista_kart is None:
             a = ['A', '2', '3', '4', '5', '6',
                  '7', '8', '9', '10', 'J', 'Q', 'K']
             k = [1, 2, 3, 4]
-            self.cards = [karta(b, c) for b in k for c in a]
+            self.cards = [Card(b, c) for b in k for c in a]
         else:
             self.cards = lista_kart
 
@@ -105,15 +105,15 @@ class board:
         self.fullmove = 0
         self.halfmoveclock = 0
 
-    def rusz(self, c, d=None, karta=karta(1, '5'), only_bool=False):
+    def rusz(self, c, d=None, karta=Card(1, '5'), only_bool=False):
         """
         >>> board(fenrep='W3K2W/8/8/8/8/8/8/8').rusz('E1','B1')
         True
         >>> board(fenrep='W3K2W/8/8/pP6/8/SswWdDgG/8/7k').rusz('E1','G1')
         True
-        >>> board(fenrep='W3K2W/8/8/D7/8/8/8/8').rusz('A4','A1', karta(1,'Q'))
+        >>> board(fenrep='W3K2W/8/8/D7/8/8/8/8').rusz('A4','A1', Card(1,'Q'))
         True
-        >>> board(fenrep='W3K2W/8/8/P7/8/8/8/8').rusz('A4','A5', karta(1,'Q'))
+        >>> board(fenrep='W3K2W/8/8/P7/8/8/8/8').rusz('A4','A5', Card(1,'Q'))
         True
         >>> b = board()
         >>> b.rusz('D2','D4')
@@ -128,9 +128,9 @@ class board:
         True
         >>> board().fen()
         'WSGDKGSW/PPPPPPPP/8/8/8/8/pppppppp/wsgdkgsw KQkq - 0 0'
-        >>> board(fenrep='W3K2W/8/8/P7/d7/8/8/8').rusz('A5','A4', karta(1,'6'))
+        >>> board(fenrep='W3K2W/8/8/P7/d7/8/8/8').rusz('A5','A4', Card(1,'6'))
         True
-        >>> board(fenrep='W3K2W/8/8/P7/d7/8/1S6/8').rusz('B7','A5', karta(1,'6'))
+        >>> board(fenrep='W3K2W/8/8/P7/d7/8/1S6/8').rusz('B7','A5', Card(1,'6'))
         True
         >>> b = board()
         >>> b.rusz('D2','D4')

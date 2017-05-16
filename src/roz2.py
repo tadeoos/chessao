@@ -30,7 +30,7 @@ def rozd(tal, override=False):
 
 
 def karta_z_str(s):
-    return karta(int(s[-1]), s[:-1])
+    return Card(int(s[-1]), s[:-1])
 
 
 def decode_card_color(s):
@@ -53,11 +53,11 @@ def decode_card(s):
         col = decode_card_color(s[-3])
         rank = s[:-3] if b == 0 else s[1:-3]
         w = s[-1]
-        return (b, [karta(col, rank)], nawaleta(w))
+        return (b, [Card(col, rank)], nawaleta(w))
     else:
         col = decode_card_color(s[-1])
         rank = s[:-1] if b == 0 else s[1:-1]
-        return (b, [karta(col, rank)])
+        return (b, [Card(col, rank)])
 
 
 def nawaleta(s):
@@ -78,7 +78,7 @@ def nawaleta(s):
 
 def schodki_check(lis):
     """
-    >>> k=karta
+    >>> k=Card
     >>> schodki_check([k(1,'6'),k(1,'7'),k(2,'7')])
     True
     >>> schodki_check([k(1,'2'),k(2,'3')])
@@ -255,7 +255,8 @@ class gracz_str(gracz):
         for m in move_list:
             brd = plansza.simulate_move(m[0], m[1], karta)
             check = 1 if brd.czy_szach(odwrot(self.kol)) else 0
-            # mat = 100 if brd.czy_szach(odwrot(self.kol)) and brd.czy_pat(odwrot(self.kol)) else 0
+            # mat = 100 if brd.czy_szach(odwrot(self.kol)) and
+            # brd.czy_pat(odwrot(self.kol)) else 0
             broniony = 4 if plansza.pod_biciem(
                 plansza.mapdict[m[1]], self.kol) else 0
             atakowany = 4 if plansza.pod_biciem(
@@ -424,7 +425,7 @@ class rozgrywka:
             self.to_move, self.capture, self.now_card, self.burned, w)
         if len(all_moves) == 0:
             return []
-        crd = self.now_card if not self.burned else karta(1, '5')
+        crd = self.now_card if not self.burned else Card(1, '5')
         move = player.choose_move(
             all_moves, self.plansza, crd) if ovr is None else ovr
         return move
@@ -640,16 +641,17 @@ class rozgrywka:
         # war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
         # war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
         # war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
-        # war5 = kar[-1].ran=='4' and self.szach and len(self.possible_moves(kolej, False, kar[-1]))==0
+        # war5 = kar[-1].ran=='4' and self.szach and
+        # len(self.possible_moves(kolej, False, kar[-1]))==0
 
         if cond1:
             return False
 
         return True
 
-    def possible_moves(self, kolor, okzbi=True, kar=karta(1, '5'), burned=False, flag=(0,)):
+    def possible_moves(self, kolor, okzbi=True, kar=Card(1, '5'), burned=False, flag=(0,)):
         if burned:
-            kar = karta(1, '5')
+            kar = Card(1, '5')
 
         d = {v: k for (k, v) in self.plansza.mapdict.items()}
 
@@ -668,7 +670,7 @@ class rozgrywka:
             if self.plansza.jaki_typ_zostal(kolor) != {'krol', 'dama'}:
                 a = self.plansza.position_bierki('dama', kolor)
             else:
-                kar = karta(1, '5')
+                kar = Card(1, '5')
                 a = [i for i in self.plansza.all_taken() if self.plansza.brd[
                     i].kolor == kolor]
         else:

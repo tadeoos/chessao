@@ -17,7 +17,7 @@ def rozd(tal):
 
 
 def karta_z_str(s):
-    return karta(int(s[-1]), s[:-1])
+    return Card(int(s[-1]), s[:-1])
 
 
 def nawaleta(c):
@@ -158,7 +158,7 @@ class rozgrywka:
 
     def graj(self, rnd=False, test=False):
         kolej = 'b'
-        last_card = karta(1, '5')
+        last_card = Card(1, '5')
         last_move = []
         now_card = None
         walet = False
@@ -191,7 +191,7 @@ class rozgrywka:
                 if not test:
                     print('Szachao...\n')
                 if last_card.ran != '3':
-                    last_card = karta(1, '5')
+                    last_card = Card(1, '5')
                 if self.czy_pat(kolej):
 
                     if not test:
@@ -242,10 +242,10 @@ class rozgrywka:
 
                 if rnd:
                     if self.szach or len(all_ruchy(self.plansza, kolej)) == 0:
-                        if karta(3, 'K') in gr.reka and ok_karta([karta(3, 'K')], self.kupki):
-                            kar = [karta(3, 'K')]
-                        elif karta(4, 'K') in gr.reka and ok_karta([karta(4, 'K')], self.kupki):
-                            kar = [karta(4, 'K')]
+                        if Card(3, 'K') in gr.reka and ok_karta([Card(3, 'K')], self.kupki):
+                            kar = [Card(3, 'K')]
+                        elif Card(4, 'K') in gr.reka and ok_karta([Card(4, 'K')], self.kupki):
+                            kar = [Card(4, 'K')]
                         else:
                             rando = random.randint(0, 4)
                             kar = [gr.reka[rando]]
@@ -489,7 +489,7 @@ class rozgrywka:
                     self.historia.append([gr, 'ominięta'])
                     hist_dict['ominięta'] = True
                     self.dicthist.append(hist_dict)
-                    last_card = karta(1, '5')
+                    last_card = Card(1, '5')
                     kolej = odwrot(kolej)
                     continue
 
@@ -539,7 +539,7 @@ class rozgrywka:
                                              kar)
                         hist_dict['ominięta'] = True
                         self.dicthist.append(hist_dict)
-                        last_card = karta(1, '5')
+                        last_card = Card(1, '5')
                     else:
                         self.historia.append([gr, 'ominięta'] + kar)
                         hist_dict['ominięta'] = True
@@ -563,7 +563,7 @@ class rozgrywka:
                     self.historia.append([gr, 'ominięta', 'spalona'] + kar)
                     hist_dict['ominięta'] = True
                     self.dicthist.append(hist_dict)
-                    last_card = karta(1, '5')
+                    last_card = Card(1, '5')
                 else:
                     self.historia.append([gr, 'ominięta'] + kar)
                     hist_dict['ominięta'] = True
@@ -682,7 +682,7 @@ class rozgrywka:
                     hist_dict['move'] = z
                     hist_dict['szach'] = self.czy_szach(odwrot(kolej))
                     self.dicthist.append(hist_dict)
-                    last_card = karta(1, '5')
+                    last_card = Card(1, '5')
                 else:
                     self.historia.append([gr] + [now_card] + z)
                     hist_dict['move'] = z
@@ -741,7 +741,7 @@ class rozgrywka:
 
     def cofnij(self, kolor):
         assert len(self.historia) > 1
-        assert self.historia[-1][-1] == karta(1, 'K')
+        assert self.historia[-1][-1] == Card(1, 'K')
         # tu problem w przypadku omijania kolejki
         ruch = self.historia[-2][-2:]
         # assert

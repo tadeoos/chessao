@@ -7,12 +7,12 @@ import traceback
 
 
 li = [
-    [karta(1, '5'), karta(1, '6'), karta(1, '7'), karta(1, '8')],
-    [karta(1, '5'), karta(2, '6'), karta(1, '7'), karta(1, '8')],
-    [karta(1, '5'), karta(2, '5'), karta(1, '7'), karta(1, '8')],
-    [karta(1, '5'), karta(2, '5'), karta(2, '6'), karta(2, '7')],
-    [karta(1, '5'), karta(2, '5'), karta(3, '5'), karta(3, '5')],
-    [karta(1, '5'), karta(1, '6'), karta(1, '8'), karta(1, '9')]
+    [Card(1, '5'), Card(1, '6'), Card(1, '7'), Card(1, '8')],
+    [Card(1, '5'), Card(2, '6'), Card(1, '7'), Card(1, '8')],
+    [Card(1, '5'), Card(2, '5'), Card(1, '7'), Card(1, '8')],
+    [Card(1, '5'), Card(2, '5'), Card(2, '6'), Card(2, '7')],
+    [Card(1, '5'), Card(2, '5'), Card(3, '5'), Card(3, '5')],
+    [Card(1, '5'), Card(1, '6'), Card(1, '8'), Card(1, '9')]
 ]
 
 # tough cases
@@ -43,7 +43,7 @@ def test(n=5, vid=False):
         else:
             randa = 0
         roz = rozgrywka(randa)
-        # while(roz.plansza.czy_szach()==2 or karta(1,'K') not in
+        # while(roz.plansza.czy_szach()==2 or Card(1,'K') not in
         # roz.gracze[1].reka):
         while(roz.plansza.czy_szach('c') == (True, 'c')):
             roz = rozgrywka(randa)
