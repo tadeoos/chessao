@@ -1,5 +1,5 @@
 import szachao
-import roz2
+import gameplay
 
 
 def get_moves(fen, start, end):

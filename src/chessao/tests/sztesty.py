@@ -1,6 +1,6 @@
 # Author: Tadek Teleżyński
 
-from roz2 import *
+from gameplay import *
 import os
 import sys
 import traceback

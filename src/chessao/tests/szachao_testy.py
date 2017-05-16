@@ -11,28 +11,31 @@ import time
 
 
 def game(rnd=0):
-    game = roz2.rozgrywka(rnd)
+    game = gameplay.rozgrywka(rnd)
     game.graj(rnd)
     return game
 
 
 class TestGame(unittest.TestCase):
-    import roz2
+    import gameplay
 
     def setUp(self):
-        self.roz = roz2.rozgrywka(0)
+        self.deck = szachao.Talia()
+        self.board = szachao.board()
+        self.gameplay = gameplay.rozgrywka()
+
+    def test_pieces(self):
+        print(self.board.get_points('b'))
+        with self.assertRaises(ValueError):
+            self.board.rusz('E1', 'E2')
+            # self.board.rusz('D5', 'D1')
+
+        self.assertTrue(self.board.rusz('E2', 'E4'))
 
     def test_run(self):
         g = game()
         print(g.historia)
         self.assertFalse(game().szach)
-
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
 
 if __name__ == "__main__":
     t1 = time.time()
@@ -40,12 +43,12 @@ if __name__ == "__main__":
     cov.erase()
     cov.start()
     import testy2
-    import roz2
+    import gameplay
     import szachao
     doctest.testmod(szachao)
-    doctest.testmod(roz2)
+    doctest.testmod(gameplay)
     cov.stop()
-    modules = [szachao, roz2]
+    modules = [szachao, gameplay]
     cov.report(modules, ignore_errors=1, show_missing=1)
     cov.html_report(morfs=modules, directory='/tmp')
     cov.erase()

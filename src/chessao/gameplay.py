@@ -63,17 +63,17 @@ def decode_card(s):
 def nawaleta(s):
     c = s.lower()
     if c == 'p':
-        return 'pionek'
-    elif c == 'w':
-        return 'wieza'
-    elif c == 's':
-        return 'skoczek'
-    elif c == 'g':
-        return 'goniec'
-    elif c == 'd':
-        return 'dama'
+        return 'Pawn'
+    elif c == 'r':
+        return 'Rook'
+    elif c == 'k':
+        return 'Knight'
+    elif c == 'b':
+        return 'Bishop'
+    elif c == 'q':
+        return 'Queen'
     else:
-        return False
+        raise ValueError(s)
 
 
 def schodki_check(lis):
@@ -161,7 +161,7 @@ def rozpakuj_input(inp):
 
 def last_line_check(color, first_sq, last_sq, board):
     for i in range(first_sq, last_sq):
-        if type(board.brd[i]) == pionek and board.brd[i].color == color:
+        if type(board.brd[i]) == Pawn and board.brd[i].color == color:
             return i
         return 0
 
@@ -192,7 +192,7 @@ class gracz:
                 burn = 1
             if not burn and card.ran == 'J':
                 ch = [s[0] for s in plansza.jaki_typ_zostal(
-                    odwrot(self.kol)) if s != 'krol']
+                    odwrot(self.kol)) if s != 'King']
                 # here is a problem with jack loosing its ability when there is
                 # only king left..
                 if len(ch) == 0:
@@ -473,13 +473,13 @@ class rozgrywka:
             if q == 'E':
                 return 'exit'
             elif q == 'D':
-                self.plansza.brd[zam] = dama(self.to_move, zam)
+                self.plansza.brd[zam] = Queen(self.to_move, zam)
             elif q == 'G':
-                self.plansza.brd[zam] = goniec(self.to_move, zam)
+                self.plansza.brd[zam] = Bishop(self.to_move, zam)
             elif q == 'S':
-                self.plansza.brd[zam] = skoczek(self.to_move, zam)
+                self.plansza.brd[zam] = Knight(self.to_move, zam)
             elif q == 'W':
-                self.plansza.brd[zam] = wieza(self.to_move, zam)
+                self.plansza.brd[zam] = Rook(self.to_move, zam)
             else:
                 print('wrong input')
 
@@ -665,10 +665,10 @@ class rozgrywka:
         elif flag[0] == 4:  # jack
             a = [i for i in self.plansza.all_taken() if self.plansza.brd[
                 i].color == color and self.plansza.brd[i].name == flag[1]]
-        elif kar.ran == 'Q' and len(self.plansza.position_bierki('dama', color)) > 0:
+        elif kar.ran == 'Q' and len(self.plansza.position_bierki('Queen', color)) > 0:
             assert flag[0] == 0
-            if self.plansza.jaki_typ_zostal(color) != {'krol', 'dama'}:
-                a = self.plansza.position_bierki('dama', color)
+            if self.plansza.jaki_typ_zostal(color) != {'King', 'Queen'}:
+                a = self.plansza.position_bierki('Queen', color)
             else:
                 kar = Card(1, '5')
                 a = [i for i in self.plansza.all_taken() if self.plansza.brd[
@@ -681,11 +681,11 @@ class rozgrywka:
         for i in a:
             skad = d[i]
             if okzbi:
-                gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(
-                    kar, self.plansza) if type(self.plansza.brd[c]) != krol]
+                gdzie = [d[c] for c in self.plansza.brd[i].moves(
+                    kar, self.plansza) if type(self.plansza.brd[c]) != King]
             else:
-                gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(
-                    self.plansza.brd[c]) != krol and (self.plansza.is_empty(c) or self.plansza.brd[c].color == color)]
+                gdzie = [d[c] for c in self.plansza.brd[i].moves(kar, self.plansza) if type(
+                    self.plansza.brd[c]) != King and (self.plansza.is_empty(c) or self.plansza.brd[c].color == color)]
 
             if flag[0] == 2:
                 try:
@@ -703,9 +703,10 @@ class rozgrywka:
                 try:
                     pln = self.plansza.simulate_move(key, where, kar)
                 except Exception as e:
-                    print('\n color: {} from {} to {} karta {}'.format(
+                    # print('\n color: {} from {} to {} karta {}'.format(
+                        # color, key, where, kar))
+                    raise e('\n color: {} from {} to {} karta {}'.format(
                         color, key, where, kar))
-                    raise e
                 if pln.czy_szach(color) == (True, color):
                     res[key].remove(where)
                 del pln
@@ -717,9 +718,9 @@ class rozgrywka:
 # ♡
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
-# - dokleiłem jeszcze w dozwolonym damki warunek na typ ktory zostal
+# - dokleiłem jeszcze w movesm damki warunek na typ ktory zostal
 # król się zbija w pewnym momencie (jakim?)
-# - dokleilem w self.possible_moves pozycje krola
+# - dokleilem w self.possible_moves pozycje kinga
 # kkier unhashable type karta
 #  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
