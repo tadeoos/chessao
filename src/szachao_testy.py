@@ -22,10 +22,9 @@ class TestGame(unittest.TestCase):
     def setUp(self):
         self.roz = roz2.rozgrywka(0)
 
-    def test_10_runs(self):
-        for i in range(2):
-            g = game()
-            print(g.historia)
+    def test_run(self):
+        g = game()
+        print(g.historia)
         self.assertFalse(game().szach)
 
     def test_split(self):

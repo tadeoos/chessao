@@ -16,8 +16,8 @@ CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 
 class Card:
 
-    def __init__(self, kolor, ranga):
-        self.kol = kolor
+    def __init__(self, color, ranga):
+        self.kol = color
         self.ran = ranga
 
     def __eq__(self, o):
@@ -158,7 +158,7 @@ class board:
                 return True
             assert self.is_empty(b)
             self.bicie = True
-            if self.brd[a].kolor == 'b':
+            if self.brd[a].color == 'b':
                 self.zbite.append(self.brd[b - 10])
                 self.brd[b - 10] = ' '
             else:
@@ -169,7 +169,7 @@ class board:
             self.brd[b].mvs_number += 1
             self.brd[a] = ' '
             self.halfmoveclock = 0
-            if self.brd[b].kolor == 'c':
+            if self.brd[b].color == 'c':
                 self.fullmove += 1
             # clearing enpass after enpass -> problem in pat functiong
             self.enpass = 300
@@ -197,19 +197,19 @@ class board:
             self.brd[rook_pos[1]].mvs_number += 1
             self.brd[rook_pos[0]] = ' '
             self.halfmoveclock += 1
-            if self.brd[b].kolor == 'c':
+            if self.brd[b].color == 'c':
                 self.fullmove += 1
             return True
 
         # checking for Queen card and valid Queen move
-        if karta.ran == 'Q' and self.brd[a].name == 'dama' and self.jaki_typ_zostal(self.brd[a].kolor) != {'krol', 'dama'}:
+        if karta.ran == 'Q' and self.brd[a].name == 'dama' and self.jaki_typ_zostal(self.brd[a].color) != {'krol', 'dama'}:
             if b in self.brd[a].dozwolony(karta, self):
                 if only_bool:
                     return True
                 self.swap(a, b)
                 self.brd[b].mvs_number += 1
                 self.halfmoveclock += 1
-                if self.brd[b].kolor == 'c':
+                if self.brd[b].color == 'c':
                     self.fullmove += 1
                 return True
         else:
@@ -229,7 +229,7 @@ class board:
                 self.brd[b].position = b
                 self.brd[b].mvs_number += 1
                 self.brd[a] = ' '
-                if self.brd[b].kolor == 'c':
+                if self.brd[b].color == 'c':
                     self.fullmove += 1
                 return True
 
@@ -284,11 +284,11 @@ class board:
         return [i for i in range(len(self.brd)) if self.brd[i] != ' ' and self.brd[i] != 0]
 
     def position_bierki(self, naz, kol):
-        return [i for i in self.all_taken() if self.brd[i].name == naz and self.brd[i].kolor == kol]
+        return [i for i in self.all_taken() if self.brd[i].name == naz and self.brd[i].color == kol]
 
-    def jaki_typ_zostal(self, kolor):
+    def jaki_typ_zostal(self, color):
         a = self.all_taken()
-        return {self.brd[i].name for i in a if self.brd[i].kolor == kolor}
+        return {self.brd[i].name for i in a if self.brd[i].color == color}
 
     def get_piece(self, pos):
         return self.brd[self.mapdict[pos]]
@@ -298,7 +298,7 @@ class board:
         >>> board().get_points('b') > 50
         True
         """
-        return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].kolor == col])
+        return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].color == col])
 
     def simulate_move(self, fro, to, card):
         fenstr = self.fen().split()[0]
@@ -448,7 +448,7 @@ class board:
         return dic
 
     def get_fen_rep(self, piece):
-        if piece.kolor == 'b':
+        if piece.color == 'b':
             return piece.name[0].upper()
         else:
             return piece.name[0].lower()
@@ -468,7 +468,7 @@ class board:
             res += str(empty_counter)
         return res
 
-    def pod_biciem(self, pole, kolor):
+    def pod_biciem(self, pole, color):
         """
         >>> board(fenrep='W3K2W/8/8/8/8/8/8/8').pod_biciem(88,'b')
         False
@@ -485,18 +485,18 @@ class board:
         """
         for i in (1, -1, 10, -10, 9, 11, -9, -11):
             a = pole + i
-            if (type(self.brd[a]) == krol and self.brd[a].kolor != kolor):
+            if (type(self.brd[a]) == krol and self.brd[a].color != color):
                 return True
 
         for i in (-12, -21, -19, -8, 8, 19, 21, 12):
             a = pole + i
-            if (type(self.brd[a]) == skoczek and self.brd[a].kolor != kolor):
+            if (type(self.brd[a]) == skoczek and self.brd[a].color != color):
                 return True
         for i in (1, 10, -1, -10):
             a = pole + i
             while (self.brd[a] != 0):
                 if self.is_empty(a) == 0:
-                    if self.brd[a].kolor != kolor:
+                    if self.brd[a].color != color:
                         if type(self.brd[a]) == wieza or type(self.brd[a]) == dama:
                             return True
                         else:
@@ -508,7 +508,7 @@ class board:
             a = pole + i
             while (self.brd[a] != 0):
                 if self.is_empty(a) == 0:
-                    if self.brd[a].kolor != kolor:
+                    if self.brd[a].color != color:
                         if type(self.brd[a]) == goniec or type(self.brd[a]) == dama:
                             return True
                         else:
@@ -517,10 +517,10 @@ class board:
                         break
                 a += i
 
-        where = (9, 11) if kolor == 'b' else (-9, -11)
+        where = (9, 11) if color == 'b' else (-9, -11)
         for i in where:
             a = pole + i
-            if (type(self.brd[a]) == pionek and self.brd[a].kolor != kolor):
+            if (type(self.brd[a]) == pionek and self.brd[a].color != color):
                 return True
 
         return False
@@ -540,8 +540,8 @@ class board:
 
 class pionek:
 
-    def __init__(self, kolor, position, mvs=0):
-        self.kolor = kolor
+    def __init__(self, color, position, mvs=0):
+        self.color = color
         self.position = position
         self.val = 1
         self.mvs_number = mvs
@@ -551,7 +551,7 @@ class pionek:
         dop = [10, 20] if self.mvs_number == 0 else [10]
         if karta.ran == '2':
             dop.append(dop[-1] + 10)
-        if self.kolor == 'b':
+        if self.color == 'b':
             for d in dop[::-1]:
                 if self.position + d > 119:
                     continue
@@ -569,16 +569,16 @@ class pionek:
             a = (-9, -11)
 
         for i in a:
-            if (plansza.brd[self.position + i] != 0 and plansza.brd[self.position + i] != ' ' and plansza.brd[self.position + i].kolor != self.kolor) or (plansza.enpass == self.position + i):
+            if (plansza.brd[self.position + i] != 0 and plansza.brd[self.position + i] != ' ' and plansza.brd[self.position + i].color != self.color) or (plansza.enpass == self.position + i):
                 dop.append(abs(i))
 
-        res = [self.position + i if self.kolor ==
+        res = [self.position + i if self.color ==
                'b' else self.position - i for i in dop]
 
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♙'
         else:
             return '♟'
@@ -586,8 +586,8 @@ class pionek:
 
 class wieza:
 
-    def __init__(self, kolor, position):
-        self.kolor = kolor
+    def __init__(self, color, position):
+        self.color = color
         self.position = position
         self.val = 5.1
         self.name = 'wieza'
@@ -599,7 +599,7 @@ class wieza:
             a = self.position + i
             while (plansza.brd[a] != 0):
                 if plansza.is_empty(a) == 0:
-                    if plansza.brd[a].kolor != self.kolor:
+                    if plansza.brd[a].color != self.color:
                         res.append(a)
                         break
                     else:
@@ -610,7 +610,7 @@ class wieza:
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♖'
         else:
             return '♜'
@@ -618,8 +618,8 @@ class wieza:
 
 class skoczek:
 
-    def __init__(self, kolor, position):
-        self.kolor = kolor
+    def __init__(self, color, position):
+        self.color = color
         self.position = position
         self.val = 3.2
         self.name = 'skoczek'
@@ -630,13 +630,13 @@ class skoczek:
         for i in (-12, -21, -19, -8, 8, 19, 21, 12):
             a = self.position + i
             if plansza.brd[a] != 0:
-                if plansza.is_empty(a) == 1 or plansza.brd[a].kolor != self.kolor:
+                if plansza.is_empty(a) == 1 or plansza.brd[a].color != self.color:
                     res.append(a)
 
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♘'
         else:
             return '♞'
@@ -644,8 +644,8 @@ class skoczek:
 
 class goniec:
 
-    def __init__(self, kolor, position):
-        self.kolor = kolor
+    def __init__(self, color, position):
+        self.color = color
         self.position = position
         self.val = 3.33
         self.name = 'goniec'
@@ -657,7 +657,7 @@ class goniec:
             a = self.position + i
             while (plansza.brd[a] != 0):
                 if plansza.is_empty(a) == 0:
-                    if plansza.brd[a].kolor != self.kolor:
+                    if plansza.brd[a].color != self.color:
                         res.append(a)
                         break
                     else:
@@ -668,7 +668,7 @@ class goniec:
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♗'
         else:
             return '♝'
@@ -676,16 +676,16 @@ class goniec:
 
 class dama:
 
-    def __init__(self, kolor, position):
-        self.kolor = kolor
+    def __init__(self, color, position):
+        self.color = color
         self.position = position
         self.val = 8.8
         self.name = 'dama'
         self.mvs_number = 0
 
     def dozwolony(self, karta, plansza):
-        if karta.ran == 'Q' and plansza.jaki_typ_zostal(self.kolor) != {'krol', 'dama'}:
-            res = [i for i in plansza.all_taken() if (plansza.brd[i].kolor == self.kolor and plansza.brd[
+        if karta.ran == 'Q' and plansza.jaki_typ_zostal(self.color) != {'krol', 'dama'}:
+            res = [i for i in plansza.all_taken() if (plansza.brd[i].color == self.color and plansza.brd[
                 i].name in ('pionek', 'goniec', 'skoczek', 'wieza'))]
             return res
 
@@ -694,7 +694,7 @@ class dama:
             a = self.position + i
             while (plansza.brd[a] != 0):
                 if plansza.is_empty(a) == 0:
-                    if plansza.brd[a].kolor != self.kolor:
+                    if plansza.brd[a].color != self.color:
                         res.append(a)
                         break
                     else:
@@ -704,7 +704,7 @@ class dama:
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♕'
         else:
             return '♛'
@@ -712,8 +712,8 @@ class dama:
 
 class krol:
 
-    def __init__(self, kolor, position):
-        self.kolor = kolor
+    def __init__(self, color, position):
+        self.color = color
         self.position = position
         self.val = 10
         self.name = 'krol'
@@ -734,7 +734,7 @@ class krol:
                 if plansza.is_empty(a):
                     res.append(a)
                     continue
-                elif plansza.brd[a].kolor != self.kolor:
+                elif plansza.brd[a].color != self.color:
                     b = 2 * i
                     if b in zakres:
                         zakres.remove(b)
@@ -746,19 +746,19 @@ class krol:
         res2 = deepcopy(res)
         plansza.brd[self.position] = ' '
         for r in res2:
-            if plansza.pod_biciem(r, self.kolor):
+            if plansza.pod_biciem(r, self.color):
                 res.remove(r)
         plansza.brd[self.position] = self
 
         # checking for castle / cannot castle on a special king card
-        cstl = plansza.check_castle(self.kolor)
+        cstl = plansza.check_castle(self.color)
         if cstl['if'] > 0 and (karta.ran != 'K' or karta.kol not in (3, 4)):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res
 
     def __str__(self):
-        if self.kolor == 'b':
+        if self.color == 'b':
             return '♔'
         else:
             return '♚'

@@ -99,11 +99,11 @@ def czy_pion_na_koncu(plansza, k):
     assert k in ('b', 'c')
     if k == 'b':
         for i in range(91, 99):
-            if type(plansza.brd[i]) == pionek and plansza.brd[i].kolor == 'b':
+            if type(plansza.brd[i]) == pionek and plansza.brd[i].color == 'b':
                 return i
     else:
         for i in range(21, 29):
-            if type(plansza.brd[i]) == pionek and plansza.brd[i].kolor == 'c':
+            if type(plansza.brd[i]) == pionek and plansza.brd[i].color == 'c':
                 return i
     return 0
 
@@ -150,9 +150,9 @@ class rozgrywka:
         print(self.plansza)
         print('\nKupki:   |{0:>3} |  |{1:>3} |\n'.format(
             str(self.kupki[0][-1]), str(self.kupki[1][-1])))
-        print('Gracz 1: {}, kolor: {}'.format(
+        print('Gracz 1: {}, color: {}'.format(
             self.gracze[0].reka, self.gracze[0].kol))
-        print('Gracz 2: {}. kolor: {}'.format(
+        print('Gracz 2: {}. color: {}'.format(
             self.gracze[1].reka, self.gracze[1].kol))
         return '\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1])
 
@@ -601,7 +601,7 @@ class rozgrywka:
                     return 'exit'
                 z = rozpakuj_input(b)
 
-                while(not self.plansza.rusz(z[0], z[1], now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].kolor != kolej):
+                while(not self.plansza.rusz(z[0], z[1], now_card, only_bool=True) or self.plansza.brd[self.plansza.mapdict[z[0]]].color != kolej):
                     if len(z) == 1:
                         if not test:
                             print('wpisz drugą pozycję!')
@@ -739,7 +739,7 @@ class rozgrywka:
     def get_gracz(self, k):
         return [g for g in self.gracze if g.kol == k][0]
 
-    def cofnij(self, kolor):
+    def cofnij(self, color):
         assert len(self.historia) > 1
         assert self.historia[-1][-1] == Card(1, 'K')
         # tu problem w przypadku omijania kolejki
@@ -753,7 +753,7 @@ class rozgrywka:
         self.plansza.enpass = 300
 
         if self.zamiana:
-            self.plansza.brd[b] = pionek(kolor, b)
+            self.plansza.brd[b] = pionek(color, b)
         if self.plansza.bicie:
             assert self.plansza.is_empty(a)
             rezurekt = self.plansza.zbite.pop()

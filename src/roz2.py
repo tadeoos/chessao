@@ -161,7 +161,7 @@ def rozpakuj_input(inp):
 
 def last_line_check(color, first_sq, last_sq, board):
     for i in range(first_sq, last_sq):
-        if type(board.brd[i]) == pionek and board.brd[i].kolor == color:
+        if type(board.brd[i]) == pionek and board.brd[i].color == color:
             return i
         return 0
 
@@ -533,7 +533,7 @@ class rozgrywka:
     def get_gracz(self, k):
         return [g for g in self.gracze if g.kol == k][0]
 
-    def cofnij(self, kolor, ruch):
+    def cofnij(self, color, ruch):
         assert len(self.historia) > 2
         a = self.plansza.mapdict[ruch[0]]
         b = self.plansza.mapdict[ruch[1]]
@@ -597,7 +597,7 @@ class rozgrywka:
             c = self.from_history_get_card(2)
             return (2, [s2[:ind][-2:], s2[ind + 1:][:2]], c)
         elif what == 'K' and s[3] == '♡' and ind != None:
-            if self.plansza.get_piece(s2[ind + 1:][:2]).kolor != self.to_move:
+            if self.plansza.get_piece(s2[ind + 1:][:2]).color != self.to_move:
                 return (1,)
             return (3, s2[ind + 1:][:2])
         elif what == 'J' and self.now_card.ran != 'J':
@@ -649,7 +649,7 @@ class rozgrywka:
 
         return True
 
-    def possible_moves(self, kolor, okzbi=True, kar=Card(1, '5'), burned=False, flag=(0,)):
+    def possible_moves(self, color, okzbi=True, kar=Card(1, '5'), burned=False, flag=(0,)):
         if burned:
             kar = Card(1, '5')
 
@@ -664,18 +664,18 @@ class rozgrywka:
             a = [self.plansza.mapdict[flag[1]]]
         elif flag[0] == 4:  # jack
             a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                i].kolor == kolor and self.plansza.brd[i].name == flag[1]]
-        elif kar.ran == 'Q' and len(self.plansza.position_bierki('dama', kolor)) > 0:
+                i].color == color and self.plansza.brd[i].name == flag[1]]
+        elif kar.ran == 'Q' and len(self.plansza.position_bierki('dama', color)) > 0:
             assert flag[0] == 0
-            if self.plansza.jaki_typ_zostal(kolor) != {'krol', 'dama'}:
-                a = self.plansza.position_bierki('dama', kolor)
+            if self.plansza.jaki_typ_zostal(color) != {'krol', 'dama'}:
+                a = self.plansza.position_bierki('dama', color)
             else:
                 kar = Card(1, '5')
                 a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                    i].kolor == kolor]
+                    i].color == color]
         else:
             a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                i].kolor == kolor]
+                i].color == color]
 
         res = {}
         for i in a:
@@ -685,14 +685,14 @@ class rozgrywka:
                     kar, self.plansza) if type(self.plansza.brd[c]) != krol]
             else:
                 gdzie = [d[c] for c in self.plansza.brd[i].dozwolony(kar, self.plansza) if type(
-                    self.plansza.brd[c]) != krol and (self.plansza.is_empty(c) or self.plansza.brd[c].kolor == kolor)]
+                    self.plansza.brd[c]) != krol and (self.plansza.is_empty(c) or self.plansza.brd[c].color == color)]
 
             if flag[0] == 2:
                 try:
                     gdzie.remove(flag[1][1])
                 except Exception as e:
-                    print('\n Error in remove! kolor:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}'.format(
-                        kolor, okzbi, kar, burned, flag, gdzie, skad, a))
+                    print('\n Error in remove! color:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}'.format(
+                        color, okzbi, kar, burned, flag, gdzie, skad, a))
                     raise e
             if len(gdzie) > 0:
                 res[skad] = gdzie
@@ -703,10 +703,10 @@ class rozgrywka:
                 try:
                     pln = self.plansza.simulate_move(key, where, kar)
                 except Exception as e:
-                    print('\n kolor: {} from {} to {} karta {}'.format(
-                        kolor, key, where, kar))
+                    print('\n color: {} from {} to {} karta {}'.format(
+                        color, key, where, kar))
                     raise e
-                if pln.czy_szach(kolor) == (True, kolor):
+                if pln.czy_szach(color) == (True, color):
                     res[key].remove(where)
                 del pln
         final = {k: v for (k, v) in res.items() if v != []}
