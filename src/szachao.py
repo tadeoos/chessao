@@ -11,7 +11,7 @@ from termcolor import colored
 
 ####### CARDS #######
 
-KOLORY_KART = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
+CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 
 
 class Card:
@@ -25,7 +25,7 @@ class Card:
         return self.kol == o.kol and self.ran == o.ran
 
     def __str__(self):
-        return self.ran + KOLORY_KART[self.kol]
+        return self.ran + CARDS_COLORS[self.kol]
 
     def __repr__(self):
         return str(self)
@@ -53,7 +53,7 @@ class Talia:
         self.cards.extend(karty)
 
     def get_card_index(self, rank='5', suit=1):
-        return self.cards.index(karta(suit, rank))
+        return self.cards.index(Card(suit, rank))
 
     def tasuj(self, until=None):
         random.shuffle(self.cards)

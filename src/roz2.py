@@ -714,10 +714,6 @@ class rozgrywka:
 
 
 # bugi
-
-# [x for x in [] if x not in [szachao.karta(4,'2'), szachao.karta(2,'8'), szachao.karta(2,'10'), szachao.karta(4,'J'), szachao.karta(2,'8')]]
-
-#
 # ♡
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
