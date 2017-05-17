@@ -1,20 +1,16 @@
-
-
-from szachao import *
 import os
 import random
 import re
 import time
+from chessao.szachao import *
 
 
-def odwrot(a):
-    if a == 'b':
-        return 'c'
-    else:
-        return 'b'
+def invert_color(color):
+    '''Return the other color.'''
+    return 'c' if color == 'b' else 'b'
 
 
-def rozd(tal, override=False):
+def deal(tal, override=False):
     a = []
     b = []
     for i in range(5):
@@ -29,7 +25,7 @@ def rozd(tal, override=False):
     return (a, b, tal)
 
 
-def karta_z_str(s):
+def str_to_card(s):
     return Card(int(s[-1]), s[:-1])
 
 
@@ -76,8 +72,10 @@ def nawaleta(s):
         raise ValueError(s)
 
 
-def schodki_check(lis):
+def schodki_check(card_list):
     """
+    Check if "card stairs" are build correctly.
+
     >>> k=Card
     >>> schodki_check([k(1,'6'),k(1,'7'),k(2,'7')])
     True
@@ -91,13 +89,23 @@ def schodki_check(lis):
     False
     >>> schodki_check([k(2,'3'),k(1,'3'),k(4,'3')])
     True
+    >>> schodki_check([k(2,'6'),k(2,'7'),k(3,'7'),k(3,'6')])
+    True
     """
     # schodkom brakuje jeszcze opcji schodzenia w dół...
-    for i in range(len(lis) - 1):
-        if lis[i].ran == lis[i + 1].ran:
+    for i in range(len(card_list) - 1):
+
+        color_check = card_list[i].kol == card_list[i + 1].kol
+        current_rank = int(card_list[i].ran)
+        next_rank = int(card_list[i + 1].ran)
+        big_stair_check = current_rank + 1 == next_rank
+        low_stair_check = current_rank - 1 == next_rank
+
+        if current_rank == next_rank:
             continue
-        if int(lis[i].ran) + 1 == int(lis[i + 1].ran) and lis[i].kol == lis[i + 1].kol:
-            continue
+        if color_check:
+            if big_stair_check or low_stair_check:
+                continue
         return False
     return True
 
@@ -151,9 +159,9 @@ def ktora_kupka(karta, kupki, rnd=False):
 def rozpakuj_input(inp):
     a = inp.split()
     if len(a) == 3:
-        a[0] = [karta_z_str(s) for s in a[0].split(',')]
+        a[0] = [str_to_card(s) for s in a[0].split(',')]
     elif len(a) == 1:
-        return [karta_z_str(s) for s in inp.split(',')]
+        return [str_to_card(s) for s in inp.split(',')]
     elif len(a) == 2:
         return a
     return a
@@ -176,7 +184,7 @@ def czy_pion_na_koncu(brd, k):
 
 class gracz:
 
-    def __init__(self, ida, kol, reka=[], bot=True, name='gracz'):
+    def __init__(self, ida, kol, reka=None, bot=True, name='gracz'):
         self.nr = ida
         self.kol = kol
         self.reka = reka
@@ -192,7 +200,7 @@ class gracz:
                 burn = 1
             if not burn and card.ran == 'J':
                 ch = [s[0] for s in plansza.jaki_typ_zostal(
-                    odwrot(self.kol)) if s != 'King']
+                    invert_color(self.kol)) if s != 'King']
                 # here is a problem with jack loosing its ability when there is
                 # only king left..
                 if len(ch) == 0:
@@ -254,14 +262,14 @@ class gracz_str(gracz):
         rating_list = []
         for m in move_list:
             brd = plansza.simulate_move(m[0], m[1], karta)
-            check = 1 if brd.czy_szach(odwrot(self.kol)) else 0
-            # mat = 100 if brd.czy_szach(odwrot(self.kol)) and
-            # brd.czy_pat(odwrot(self.kol)) else 0
+            check = 1 if brd.czy_szach(invert_color(self.kol)) else 0
+            # mat = 100 if brd.czy_szach(invert_color(self.kol)) and
+            # brd.czy_pat(invert_color(self.kol)) else 0
             broniony = 4 if plansza.pod_biciem(
                 plansza.mapdict[m[1]], self.kol) else 0
             atakowany = 4 if plansza.pod_biciem(
-                plansza.mapdict[m[1]], odwrot(self.kol)) else 0
-            rating = (brd.get_points(self.kol) - brd.get_points(odwrot(self.kol))
+                plansza.mapdict[m[1]], invert_color(self.kol)) else 0
+            rating = (brd.get_points(self.kol) - brd.get_points(invert_color(self.kol))
                       ) + (check * broniony) + broniony - atakowany
             rating_list.append((rating, m))
         maks = sorted(rating_list)[-1][0]
@@ -281,7 +289,7 @@ class rozgrywka:
         self.karty = Talia()
         self.karty.combine(Talia().cards)
         self.karty.tasuj()
-        tpr = rozd(self.karty, ovr)
+        tpr = deal(self.karty, ovr)
         # auto play
         self.gracze = (gracz(1, 'b', tpr[0], bot=True), gracz_str(2, 'c', tpr[1])) if auto else (
             gracz(1, 'b', tpr[0], bot=False), gracz(2, 'c', tpr[1], bot=False))
@@ -403,7 +411,7 @@ class rozgrywka:
         if len(card) == 3:
             self.jack = card[2]
             assert self.jack in self.plansza.jaki_typ_zostal(
-                odwrot(self.to_move))
+                invert_color(self.to_move))
         else:
             self.jack = None
         if self.now_card.ran == '4' and not self.burned:
@@ -435,7 +443,7 @@ class rozgrywka:
         # passing a move
         if where == []:
             # changing the color to move
-            self.to_move = odwrot(self.to_move)
+            self.to_move = invert_color(self.to_move)
             # udapting check and mate although i think it shoudln't change
             self.szach = self.czy_szach(self.to_move)
             if self.szach and self.czy_pat(self.to_move):
@@ -446,14 +454,14 @@ class rozgrywka:
 
             # udpating history
             record = '{color} {car} '.format(
-                color=odwrot(self.to_move), car=card)
+                color=invert_color(self.to_move), car=card)
             self.historia.append(record)
 
             # checking for Ace, and switching color
             if self.now_card.ran == 'A' and not self.burned:
-                self.to_move = odwrot(self.to_move)
+                self.to_move = invert_color(self.to_move)
                 for g in self.gracze:
-                    g.kol = odwrot(g.kol)
+                    g.kol = invert_color(g.kol)
 
             return None
 
@@ -487,7 +495,7 @@ class rozgrywka:
         assert not self.czy_szach(self.to_move)
 
         # changing the color to move
-        self.to_move = odwrot(self.to_move)
+        self.to_move = invert_color(self.to_move)
 
         # udapting check and mate
         self.szach = self.czy_szach(self.to_move)
@@ -498,7 +506,7 @@ class rozgrywka:
         elif self.czy_pat(self.to_move):
             self.pat = True
         # updating history
-        record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=odwrot(self.to_move),
+        record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=invert_color(self.to_move),
                                                                                           burn='!' if self.burned else '', car=card, jack=';' + self.jack[0] if self.jack != None else '',
                                                                                           piece=self.plansza.get_fen_rep(self.plansza.get_piece(where[1])), fro=where[0], to=where[1],
                                                                                           prom='=' + q if self.zamiana else '', check='+' if self.szach else '', mate='#' if self.mat else '')

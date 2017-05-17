@@ -7,11 +7,12 @@ import random
 from copy import deepcopy
 from math import floor
 from termcolor import colored
-from pieces import *
+from chessao import CARDS_COLORS
+from chessao.pieces import *
 
 ####### CARDS #######
 
-CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
+# CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 
 
 class Card:

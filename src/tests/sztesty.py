@@ -1,9 +1,7 @@
-# Author: Tadek Teleżyński
-
-from gameplay import *
 import os
 import sys
 import traceback
+from chessao.gameplay import *
 
 
 li = [

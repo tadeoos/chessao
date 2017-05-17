@@ -1,4 +1,5 @@
 from copy import deepcopy
+from chessao import PIECES_STR
 
 #######
 ######## SZACHY  ########
@@ -20,7 +21,7 @@ class Piece():
         raise NotImplementedError
 
     def __str__(self):
-        raise NotImplementedError
+        return PIECES_STR[self.color][self.name]
 
 
 class Pawn(Piece):
@@ -58,12 +59,6 @@ class Pawn(Piece):
 
         return res
 
-    def __str__(self):
-        if self.color == 'b':
-            return '♙'
-        else:
-            return '♟'
-
 
 class Rook(Piece):
 
@@ -87,12 +82,6 @@ class Rook(Piece):
 
         return res
 
-    def __str__(self):
-        if self.color == 'b':
-            return '♖'
-        else:
-            return '♜'
-
 
 class Knight(Piece):
 
@@ -109,12 +98,6 @@ class Knight(Piece):
                     res.append(a)
 
         return res
-
-    def __str__(self):
-        if self.color == 'b':
-            return '♘'
-        else:
-            return '♞'
 
 
 class Bishop(Piece):
@@ -138,12 +121,6 @@ class Bishop(Piece):
                 a += i
 
         return res
-
-    def __str__(self):
-        if self.color == 'b':
-            return '♗'
-        else:
-            return '♝'
 
 
 class Queen(Piece):
@@ -171,12 +148,6 @@ class Queen(Piece):
                 res.append(a)
                 a += i
         return res
-
-    def __str__(self):
-        if self.color == 'b':
-            return '♕'
-        else:
-            return '♛'
 
 
 class King(Piece):
@@ -222,9 +193,3 @@ class King(Piece):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res
-
-    def __str__(self):
-        if self.color == 'b':
-            return '♔'
-        else:
-            return '♚'
