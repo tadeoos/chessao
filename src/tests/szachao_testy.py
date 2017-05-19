@@ -82,9 +82,9 @@ class TestGame(unittest.TestCase):
         self.gameplay = gameplay.rozgrywka()
 
     def test_run(self):
-        # g = play_game()
-        # print(g.historia)
         print(self.gameplay.snapshot())
+        self.gameplay.graj()
+        print(self.gameplay.historia)
         self.assertFalse(self.gameplay.mat)
 
 if __name__ == "__main__":
