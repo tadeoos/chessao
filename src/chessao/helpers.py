@@ -142,23 +142,39 @@ def ok_karta(card, decks):
 def odejmij(hand, cards):
     '''Return hand after removing the specified cards from it.'''
     for card in cards:
-        hand.remove(card)
+        try:
+            hand.remove(card)
+        except ValueError:
+            raise ValueError('The card(s) is(are) not in the hand.')
     return hand
 
 
 def ktora_kupka(karta, kupki, rnd=False):
+    '''
+    Return the index of a pile wherein the card goes.
+    Expects a list with a card, and a list of two Talia objects.
+    '''
     res = []
-    for i in range(2):
-        if karta[0].kol == kupki[i][-1].kol or karta[0].ran == kupki[i][-1].ran or kupki[i][-1].ran == 'Q'or karta[0].ran == 'Q':
+    card_rank = karta[0].ran
+    card_color = karta[0].kol
+    for i, pile in enumerate(kupki):
+        pile_rank = pile[-1].ran
+
+        color_check = card_color == pile[-1].kol
+        rank_check = card_rank == pile_rank
+        queen_check = pile_rank == 'Q'or card_rank == 'Q'
+
+        if color_check or rank_check or queen_check:
             res.append(i)
     if len(res) == 1:
         return res[0]
     elif len(res) == 2:
         if rnd:
             return random.randint(0, 1)
-        a = input('Na którą kupkę dołożyć kartę? (0 - lewa / 1 - prawa) ')
+        usr_input = input(
+            'Na którą kupkę dołożyć kartę? (0 - lewa / 1 - prawa) ')
         assert a in ('1', '0')
-        return int(a)
+        return int(usr_input)
     raise ValueError('card: {} kupki {}'.format(karta, kupki))
 
 

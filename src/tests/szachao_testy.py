@@ -70,7 +70,10 @@ class TestHelpers(unittest.TestCase):
                                           szachao.Card(1, '7')], self.pile))
 
         self.assertEqual(helpers.odejmij(self.hand, [szachao.Card(2, '7')]),
-                         [szachao.Card(3, '5')])
+                         [szachao.Card(3, '5'), szachao.Card(2, 'K'),
+                          szachao.Card(4, '5')])
+        self.assertNotEqual(helpers.odejmij(self.hand, [szachao.Card(4, '5')]),
+                            [szachao.Card(3, '5')])
 
 
 class TestGame(unittest.TestCase):
@@ -81,7 +84,7 @@ class TestGame(unittest.TestCase):
     def test_run(self):
         # g = play_game()
         # print(g.historia)
-        # self.assertFalse(play_game().szach)
+        print(self.gameplay.snapshot())
         self.assertFalse(self.gameplay.mat)
 
 if __name__ == "__main__":

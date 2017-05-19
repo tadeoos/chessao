@@ -23,6 +23,9 @@ class Piece():
     def __str__(self):
         return PIECES_STR[self.color][self.name]
 
+    def to_json(self):
+        return self.__dict__
+
 
 class Pawn(Piece):
 

@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import re
@@ -323,6 +324,20 @@ class rozgrywka:
         print('{} {} (black): {}'.format(gc.name, gc.nr, gc.reka))
         # print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
         return ''
+
+    def snapshot(self, jsn=True):
+        snap = self.__dict__
+        snap['karty'] = snap['karty'].__dict__
+        snap['plansza'] = snap['plansza'].fen()
+        del snap['gracze']
+        print(snap)
+        try:
+            res = json.dumps(self.__dict__)
+        except TypeError as e:
+            res = snap
+            print(e)
+
+        return snap
 
     def do_card_buisness(self, kar, three=False):
         player = self.get_gracz(self.to_move)

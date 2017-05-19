@@ -12,8 +12,6 @@ from chessao.pieces import *
 
 ####### CARDS #######
 
-# CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
-
 
 class Card:
 
@@ -29,7 +27,7 @@ class Card:
         return self.ran + CARDS_COLORS[self.kol]
 
     def __repr__(self):
-        return str(self)
+        return self.ran + str(self.kol)
 
 
 class Talia:
