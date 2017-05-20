@@ -1,4 +1,4 @@
-import chessao.szachao as szachao
+import chessao.chess as chess
 import chessao.gameplay as gameplay
 
 CASES = [('8/P7/8/8/8/8/8/8', (1, '4')), ('k1K5/8/8/8/8/8/8/8', (3, 'K')),
@@ -6,7 +6,7 @@ CASES = [('8/P7/8/8/8/8/8/8', (1, '4')), ('k1K5/8/8/8/8/8/8/8', (3, 'K')),
 
 
 def pos_moves(fen, card):
-    c = szachao.karta(card[0], card[1])
+    c = chess.karta(card[0], card[1])
     return gameplay.rozgrywka(fenrep=fen,
                               ovr=([c], [])).possible_moves(roz.to_move, roz.capture, roz.gracze[0].reka[0], roz.burned, roz.what_happened())
 

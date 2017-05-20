@@ -4,7 +4,24 @@ import random
 import re
 import time
 from chessao.helpers import *
-from chessao.szachao import *
+from chessao.chess import *
+from chessao.players import *
+
+
+class GameplayEncoder(json.JSONEncoder):
+    '''A JSON encoder class for Gameplay object.'''
+
+    def default(self, obj):
+        if isinstance(obj, Card):
+            return '{} {}'.format(obj.ran, obj.kol)
+        if isinstance(obj, Deck):
+            return obj.cards
+        if isinstance(obj, Board):
+            return obj.fen()
+        if isinstance(obj, Player):
+            return str(obj)
+
+        return json.JSONEncoder.default(self, obj)
 
 
 def resurect(history, gameplay=None):
@@ -38,279 +55,6 @@ def resurect(history, gameplay=None):
         return result_gameplay
     return resurect(history[1:], result_gameplay)
 
-
-def invert_color(color):
-    '''Return the other color.'''
-    return 'c' if color == 'b' else 'b'
-
-
-def deal(tal, override=False):
-    a = []
-    b = []
-    for i in range(5):
-        a.append(tal.cards.pop())
-        b.append(tal.cards.pop())
-    if override:
-        a = override[0]
-        b = override[1]
-        for o in override:
-            for karta in o:
-                tal.cards.remove(karta)
-    return (a, b, tal)
-
-
-def str_to_card(s):
-    return Card(int(s[-1]), s[:-1])
-
-
-def decode_card_color(s):
-    if s == '♤':
-        return 1
-    elif s == '♡':
-        return 2
-    elif s == '♢':
-        return 3
-    elif s == '♧':
-        return 4
-    else:
-        raise ValueError
-
-
-def decode_card(s):
-    b = 1 if s[0] == '!' else 0
-
-    if ';' in s:
-        col = decode_card_color(s[-3])
-        rank = s[:-3] if b == 0 else s[1:-3]
-        w = s[-1]
-        return (b, [Card(col, rank)], nawaleta(w))
-    else:
-        col = decode_card_color(s[-1])
-        rank = s[:-1] if b == 0 else s[1:-1]
-        return (b, [Card(col, rank)])
-
-
-def nawaleta(s):
-    c = s.lower()
-    if c == 'p':
-        return 'Pawn'
-    elif c == 'r':
-        return 'Rook'
-    elif c == 'k':
-        return 'Knight'
-    elif c == 'b':
-        return 'Bishop'
-    elif c == 'q':
-        return 'Queen'
-    else:
-        raise ValueError(s)
-
-
-def schodki_check(card_list):
-    """
-    Check if "card stairs" are build correctly.
-
-    >>> k=Card
-    >>> schodki_check([k(1,'6'),k(1,'7'),k(2,'7')])
-    True
-    >>> schodki_check([k(1,'2'),k(2,'3')])
-    False
-    >>> schodki_check([k(1,'7'),k(1,'6'),k(1,'5')])
-    True
-    >>> schodki_check([k(3,'6'),k(1,'6'),k(2,'6'),k(2,'6'),k(4,'6')])
-    True
-    >>> schodki_check([k(2,'2'),k(1,'2'),k(1,'3')])
-    False
-    >>> schodki_check([k(2,'3'),k(1,'3'),k(4,'3')])
-    True
-    >>> schodki_check([k(2,'6'),k(2,'7'),k(3,'7'),k(3,'6')])
-    True
-    """
-    # schodkom brakuje jeszcze opcji schodzenia w dół...
-    for i in range(len(card_list) - 1):
-
-        color_check = card_list[i].kol == card_list[i + 1].kol
-        current_rank = int(card_list[i].ran)
-        next_rank = int(card_list[i + 1].ran)
-        big_stair_check = current_rank + 1 == next_rank
-        low_stair_check = current_rank - 1 == next_rank
-
-        if current_rank == next_rank:
-            continue
-        if color_check:
-            if big_stair_check or low_stair_check:
-                continue
-        return False
-    return True
-
-
-def ok_karta(karta, talie):
-    if len(karta) > 1:
-        if not schodki_check(karta):
-            return False
-    for t in talie:
-        if karta[0].kol == t[-1].kol or karta[0].ran == t[-1].ran or t[-1].ran == 'Q' or karta[0].ran == 'Q':
-            return True
-    return False
-
-
-def odejmij(a, b):
-    # out = [x for x in a if x not in b]
-    for k in b:
-        a.remove(k)
-    return a
-    # if len(out) == len(a) - len(b):
-    # 	return out
-    # elif len(b)==1:
-    # 	assert len(out)==3
-    # 	out.extend(b)
-    # 	return out
-    # else:
-    # 	try:
-    # 		assert len(out)==5 or len(out)==2 or len(out)==0
-    # 	except Exception as e:
-    # 		print('\n out: {} a: {} b: {}'.format(out,a ,b))
-    # 		raise AssertionError
-    # 	return out
-
-
-def ktora_kupka(karta, kupki, rnd=False):
-    res = []
-    for i in range(2):
-        if karta[0].kol == kupki[i][-1].kol or karta[0].ran == kupki[i][-1].ran or kupki[i][-1].ran == 'Q'or karta[0].ran == 'Q':
-            res.append(i)
-    if len(res) == 1:
-        return res[0]
-    elif len(res) == 2:
-        if rnd:
-            return random.randint(0, 1)
-        a = input('Na którą kupkę dołożyć kartę? (0 - lewa / 1 - prawa) ')
-        assert a in ('1', '0')
-        return int(a)
-    return 3
-
-
-def rozpakuj_input(inp):
-    a = inp.split()
-    if len(a) == 3:
-        a[0] = [str_to_card(s) for s in a[0].split(',')]
-    elif len(a) == 1:
-        return [str_to_card(s) for s in inp.split(',')]
-    elif len(a) == 2:
-        return a
-    return a
-
-
-def last_line_check(color, first_sq, last_sq, Board):
-    for i in range(first_sq, last_sq):
-        if type(Board.brd[i]) == Pawn and Board.brd[i].color == color:
-            return i
-        return 0
-
-
-def czy_pion_na_koncu(brd, k):
-    assert k in ('b', 'c')
-    return last_line_check('b', 91, 99, brd) if k == 'b' else last_line_check('c', 21, 29, brd)
-
-
-# PLAYER CLASS
-
-
-class gracz:
-
-    def __init__(self, ida, kol, reka=None, bot=True, name='gracz'):
-        self.nr = ida
-        self.kol = kol
-        self.reka = reka
-        self.name = name
-        self.bot = bot
-
-    def choose_card(self, talie, plansza):
-        if self.bot:
-            los = random.randint(0, 4)
-            burn = 1 if los == 0 else 0
-            card = random.choice(self.reka)
-            if not ok_karta([card], talie):
-                burn = 1
-            if not burn and card.ran == 'J':
-                ch = [s[0] for s in plansza.jaki_typ_zostal(
-                    invert_color(self.kol)) if s != 'King']
-                # here is a problem with jack loosing its ability when there is
-                # only king left..
-                if len(ch) == 0:
-                    return (burn, [card])
-                choice = random.choice(ch)
-                return (burn, [card], nawaleta(choice))
-            return (burn, [card])
-        else:
-            print('\nKupki: |{0:>3} |  |{1:>3} |'.format(
-                str(talie[0][-1]), str(talie[1][-1])))
-            print(plansza)
-            print(self.kol, self.reka)
-
-            ask = int(input('Karta: (1,2,3,4,5)? ')) - 1
-            ask_burn = int(input('Do you want to burn that card? (0/1) ')
-                           ) if ok_karta([self.reka[ask]], talie) else 1
-            return (ask_burn, [self.reka[ask]])
-            # trza dokończyć..
-
-    def get_three(self, n):
-        if self.bot:
-            return random.sample(self.reka, n)
-        else:
-            # functionality for humans
-            return random.sample(self.reka, n)
-            # return None
-
-    def choose_move(self, d, plansza, karta):
-        if self.bot:
-            random_ruch = random.choice(list(d.keys()))
-            random_nr = random.randint(0, len(d[random_ruch]) - 1)
-            return [random_ruch, d[random_ruch][random_nr]]
-        else:
-            print('Possible moves: {}'.format(d))
-            while True:
-                ask = input('Ruch: ').upper().split()
-                if ask[0] in d.keys() and ask[1] in d[ask[0]]:
-                    break
-                print('You cannot make this move, choose another one!')
-            return ask
-
-    def choose_prom(self):
-        if self.bot:
-            return random.choice(['D', 'G', 'S', 'W'])
-        else:
-            return input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n').upper()
-
-    def __str__(self):
-        return '{} {}'.format(self.name, self.nr)
-
-    def __repr__(self):
-        return '{} {}'.format(self.name, self.nr)
-
-
-class gracz_str(gracz):
-
-    def choose_move(self, d, plansza, karta):
-        move_list = [[skad, gdzie] for skad in d.keys() for gdzie in d[skad]]
-        rating_list = []
-        for m in move_list:
-            brd = plansza.simulate_move(m[0], m[1], karta)
-            check = 1 if brd.czy_szach(invert_color(self.kol)) else 0
-            # mat = 100 if brd.czy_szach(invert_color(self.kol)) and
-            # brd.czy_pat(invert_color(self.kol)) else 0
-            broniony = 4 if plansza.pod_biciem(
-                plansza.mapdict[m[1]], self.kol) else 0
-            atakowany = 4 if plansza.pod_biciem(
-                plansza.mapdict[m[1]], invert_color(self.kol)) else 0
-            rating = (brd.get_points(self.kol) - brd.get_points(invert_color(self.kol))
-                      ) + (check * broniony) + broniony - atakowany
-            rating_list.append((rating, m))
-        maks = sorted(rating_list)[-1][0]
-        return random.choice([move for (a, move) in rating_list if a == maks])
-
-    def choose_prom(self):
-        return 'D'
 
 # SZACHAO CLASS
 
@@ -360,7 +104,7 @@ class rozgrywka:
 
     def snapshot(self, jsn=True, remove=None):
         snap = self.__dict__
-        del snap['gracze']
+        # del snap['gracze']
         if remove:
             for key in remove:
                 del snap[key]

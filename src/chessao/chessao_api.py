@@ -1,6 +1,6 @@
-import szachao
+import chess
 import gameplay
 
 
 def get_moves(fen, start, end):
-    b = szachao.Board(fenrep=fen)
+    b = chess.Board(fenrep=fen)

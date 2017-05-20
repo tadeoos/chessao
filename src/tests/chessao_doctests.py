@@ -15,11 +15,11 @@ if __name__ == "__main__":
     cov.start()
     # import testy2
     import chessao.gameplay as gameplay
-    import chessao.szachao as szachao
-    doctest.testmod(szachao)
+    import chessao.chess as chess
+    doctest.testmod(chess)
     doctest.testmod(gameplay)
     cov.stop()
-    modls = [szachao, gameplay]
+    modls = [chess, gameplay]
     cov.report(modls, ignore_errors=1, show_missing=1)
     cov.html_report(morfs=modls, directory='/tmp')
     cov.erase()

@@ -1,21 +1,9 @@
 import json
 import random
 from chessao import CARDS_COLORS
-from chessao.szachao import Card, Deck, Board
-
-
-class GameplayEncoder(json.JSONEncoder):
-    '''A JSON encoder class for Gameplay object.'''
-
-    def default(self, obj):
-        if isinstance(obj, Card):
-            return '{} {}'.format(obj.ran, obj.kol)
-        if isinstance(obj, Deck):
-            return obj.cards
-        if isinstance(obj, Board):
-            return obj.fen()
-
-        return json.JSONEncoder.default(self, obj)
+from chessao.cards import Card, Deck
+from chessao.chess import Board
+from chessao.pieces import Pawn
 
 
 def invert_color(color):
@@ -201,11 +189,16 @@ def rozpakuj_input(inp):
     return a
 
 
-def last_line_check(color, first_sq, last_sq, Board):
+def last_line_check(color, first_sq, last_sq, board):
     '''Return the position of the Piece in the last row, if none return 0.'''
     for i in range(first_sq, last_sq):
-        if Board.brd[i].name == Pawn and Board.brd[i].color == color:
-            return i
+        try:
+            if type(board.brd[i]) == Pawn and board.brd[i].color == color:
+                return i
+        except AttributeError:
+            # print(board)
+            print(board.brd[i])
+            raise AttributeError
     return 0
 
 
