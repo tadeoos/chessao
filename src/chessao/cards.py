@@ -17,7 +17,7 @@ class Card:
         return self.ran + CARDS_COLORS[self.kol]
 
     def __repr__(self):
-        return self.ran + str(self.kol)
+        return str(self)
 
 
 class Deck:

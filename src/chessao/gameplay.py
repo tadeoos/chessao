@@ -4,8 +4,10 @@ import random
 import re
 import time
 from chessao.helpers import *
-from chessao.chess import *
+from chessao.chess import Board
 from chessao.players import *
+from chessao.cards import Card, Deck
+from chessao.pieces import *
 
 
 class GameplayEncoder(json.JSONEncoder):
@@ -305,10 +307,10 @@ class rozgrywka:
         elif self.czy_pat(self.to_move):
             self.pat = True
         # updating history
-        record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate}'.format(color=invert_color(self.to_move),
-                                                                                          burn='!' if self.burned else '', car=card, jack=';' + self.jack[0] if self.jack != None else '',
-                                                                                          piece=self.plansza.get_fen_rep(self.plansza.get_piece(where[1])), fro=where[0], to=where[1],
-                                                                                          prom='=' + q if self.zamiana else '', check='+' if self.szach else '', mate='#' if self.mat else '')
+        record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(color=invert_color(self.to_move),
+                                                                                                   burn='!' if self.burned else '', car=card, jack=';' + self.jack[0] if self.jack != None else '',
+                                                                                                   piece=self.plansza.get_fen_rep(self.plansza.get_piece(where[1])), fro=where[0], to=where[1],
+                                                                                                   prom='=' + q if self.zamiana else '', check='+' if self.szach else '', mate='#' if self.mat else '', fenrep=self.plansza.fen())
         self.historia.append(record)
         return True
 
