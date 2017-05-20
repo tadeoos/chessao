@@ -1,5 +1,21 @@
+import json
 import random
-from chessao.szachao import Card
+from chessao import CARDS_COLORS
+from chessao.szachao import Card, Deck, Board
+
+
+class GameplayEncoder(json.JSONEncoder):
+    '''A JSON encoder class for Gameplay object.'''
+
+    def default(self, obj):
+        if isinstance(obj, Card):
+            return '{} {}'.format(obj.ran, obj.kol)
+        if isinstance(obj, Deck):
+            return obj.cards
+        if isinstance(obj, Board):
+            return obj.fen()
+
+        return json.JSONEncoder.default(self, obj)
 
 
 def invert_color(color):
@@ -7,18 +23,18 @@ def invert_color(color):
     return 'c' if color == 'b' else 'b'
 
 
-def deal(deck, override=None):
+def deal(deck, override=None, number=5):
     '''
-    Deal for five cads to each player. 
+    Deal for #number cads to each player. 
 
-    Returns a tuple with two lists and Talia object.
+    Returns a tuple with two lists and Deck object.
     Override parameter specifies the hands for players.
     '''
     player_a = []
     player_b = []
 
     if not override:
-        for _ in range(5):
+        for _ in range(number):
             player_a.append(deck.cards.pop())
             player_b.append(deck.cards.pop())
     else:
@@ -33,21 +49,17 @@ def deal(deck, override=None):
 
 def str_to_card(str_card):
     '''Return a Card obj from a string representation.'''
+    if str_card.startswith('!'):
+        str_card = str_card[1:]
     return Card(int(str_card[-1]), str_card[:-1])
 
 
 def decode_card_color(card_str):
-
-    if card_str == '♤':
-        return 1
-    elif card_str == '♡':
-        return 2
-    elif card_str == '♢':
-        return 3
-    elif card_str == '♧':
-        return 4
-    else:
-        raise ValueError
+    try:
+        return [key for key, item in CARDS_COLORS.items() if item ==
+                card_str][0]
+    except IndexError:
+        raise ValueError('incorrect card sring: {}'.format(card_str))
 
 
 def decode_card(card_str):
@@ -152,7 +164,7 @@ def odejmij(hand, cards):
 def ktora_kupka(karta, kupki, rnd=False):
     '''
     Return the index of a pile wherein the card goes.
-    Expects a list with a card, and a list of two Talia objects.
+    Expects a list with a card, and a list of two Deck objects.
     '''
     res = []
     card_rank = karta[0].ran
@@ -189,10 +201,10 @@ def rozpakuj_input(inp):
     return a
 
 
-def last_line_check(color, first_sq, last_sq, board):
+def last_line_check(color, first_sq, last_sq, Board):
     '''Return the position of the Piece in the last row, if none return 0.'''
     for i in range(first_sq, last_sq):
-        if board.brd[i].name == Pawn and board.brd[i].color == color:
+        if Board.brd[i].name == Pawn and Board.brd[i].color == color:
             return i
     return 0
 

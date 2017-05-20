@@ -30,11 +30,11 @@ class Card:
         return self.ran + str(self.kol)
 
 
-class Talia:
+class Deck:
 
     def __init__(self, lista_kart=None):
         """
-        >>> print(Talia(lista_kart=[Card(1,'5')]))
+        >>> print(Deck(lista_kart=[Card(1,'5')]))
         [5♤]
         """
         if lista_kart is None:
@@ -61,11 +61,11 @@ class Talia:
         return str(self.cards)
 
 
-class board:
+class Board:
 
     def __init__(self, rnd=False, fenrep=False):
         """
-        >>> 'K' in board(rnd=1).fen()
+        >>> 'K' in Board(rnd=1).fen()
         True
         """
         self.brd = [0 for i in range(120)]
@@ -107,15 +107,15 @@ class board:
 
     def rusz(self, c, d=None, karta=Card(1, '5'), only_bool=False):
         """
-        >>> board(fenrep='R3K2R/8/8/8/8/8/8/8').rusz('E1','B1')
+        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').rusz('E1','B1')
         True
-        >>> board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k').rusz('E1','G1')
+        >>> Board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k').rusz('E1','G1')
         True
-        >>> board(fenrep='R3K2R/8/8/Q7/8/8/8/8').rusz('A4','A1', Card(1,'Q'))
+        >>> Board(fenrep='R3K2R/8/8/Q7/8/8/8/8').rusz('A4','A1', Card(1,'Q'))
         True
-        >>> board(fenrep='R3K2R/8/8/P7/8/8/8/8').rusz('A4','A5', Card(1,'Q'))
+        >>> Board(fenrep='R3K2R/8/8/P7/8/8/8/8').rusz('A4','A5', Card(1,'Q'))
         True
-        >>> b = board()
+        >>> b = Board()
         >>> b.rusz('D2','D4')
         True
         >>> b.rusz('A7','A6')
@@ -126,13 +126,13 @@ class board:
         True
         >>> b.rusz('D5','E6')
         True
-        >>> board().fen()
+        >>> Board().fen()
         'RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0'
-        >>> board(fenrep='R3K2R/8/8/P7/q7/8/8/8').rusz('A5','A4', Card(1,'6'))
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/8/8').rusz('A5','A4', Card(1,'6'))
         True
-        >>> board(fenrep='R3K2R/8/8/P7/q7/8/1N6/8').rusz('B7','A5', Card(1,'6'))
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/1N6/8').rusz('B7','A5', Card(1,'6'))
         True
-        >>> b = board()
+        >>> b = Board()
         >>> b.rusz('D2','D4')
         True
         >>> b.rusz('A7','A5')
@@ -235,9 +235,8 @@ class board:
                     self.fullmove += 1
                 return True
 
-        print('BŁĄD w funkcji rusz! skad {} dokad {} karta {} mvs {}, enpas {}'.format(
+        raise ValueError('BŁĄD w funkcji rusz! skad {} dokad {} karta {} mvs {}, enpas {}'.format(
             c, d, karta, self.brd[a].mvs_number, self.enpass))
-        raise ValueError
 
     def __str__(self):
         print('    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}'.format(
@@ -297,7 +296,7 @@ class board:
 
     def get_points(self, col):
         """
-        >>> board().get_points('b') > 49
+        >>> Board().get_points('b') > 49
         True
         """
         return sum([self.brd[i].val for i in self.all_taken() if self.brd[i].color == col])
@@ -305,7 +304,7 @@ class board:
     def simulate_move(self, fro, to, card):
         fenstr = self.fen().split()[0]
         enp = self.fen().split()[2]
-        copy = board(fenrep=fenstr)
+        copy = Board(fenrep=fenstr)
         copy.enpass = 300 if enp == '-' else self.mapdict[enp]
         copy.rusz(fro, to, card)
         return copy
@@ -474,17 +473,17 @@ class board:
 
     def pod_biciem(self, pole, color):
         """
-        >>> board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(88,'b')
+        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(88,'b')
         False
-        >>> board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(35,'c')
+        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(35,'c')
         True
-        >>> board(fenrep='b3K2R/8/8/8/8/8/8/8').pod_biciem(32,'b')
+        >>> Board(fenrep='b3K2R/8/8/8/8/8/8/8').pod_biciem(32,'b')
         True
-        >>> board(fenrep='N3K2R/8/8/8/8/8/8/8').pod_biciem(33,'c')
+        >>> Board(fenrep='N3K2R/8/8/8/8/8/8/8').pod_biciem(33,'c')
         True
-        >>> board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(81,'c')
+        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(81,'c')
         True
-        >>> board(fenrep='R3K2R/P7/8/8/8/8/8/8').pod_biciem(42,'c')
+        >>> Board(fenrep='R3K2R/P7/8/8/8/8/8/8').pod_biciem(42,'c')
         True
         """
         for i in (1, -1, 10, -10, 9, 11, -9, -11):

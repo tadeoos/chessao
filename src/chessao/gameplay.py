@@ -3,7 +3,40 @@ import os
 import random
 import re
 import time
+from chessao.helpers import *
 from chessao.szachao import *
+
+
+def resurect(history, gameplay=None):
+    '''Create a Gameplay object from a history.'''
+    if not gameplay:
+        result_gameplay = rozgrywka(fenrep=history[0])
+    else:
+        result_gameplay = gameplay
+    entry = history[1].split()
+
+    str_card = entry[1]
+    if str_card[0] == '!':
+        card = Card(1, '5')
+    else:
+        try:
+            assert len(str_card) == 2
+        except AssertionError:
+            print('long entry: \nentry {}\nstr_card {}'.format(entry, str_card))
+        finally:
+            color = decode_card_color(str_card[1])
+            card = Card(color, str_card[0])
+
+    where = entry[2][1:].split(':')
+    try:
+        result_gameplay.move(card, where)
+    except Exception as e:
+        print(e)
+        print('color: {}, card: {}, where: {}'.format(color, card, where))
+        raise ValueError('move function error')
+    if len(history) == 2:
+        return result_gameplay
+    return resurect(history[1:], result_gameplay)
 
 
 def invert_color(color):
@@ -168,9 +201,9 @@ def rozpakuj_input(inp):
     return a
 
 
-def last_line_check(color, first_sq, last_sq, board):
+def last_line_check(color, first_sq, last_sq, Board):
     for i in range(first_sq, last_sq):
-        if type(board.brd[i]) == Pawn and board.brd[i].color == color:
+        if type(Board.brd[i]) == Pawn and Board.brd[i].color == color:
             return i
         return 0
 
@@ -286,9 +319,9 @@ class rozgrywka:
 
     def __init__(self, rnd=1, fenrep=False, auto=True, ovr=False, test=False):
         # random.seed()
-        self.plansza = board(rnd, fenrep)
-        self.karty = Talia()
-        self.karty.combine(Talia().cards)
+        self.plansza = Board(rnd, fenrep)
+        self.karty = Deck()
+        self.karty.combine(Deck().cards)
         self.karty.tasuj()
         tpr = deal(self.karty, ovr)
         # auto play
@@ -322,22 +355,25 @@ class rozgrywka:
         print('\n{} {} (white): {}\n'.format(gb.name, gb.nr, gb.reka))
         print('{}'.format(self.plansza))
         print('{} {} (black): {}'.format(gc.name, gc.nr, gc.reka))
-        # print('\nTalia: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
+        # print('\nDeck: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
         return ''
 
-    def snapshot(self, jsn=True):
+    def snapshot(self, jsn=True, remove=None):
         snap = self.__dict__
-        snap['karty'] = snap['karty'].__dict__
-        snap['plansza'] = snap['plansza'].fen()
         del snap['gracze']
-        print(snap)
+        if remove:
+            for key in remove:
+                del snap[key]
         try:
-            res = json.dumps(self.__dict__)
+            res = json.dumps(self.__dict__, cls=GameplayEncoder,
+                             sort_keys=True, indent=2)
         except TypeError as e:
             res = snap
-            print(e)
-
-        return snap
+            cards = snap['karty']['cards']
+            raise ValueError('\nSNAP ERROR: {}\ntype of cards {}\n type of card {}\n'.format(
+                e, type(cards), type(cards[1])))
+        else:
+            return res
 
     def do_card_buisness(self, kar, three=False):
         player = self.get_gracz(self.to_move)
@@ -481,10 +517,14 @@ class rozgrywka:
             return None
 
         # actual move happens
-        if self.burned:
-            self.plansza.rusz(where[0], where[1])
-        else:
-            self.plansza.rusz(where[0], where[1], card)
+        try:
+            if self.burned:
+                self.plansza.rusz(where[0], where[1])
+            else:
+                self.plansza.rusz(where[0], where[1], card)
+        except Exception as e:
+            print('where: {} card {}'.format(where, card))
+            raise ValueError('self.plansza.rusz error')
 
         # checking if pawn is getting promoted
         q = 'BŁĄD!!'
@@ -588,7 +628,7 @@ class rozgrywka:
         kup_2 = self.kupki[1][-1]
         do_tasu = self.kupki[0][:-1] + self.kupki[1][:-1] + self.spalone
 
-        out = Talia(do_tasu)
+        out = Deck(do_tasu)
 
         self.spalone = []
         out.tasuj()
