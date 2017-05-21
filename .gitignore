@@ -2,7 +2,7 @@
 /videos/
 /www/
 /word_docs/
-/graphics/
+/old_graphics/
 *.doc*
 
 # Byte-compiled / optimized / DLL files
