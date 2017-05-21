@@ -32,9 +32,11 @@ if __name__ == "__main__":
     doctest.testmod(pieces)
     doctest.testmod(players)
 
-    test_run = 'TestRun{}'.format(runs)
+    test_run = 'TestRun{}'.format(runs) if runs > 0 else None
 
-    tests = ['TestBoard', 'TestHelpers', 'TestGamePlay', test_run]
+    tests = ['TestBoard', 'TestHelpers', 'TestGamePlay']
+    if test_run:
+        tests.append(test_run)
     # tests.append('TestRun20')
     unittest.main(module='unit_tests', exit=False,
                   verbosity=2, defaultTest=tests)

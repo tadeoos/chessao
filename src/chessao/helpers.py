@@ -11,11 +11,8 @@ class ChessaoGameplayError(Exception):
 
     def __init__(self, message, gameplay, errors=None):
 
-        # Call the base class constructor with the parameters it needs
         super(ChessaoGameplayError, self).__init__(message)
         self.gameplay = gameplay
-        print(self.gameplay.snapshot())
-        # Now for your custom code...
         self.errors = errors
 
 
@@ -267,8 +264,8 @@ def rozpakuj_input(inp):
     [A♧]
     >>> rozpakuj_input('54,64,74')
     [5♧, 6♧, 7♧]
-    rozpakuj_input('54,64')
-    [5♧]
+    >>> rozpakuj_input('54,64')
+    [5♧, 6♧]
     """
     a = inp.split()
 

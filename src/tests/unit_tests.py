@@ -86,18 +86,21 @@ class TestRun1(unittest.TestCase):
         t1 = time.time()
         for i in range(self.NUMBER):
             t2 = time.time()
-            eta = ((self.NUMBER / i) - i) * \
+            eta = ((self.NUMBER / i) - 1) * \
                 (t2 - t1) if i > 0 else 30 * self.NUMBER
-            print("\rDONE: {:.0f}%\tRUNNING: {} of {}...\tESTIMATED TIME: {:.0f}s".format(
-                (i / self.NUMBER) * 100, i + 1, self.NUMBER, eta, end=""))
             with self.subTest(i=i):
+                print("\rDONE: {:.0f}%  RUNNING: {} of {}  ESTIMATED TIME: {:.1f} min".format(
+                    (i / self.NUMBER) * 100, i + 1, self.NUMBER, eta / 60), end="")
                 try:
                     game = play_game()
                     g, played = game[0], game[1]
                     self.assertTrue(played)
-                except Exception as e:
-                    print(e.gameplay.snapshot())
+                except helpers.ChessaoGameplayError as e:
+                    print(e.rozgrywka.snapshot)
+                    raise e
+
                 g_cards = g.spalone + g.karty.cards + g.kupki[0] + g.kupki[1]
+
                 self.assertTrue(g.mat or g.pat)
                 self.assertTrue(len(g_cards) == 94)
         # print('\n-- Snapshot:\n{}\n{}'.format(g, g.snapshot()))
@@ -107,11 +110,17 @@ class TestGamePlay(unittest.TestCase):
 
     def setUp(self):
         self.gameplay = gameplay.rozgrywka()
+        self.HISTORY = ["1N3R2/1p1N1p1K/3P4/2b4P/7P/1p2P2r/1p2p3/1r1k1bn1 - - 0 29",
+                        "b !7♤  NB1:C3",
+                        "c 4♤  qB2:B1=D",
+                        "b K♤ "]
 
     def test_resurect(self):
         resur = gameplay.resurect(['RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0', 'b !8♧  PF2:F3', 'c !J♢  pD7:D5', 'b 5♢  PC2:C4', 'c !J♧  bC8:E6',
                                    'b !A♧  PC4:D5', 'c 3♢  nB8:C6', 'b !6♤  PD2:D4', 'c !A♡  rA8:B8', 'b !9♤  PD5:D6', 'c 9♢  pF7:F5'])
         self.assertFalse(resur.mat)
+        with self.assertRaises(helpers.ChessaoGameplayError):
+            gameplay.resurect(self.HISTORY)
 
     def test_printing(self):
         self.assertIsNotNone(str(self.gameplay))
