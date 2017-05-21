@@ -1,6 +1,7 @@
 # project folders
 /videos/
 /www/
+/word_docs/
 *.doc*
 
 # Byte-compiled / optimized / DLL files
