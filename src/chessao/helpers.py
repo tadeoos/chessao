@@ -36,7 +36,12 @@ def deal(deck, override=None, number=5):
 
 
 def str_to_card(str_card):
-    '''Return a Card obj from a string representation.'''
+    '''
+    Return a Card obj from a string representation.
+
+    >>> str_to_card('102')
+    10♡
+    '''
     if str_card.startswith('!'):
         str_card = str_card[1:]
     return Card(int(str_card[-1]), str_card[:-1])
@@ -179,6 +184,10 @@ def ktora_kupka(karta, kupki, rnd=False):
 
 
 def rozpakuj_input(inp):
+    """
+    >>> rozpakuj_input('24')
+    [2♧]
+    """
     a = inp.split()
     if len(a) == 3:
         a[0] = [str_to_card(s) for s in a[0].split(',')]

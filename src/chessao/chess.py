@@ -96,7 +96,7 @@ class Board:
         >>> b.rusz('H2', 'H5', only_bool=True)
         Traceback (most recent call last):
         ...
-        ValueError
+        ValueError: BŁĄD w funkcji rusz! skad H2 dokad H5 karta 5♤ mvs 0, enpas 300
         """
         self.bicie = False
         a = self.mapdict[c]
