@@ -50,9 +50,10 @@ def resurect(history, gameplay=None):
     try:
         result_gameplay.move(card, where)
     except Exception as e:
-        print(e)
-        print('color: {}, card: {}, where: {}'.format(color, card, where))
-        raise ValueError('move function error')
+        # print(e)
+        # print('color: {}, card: {}, where: {}'.format(color, card, where))
+        raise ChessaoGameplayError(
+            'RESSURECT move function error', gameplay=result_gameplay, errors=e)
     if len(history) == 2:
         return result_gameplay
     return resurect(history[1:], result_gameplay)
@@ -118,8 +119,8 @@ class rozgrywka:
         except TypeError as e:
             res = snap
             cards = snap['karty']['cards']
-            raise ValueError('\nSNAP ERROR: {}\ntype of cards {}\n type of card {}\n'.format(
-                e, type(cards), type(cards[1])))
+            raise ChessaoGameplayError('\nSNAP ERROR: {}\ntype of cards {}\n type of card {}\n'.format(
+                e, type(cards), type(cards[1])), gameplay=self, errors=e)
         else:
             return res
 
@@ -276,7 +277,8 @@ class rozgrywka:
                 self.plansza.rusz(where[0], where[1], card)
         except Exception as e:
             print('where: {} card {}'.format(where, card))
-            raise ValueError('self.plansza.rusz error')
+            raise ChessaoGameplayError(
+                'self.plansza.rusz error', gameplay=self, errors=e)
 
         # checking if pawn is getting promoted
         q = 'BŁĄD!!'
@@ -524,9 +526,8 @@ class rozgrywka:
                 try:
                     gdzie.remove(flag[1][1])
                 except Exception as e:
-                    print('\n Error in remove! color:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}'.format(
-                        color, okzbi, kar, burned, flag, gdzie, skad, a))
-                    raise e
+                    raise ChessaoGameplayError('\n Error in remove! color:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}'.format(
+                        color, okzbi, kar, burned, flag, gdzie, skad, a), gameplay=self, errors=e)
             if len(gdzie) > 0:
                 res[skad] = gdzie
 
@@ -538,8 +539,8 @@ class rozgrywka:
                 except Exception as e:
                     # print('\n color: {} from {} to {} karta {}'.format(
                         # color, key, where, kar))
-                    raise e('\n color: {} from {} to {} karta {}'.format(
-                        color, key, where, kar))
+                    raise ChessaoGameplayError('\n color: {} from {} to {} karta {}'.format(
+                        color, key, where, kar), gameplay=self, errors=e)
                 if pln.czy_szach(color) == (True, color):
                     res[key].remove(where)
                 del pln

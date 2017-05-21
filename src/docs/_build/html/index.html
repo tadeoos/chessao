@@ -87,12 +87,8 @@
             
   <div class="section" id="welcome-to-chessao-s-documentation">
 <h1>Welcome to Chessao&#8217;s documentation!<a class="headerlink" href="#welcome-to-chessao-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p>Chessao is a combination of chess and mao.
+See the sources <a class="reference external" href="https://github.com/tadeoos/chessao">here</a>.</p>
 <div class="toctree-wrapper compound">
 </div>
 </div>
@@ -110,12 +106,41 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
 <dt id="chessao.cards.Card">
 <em class="property">class </em><code class="descclassname">chessao.cards.</code><code class="descname">Card</code><span class="sig-paren">(</span><em>color</em>, <em>ranga</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Card" title="Permalink to this definition">¶</a></dt>
 <dd><p>Card class.</p>
+<p>The CARDS_COLORS variable is a dictionary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CARDS_COLORS</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;♤&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;♡&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;♢&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;♧&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Each card has two attributes: color and rank.</p>
+<p>You would construct a two of spades with <code class="docutils literal"><span class="pre">Card(1,</span> <span class="pre">'2')</span></code></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="chessao.cards.Deck">
 <em class="property">class </em><code class="descclassname">chessao.cards.</code><code class="descname">Deck</code><span class="sig-paren">(</span><em>lista_kart=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Deck of cards class.</p>
+<p>Holds one attribute (&#8216;cards&#8217;) with a list of cards in order.</p>
+<dl class="method">
+<dt id="chessao.cards.Deck.deal">
+<code class="descname">deal</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.deal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of top n cards.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Deck</span><span class="p">(</span><span class="n">lista_kart</span><span class="o">=</span><span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">deal</span><span class="p">()</span>
+<span class="go">[5♤]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.cards.Deck.get_card_index">
+<code class="descname">get_card_index</code><span class="sig-paren">(</span><em>rank='5'</em>, <em>suit=1</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.get_card_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the index of a specified card.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.cards.Deck.tasuj">
+<code class="descname">tasuj</code><span class="sig-paren">(</span><em>until=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.tasuj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shuffle the deck.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -335,6 +360,28 @@ of hearts, 4 - jack</p>
 </div>
 <div class="section" id="module-chessao.helpers">
 <span id="helpers"></span><h1>Helpers<a class="headerlink" href="#module-chessao.helpers" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="chessao.helpers.ChessaoGameplayError">
+<em class="property">exception </em><code class="descclassname">chessao.helpers.</code><code class="descname">ChessaoGameplayError</code><span class="sig-paren">(</span><em>message</em>, <em>gameplay</em>, <em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ChessaoGameplayError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom gameplay error</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.czy_pion_na_koncu">
+<code class="descclassname">chessao.helpers.</code><code class="descname">czy_pion_na_koncu</code><span class="sig-paren">(</span><em>brd</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.czy_pion_na_koncu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if a Pawn reached the end of Board.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="function">
 <dt id="chessao.helpers.deal">
 <code class="descclassname">chessao.helpers.</code><code class="descname">deal</code><span class="sig-paren">(</span><em>deck</em>, <em>override=None</em>, <em>number=5</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.deal" title="Permalink to this definition">¶</a></dt>
@@ -344,9 +391,43 @@ Override parameter specifies the hands for players.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="chessao.helpers.decode_card">
+<code class="descclassname">chessao.helpers.</code><code class="descname">decode_card</code><span class="sig-paren">(</span><em>card_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.decode_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse card for gameflow</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card</span><span class="p">(</span><span class="s1">&#39;!10♡&#39;</span><span class="p">)</span>
+<span class="go">(1, [10♡])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card</span><span class="p">(</span><span class="s1">&#39;J♡;R&#39;</span><span class="p">)</span>
+<span class="go">(0, [J♡], &#39;Rook&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.decode_card_color">
+<code class="descclassname">chessao.helpers.</code><code class="descname">decode_card_color</code><span class="sig-paren">(</span><em>card_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.decode_card_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>return integer repr of a color</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card_color</span><span class="p">(</span><span class="s1">&#39;♡&#39;</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card_color</span><span class="p">(</span><span class="s1">&#39;sth&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">incorrect card sring: sth</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
 <dt id="chessao.helpers.invert_color">
 <code class="descclassname">chessao.helpers.</code><code class="descname">invert_color</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.invert_color" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the other color.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">&#39;b&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">&#39;c&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;sth&#39;</span><span class="p">)</span>
+<span class="go">&#39;b&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -354,6 +435,16 @@ Override parameter specifies the hands for players.</p>
 <code class="descclassname">chessao.helpers.</code><code class="descname">ktora_kupka</code><span class="sig-paren">(</span><em>karta</em>, <em>kupki</em>, <em>rnd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ktora_kupka" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the index of a pile wherein the card goes.
 Expects a list with a card, and a list of two Deck objects.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">card: [2♧] kupki ([9♤], [K♡])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -365,13 +456,38 @@ Expects a list with a card, and a list of two Deck objects.</p>
 <dl class="function">
 <dt id="chessao.helpers.nawaleta">
 <code class="descclassname">chessao.helpers.</code><code class="descname">nawaleta</code><span class="sig-paren">(</span><em>jack_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.nawaleta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Map the jack choice to a Piece Class.</p>
+<dd><p># this should be depracated
+Map the jack choice to a Piece Class.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nawaleta</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span>
+<span class="go">&#39;Pawn&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="chessao.helpers.odejmij">
 <code class="descclassname">chessao.helpers.</code><code class="descname">odejmij</code><span class="sig-paren">(</span><em>hand</em>, <em>cards</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.odejmij" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return hand after removing the specified cards from it.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">odejmij</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<span class="go">[5♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">odejmij</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The card(s) is(are) not in the hand.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.ok_karta">
+<code class="descclassname">chessao.helpers.</code><code class="descname">ok_karta</code><span class="sig-paren">(</span><em>card</em>, <em>decks</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ok_karta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if a card is can be put on one of a decks</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ok_karta</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ok_karta</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">False</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -379,6 +495,14 @@ Expects a list with a card, and a list of two Deck objects.</p>
 <code class="descclassname">chessao.helpers.</code><code class="descname">rozpakuj_input</code><span class="sig-paren">(</span><em>inp</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.rozpakuj_input" title="Permalink to this definition">¶</a></dt>
 <dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;24&#39;</span><span class="p">)</span>
 <span class="go">[2♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;104&#39;</span><span class="p">)</span>
+<span class="go">[10♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;!A4&#39;</span><span class="p">)</span>
+<span class="go">[A♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;54,64,74&#39;</span><span class="p">)</span>
+<span class="go">[5♧, 6♧, 7♧]</span>
+<span class="go">rozpakuj_input(&#39;54,64&#39;)</span>
+<span class="go">[5♧]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -387,20 +511,20 @@ Expects a list with a card, and a list of two Deck objects.</p>
 <dt id="chessao.helpers.schodki_check">
 <code class="descclassname">chessao.helpers.</code><code class="descname">schodki_check</code><span class="sig-paren">(</span><em>card_list</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.schodki_check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if &#8220;card stairs&#8221; are build correctly.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">Card</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Card</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
 <span class="go">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)])</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
 <span class="go">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
 <span class="go">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">k</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
 <span class="go">True</span>
 </pre></div>
 </div>
@@ -411,6 +535,8 @@ Expects a list with a card, and a list of two Deck objects.</p>
 <code class="descclassname">chessao.helpers.</code><code class="descname">str_to_card</code><span class="sig-paren">(</span><em>str_card</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.str_to_card" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Card obj from a string representation.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_to_card</span><span class="p">(</span><span class="s1">&#39;102&#39;</span><span class="p">)</span>
+<span class="go">10♡</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_to_card</span><span class="p">(</span><span class="s1">&#39;!102&#39;</span><span class="p">)</span>
 <span class="go">10♡</span>
 </pre></div>
 </div>

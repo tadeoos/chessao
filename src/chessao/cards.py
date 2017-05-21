@@ -6,6 +6,14 @@ from chessao import CARDS_COLORS
 class Card:
     """
     Card class.
+
+    The CARDS_COLORS variable is a dictionary::
+
+        CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
+
+    Each card has two attributes: color and rank.
+
+    You would construct a two of spades with ``Card(1, '2')``
     """
 
     def __init__(self, color, ranga):
@@ -26,6 +34,8 @@ class Card:
 class Deck:
     """
     A Deck of cards class.
+
+    Holds one attribute ('cards') with a list of cards in order.
     """
 
     def __init__(self, lista_kart=None):
@@ -42,15 +52,23 @@ class Deck:
             self.cards = lista_kart
 
     def deal(self, n=1):
+        """
+        Return a list of top n cards.
+
+        >>> Deck(lista_kart=[Card(1,'5')]).deal()
+        [5♤]
+        """
         return [self.cards.pop() for _ in range(n)]
 
     def combine(self, karty):
         self.cards.extend(karty)
 
     def get_card_index(self, rank='5', suit=1):
+        """Return the index of a specified card."""
         return self.cards.index(Card(suit, rank))
 
     def tasuj(self, until=None):
+        """Shuffle the deck."""
         random.shuffle(self.cards)
 
     def __str__(self):

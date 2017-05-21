@@ -1,3 +1,4 @@
+import time
 import unittest
 import chessao.chess as chess
 import chessao.gameplay as gameplay
@@ -12,8 +13,8 @@ import chessao.helpers as helpers
 
 def play_game(rnd=0):
     game = gameplay.rozgrywka(rnd)
-    game.graj(rnd)
-    return game
+    played = game.graj(rnd)
+    return game, played
 
 
 class TestBoard(unittest.TestCase):
@@ -72,28 +73,65 @@ class TestHelpers(unittest.TestCase):
                             [chess.Card(3, '5')])
 
 
-class TestGame(unittest.TestCase):
+class TestRun1(unittest.TestCase):
+    NUMBER = 1
 
     def setUp(self):
         self.gameplay = gameplay.rozgrywka()
 
-    def test_run(self, runs=100):
+    def test_run(self):
 
         self.assertFalse(self.gameplay.mat or self.gameplay.pat)
-
-        for i in range(runs):
+        print('')
+        t1 = time.time()
+        for i in range(self.NUMBER):
+            t2 = time.time()
+            eta = ((self.NUMBER / i) - i) * \
+                (t2 - t1) if i > 0 else 30 * self.NUMBER
+            print("\rDONE: {:.0f}%\tRUNNING: {} of {}...\tESTIMATED TIME: {:.0f}s".format(
+                (i / self.NUMBER) * 100, i + 1, self.NUMBER, eta, end=""))
             with self.subTest(i=i):
-                g = play_game()
+                try:
+                    game = play_game()
+                    g, played = game[0], game[1]
+                    self.assertTrue(played)
+                except Exception as e:
+                    print(e.gameplay.snapshot())
                 g_cards = g.spalone + g.karty.cards + g.kupki[0] + g.kupki[1]
                 self.assertTrue(g.mat or g.pat)
                 self.assertTrue(len(g_cards) == 94)
         # print('\n-- Snapshot:\n{}\n{}'.format(g, g.snapshot()))
+
+
+class TestGamePlay(unittest.TestCase):
+
+    def setUp(self):
+        self.gameplay = gameplay.rozgrywka()
 
     def test_resurect(self):
         resur = gameplay.resurect(['RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0', 'b !8♧  PF2:F3', 'c !J♢  pD7:D5', 'b 5♢  PC2:C4', 'c !J♧  bC8:E6',
                                    'b !A♧  PC4:D5', 'c 3♢  nB8:C6', 'b !6♤  PD2:D4', 'c !A♡  rA8:B8', 'b !9♤  PD5:D6', 'c 9♢  pF7:F5'])
         self.assertFalse(resur.mat)
 
+    def test_printing(self):
+        self.assertIsNotNone(str(self.gameplay))
+        self.assertIsNotNone(self.gameplay.snapshot())
+
+
+class TestRun2(TestRun1):
+    NUMBER = 2
+
+
+class TestRun20(TestRun1):
+    NUMBER = 20
+
+
+class TestRun50(TestRun1):
+    NUMBER = 50
+
+
+class TestRun100(TestRun1):
+    NUMBER = 100
+
 if __name__ == "__main__":
-    # unittest.main(verbosity=3)
-    colour_runner.result.ColourTextTestResult(verbosity=2)
+    unittest.main(verbosity=2)

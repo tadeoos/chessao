@@ -6,8 +6,30 @@ from chessao.chess import Board
 from chessao.pieces import Pawn
 
 
+class ChessaoGameplayError(Exception):
+    '''Custom gameplay error'''
+
+    def __init__(self, message, gameplay, errors=None):
+
+        # Call the base class constructor with the parameters it needs
+        super(ChessaoGameplayError, self).__init__(message)
+        self.gameplay = gameplay
+        print(self.gameplay.snapshot())
+        # Now for your custom code...
+        self.errors = errors
+
+
 def invert_color(color):
-    '''Return the other color.'''
+    '''
+    Return the other color.
+
+    >>> invert_color('c')
+    'b'
+    >>> invert_color('b')
+    'c'
+    >>> invert_color('sth')
+    'b'
+    '''
     return 'c' if color == 'b' else 'b'
 
 
@@ -41,6 +63,8 @@ def str_to_card(str_card):
 
     >>> str_to_card('102')
     10♡
+    >>> str_to_card('!102')
+    10♡
     '''
     if str_card.startswith('!'):
         str_card = str_card[1:]
@@ -48,6 +72,16 @@ def str_to_card(str_card):
 
 
 def decode_card_color(card_str):
+    """
+    return integer repr of a color
+
+    >>> decode_card_color('♡')
+    2
+    >>> decode_card_color('sth')
+    Traceback (most recent call last):
+    ...
+    ValueError: incorrect card sring: sth
+    """
     try:
         return [key for key, item in CARDS_COLORS.items() if item ==
                 card_str][0]
@@ -56,24 +90,37 @@ def decode_card_color(card_str):
 
 
 def decode_card(card_str):
+    """
+    Parse card for gameflow
+
+    >>> decode_card('!10♡')
+    (1, [10♡])
+    >>> decode_card('J♡;R')
+    (0, [J♡], 'Rook')
+    """
 
     burned = 1 if card_str[0] == '!' else 0
 
     if ';' in card_str:
         assert not burned
         col = decode_card_color(card_str[-3])
-        rank = card_str[:-3] if burned == 0 else card_str[1:-3]
+        rank = card_str[:-3] if not burned else card_str[1:-3]
         jack_choice = card_str[-1]
         return (burned, [Card(col, rank)], nawaleta(jack_choice))
 
     col = decode_card_color(card_str[-1])
-    rank = card_str[:-1] if burned == 0 else card_str[1:-1]
+    rank = card_str[:-1] if not burned else card_str[1:-1]
     return (burned, [Card(col, rank)])
 
 
-# this should be depracated
 def nawaleta(jack_str):
-    '''Map the jack choice to a Piece Class.'''
+    '''
+    # this should be depracated
+    Map the jack choice to a Piece Class.
+
+    >>> nawaleta('p')
+    'Pawn'
+    '''
     choice = jack_str.lower()
     if choice == 'p':
         return 'Pawn'
@@ -92,20 +139,20 @@ def schodki_check(card_list):
     """
     Check if "card stairs" are build correctly.
 
-    >>> k=Card
-    >>> schodki_check([k(1,'6'),k(1,'7'),k(2,'7')])
+    >>> c = Card
+    >>> schodki_check([c(1,'6'),c(1,'7'),c(2,'7')])
     True
-    >>> schodki_check([k(1,'2'),k(2,'3')])
+    >>> schodki_check([c(1,'2'),c(2,'3')])
     False
-    >>> schodki_check([k(1,'7'),k(1,'6'),k(1,'5')])
+    >>> schodki_check([c(1,'7'),c(1,'6'),c(1,'5')])
     True
-    >>> schodki_check([k(3,'6'),k(1,'6'),k(2,'6'),k(2,'6'),k(4,'6')])
+    >>> schodki_check([c(3,'6'),c(1,'6'),c(2,'6'),c(2,'6'),c(4,'6')])
     True
-    >>> schodki_check([k(2,'2'),k(1,'2'),k(1,'3')])
+    >>> schodki_check([c(2,'2'),c(1,'2'),c(1,'3')])
     False
-    >>> schodki_check([k(2,'3'),k(1,'3'),k(4,'3')])
+    >>> schodki_check([c(2,'3'),c(1,'3'),c(4,'3')])
     True
-    >>> schodki_check([k(2,'6'),k(2,'7'),k(3,'7'),k(3,'6')])
+    >>> schodki_check([c(2,'6'),c(2,'7'),c(3,'7'),c(3,'6')])
     True
     """
 
@@ -127,6 +174,14 @@ def schodki_check(card_list):
 
 
 def ok_karta(card, decks):
+    """
+    Returns True if a card is can be put on one of a decks
+
+    >>> ok_karta([Card(1,'5')], ([Card(1,'9')],[Card(3, 'K')]))
+    True
+    >>> ok_karta([Card(1,'5'), Card(2,'7')], ([Card(1,'9')],[Card(3, 'K')]))
+    False
+    """
     if len(card) > 1:
         if not schodki_check(card):
             return False
@@ -145,7 +200,16 @@ def ok_karta(card, decks):
 
 
 def odejmij(hand, cards):
-    '''Return hand after removing the specified cards from it.'''
+    '''
+    Return hand after removing the specified cards from it.
+
+    >>> odejmij([Card(1,'7'), Card(4,'5')], [Card(1,'7')])
+    [5♧]
+    >>> odejmij([Card(1,'7'), Card(4,'5')], [Card(2,'7')])
+    Traceback (most recent call last):
+    ...
+    ValueError: The card(s) is(are) not in the hand.
+    '''
     for card in cards:
         try:
             hand.remove(card)
@@ -158,6 +222,16 @@ def ktora_kupka(karta, kupki, rnd=False):
     '''
     Return the index of a pile wherein the card goes.
     Expects a list with a card, and a list of two Deck objects.
+
+    >>> ktora_kupka([Card(1,'5')], ([Card(1,'9')],[Card(3, 'K')]))
+    0
+    >>> ktora_kupka([Card(1,'5')], ([Card(1,'9')],[Card(2, 'K')]))
+    0
+    >>> ktora_kupka([Card(4,'2')], ([Card(1,'9')],[Card(2, 'K')]))
+    Traceback (most recent call last):
+    ...
+    ValueError: card: [2♧] kupki ([9♤], [K♡])
+
     '''
     res = []
     card_rank = karta[0].ran
@@ -187,14 +261,21 @@ def rozpakuj_input(inp):
     """
     >>> rozpakuj_input('24')
     [2♧]
+    >>> rozpakuj_input('104')
+    [10♧]
+    >>> rozpakuj_input('!A4')
+    [A♧]
+    >>> rozpakuj_input('54,64,74')
+    [5♧, 6♧, 7♧]
+    rozpakuj_input('54,64')
+    [5♧]
     """
     a = inp.split()
+
     if len(a) == 3:
         a[0] = [str_to_card(s) for s in a[0].split(',')]
     elif len(a) == 1:
         return [str_to_card(s) for s in inp.split(',')]
-    elif len(a) == 2:
-        return a
     return a
 
 
@@ -212,5 +293,17 @@ def last_line_check(color, first_sq, last_sq, board):
 
 
 def czy_pion_na_koncu(brd, k):
+    """
+    Returns True if a Pawn reached the end of Board.
+
+    >>> czy_pion_na_koncu(Board(), 'b')
+    0
+    >>> czy_pion_na_koncu(Board(), 'c')
+    0
+    >>> czy_pion_na_koncu(Board(), 'f')
+    Traceback (most recent call last):
+    ...
+    AssertionError
+    """
     assert k in ('b', 'c')
     return last_line_check('b', 91, 99, brd) if k == 'b' else last_line_check('c', 21, 29, brd)
