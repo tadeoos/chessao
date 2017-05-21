@@ -77,7 +77,7 @@ class TestGame(unittest.TestCase):
     def setUp(self):
         self.gameplay = gameplay.rozgrywka()
 
-    def test_run(self, runs=1):
+    def test_run(self, runs=100):
 
         self.assertFalse(self.gameplay.mat or self.gameplay.pat)
 

@@ -12,9 +12,14 @@ from chessao.cards import Card, Deck
 
 
 class Board:
+    """
+    Chess Board class.
+    """
 
     def __init__(self, rnd=False, fenrep=False):
         """
+        Board constructor
+
         >>> 'K' in Board(rnd=1).fen()
         True
         """
@@ -57,6 +62,8 @@ class Board:
 
     def rusz(self, c, d=None, karta=Card(1, '5'), only_bool=False):
         """
+        Move a piece on a board function
+
         >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').rusz('E1','B1')
         True
         >>> Board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k').rusz('E1','G1')
@@ -64,6 +71,10 @@ class Board:
         >>> Board(fenrep='R3K2R/8/8/Q7/8/8/8/8').rusz('A4','A1', Card(1,'Q'))
         True
         >>> Board(fenrep='R3K2R/8/8/P7/8/8/8/8').rusz('A4','A5', Card(1,'Q'))
+        True
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/8/8').rusz('A5','A4', Card(1,'6'))
+        True
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/1N6/8').rusz('B7','A5', Card(1,'6'))
         True
         >>> b = Board()
         >>> b.rusz('D2','D4')
@@ -76,16 +87,7 @@ class Board:
         True
         >>> b.rusz('D5','E6')
         True
-        >>> Board().fen()
-        'RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0'
-        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/8/8').rusz('A5','A4', Card(1,'6'))
-        True
-        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/1N6/8').rusz('B7','A5', Card(1,'6'))
-        True
-        >>> b = Board()
-        >>> b.rusz('D2','D4')
-        True
-        >>> b.rusz('A7','A5')
+        >>> b.rusz('A6','A5')
         True
         >>> b.rusz('A5', 'A4')
         True
@@ -246,6 +248,8 @@ class Board:
 
     def get_points(self, col):
         """
+        Returns a sum of points for pieces of color col
+
         >>> Board().get_points('b') > 49
         True
         """
@@ -306,6 +310,12 @@ class Board:
         return d
 
     def fen(self):
+        """
+        Return a FEN representation of a board.
+
+        >>> Board().fen()
+        'RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0'
+        """
         res = ''
         for i in range(2, 10):
             start = i * 10 + 1
@@ -423,6 +433,8 @@ class Board:
 
     def pod_biciem(self, pole, color):
         """
+        Return True if a position is under attack.
+
         >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(88,'b')
         False
         >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').pod_biciem(35,'c')

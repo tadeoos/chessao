@@ -4,6 +4,9 @@ from chessao import CARDS_COLORS
 
 
 class Card:
+    """
+    Card class.
+    """
 
     def __init__(self, color, ranga):
         self.kol = color
@@ -21,6 +24,9 @@ class Card:
 
 
 class Deck:
+    """
+    A Deck of cards class.
+    """
 
     def __init__(self, lista_kart=None):
         """

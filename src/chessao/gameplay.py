@@ -62,6 +62,7 @@ def resurect(history, gameplay=None):
 
 
 class rozgrywka:
+    """A gameplay class."""
 
     def __init__(self, rnd=1, fenrep=False, auto=True, ovr=False, test=False):
         # random.seed()
@@ -105,6 +106,7 @@ class rozgrywka:
         return ''
 
     def snapshot(self, jsn=True, remove=None):
+        """Return a JSON representation of a current state."""
         snap = self.__dict__
         # del snap['gracze']
         if remove:
@@ -151,6 +153,7 @@ class rozgrywka:
         assert len(player.reka) == 5
 
     def graj(self, video=False):
+        """play a game untill there is stalemate or checkmate."""
         while not self.mat and not self.pat:
             if video:
                 os.system('clear')
@@ -169,6 +172,7 @@ class rozgrywka:
         return True
 
     def get_card(self, ovr=None):
+        """First stage of a move: getting a card from a player."""
         # clearing self.capture
         self.capture = True
 
@@ -219,6 +223,7 @@ class rozgrywka:
             self.three += add
 
     def get_move(self, ovr=None):
+        """Second stage of a move: get a chess move."""
         self.zamiana = False
         player = self.get_gracz(self.to_move)
         # after ace or king of spikes there is no move
@@ -236,6 +241,7 @@ class rozgrywka:
         return move
 
     def move(self, card, where):
+        """Make an actual move."""
         player = self.get_gracz(self.to_move)
         # passing a move
         if where == []:
@@ -315,6 +321,7 @@ class rozgrywka:
         return True
 
     def czy_szach(self, k):
+        """Return True if color k is checked."""
         s = self.plansza.czy_szach(k)
         if s == (True, k):
             return True
@@ -323,6 +330,7 @@ class rozgrywka:
         return False
 
     def czy_pat(self, k):
+        """Return True if there is a stalemate."""
         if self.plansza.halfmoveclock == 100 or len(self.plansza.all_taken()) == 2:
             return True
         szach = self.czy_szach(k)
@@ -340,9 +348,11 @@ class rozgrywka:
         return True
 
     def get_gracz(self, k):
+        """Return a player who has pieces of color k."""
         return [g for g in self.gracze if g.kol == k][0]
 
     def cofnij(self, color, ruch):
+        """Reverese the move ."""
         assert len(self.historia) > 2
         a = self.plansza.mapdict[ruch[0]]
         b = self.plansza.mapdict[ruch[1]]
@@ -370,6 +380,7 @@ class rozgrywka:
         assert not self.plansza.is_empty(a) or not self.plansza.is_empty(b)
 
     def przetasuj(self):
+        """Reshuffle the deck."""
         kup_1 = self.kupki[0][-1]
         kup_2 = self.kupki[1][-1]
         do_tasu = self.kupki[0][:-1] + self.kupki[1][:-1] + self.spalone
@@ -389,9 +400,11 @@ class rozgrywka:
         assert all_cards == 104
 
     def what_happened(self):
-        # this function is parsing the history to make sense of the situation. returns ints that code a situation.
-        # 0 = nothing special, 1 = turn loosing, 2 - king of spades, 3 - king
-        # of hearts, 4 - jack
+        """
+        this function is parsing the history to make sense of the situation. returns ints that code a situation.
+        0 = nothing special, 1 = turn loosing, 2 - king of spades, 3 - king
+        of hearts, 4 - jack
+        """
         s = self.historia[-1]
         s2 = self.historia[-2] if len(self.historia) > 1 else ''
         ind = s2.index(':') if ':' in s2 else None
@@ -417,21 +430,27 @@ class rozgrywka:
             return (0,)
 
     def check_if_move(self, n):
+        """
         # check if n turnes ago there was a move made
         # if true this means three possible scenarios happened - kspades,ace or
         # lost turn
+        """
         return ':' in self.historia[-n]
 
     def check_card(self, n, r, cl=None):
+        """
         # check if card played n turns ago has a rank==ran (and color = col)
         # if card was burned returns False
+        """
         c = from_history_get_card(n)
         if c[0] == 1:
             return False
         return c[1].ran == r and c[1].kol == cl if cl != None else c[1].ran == r
 
     def from_history_get_card(self, n):
+        """
         # returns a card played n turns AGO
+        """
         if n > len(self.historia):
             return None
         s = self.historia[-n]
@@ -440,7 +459,9 @@ class rozgrywka:
         return decode_card(c)
 
     def card_ok_to_play(self, crd):
+        """
         # if card is to be burned its always ok to play it
+        """
         if crd[0] == 1:
             return True
         c = crd[1][0]
@@ -459,6 +480,9 @@ class rozgrywka:
         return True
 
     def possible_moves(self, color, okzbi=True, kar=Card(1, '5'), burned=False, flag=(0,)):
+        """
+        Return a dict of possible moves.
+        """
         if burned:
             kar = Card(1, '5')
 

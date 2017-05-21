@@ -25,15 +25,18 @@ class Player():
         return '{} {}'.format(self.name, self.nr)
 
     def choose_card(self, talie, plansza):
+        """Returns a card from player hand."""
         pass
 
     def get_three(self, n):
         raise NotImplementedError
 
     def choose_move(self, d, plansza, karta):
+        """Select a move out ou a board."""
         pass
 
     def choose_prom(self):
+        """Choose a promotion for pawn at the end of the board."""
         pass
 
 
