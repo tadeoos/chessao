@@ -1,14 +1,13 @@
 import json
 import os
-import random
 import re
 import sys
 import time
-from chessao.helpers import *
 from chessao.chess import Board
-from chessao.players import *
 from chessao.cards import Card, Deck
+from chessao.helpers import *
 from chessao.pieces import *
+from chessao.players import *
 
 
 class GameplayEncoder(json.JSONEncoder):
