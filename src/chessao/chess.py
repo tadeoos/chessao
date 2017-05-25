@@ -457,6 +457,7 @@ class Board:
             a = pole + i
             if (type(self.brd[a]) == Knight and self.brd[a].color != color):
                 return True
+
         for i in (1, 10, -1, -10):
             a = pole + i
             while (self.brd[a] != 0):

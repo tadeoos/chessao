@@ -46,7 +46,8 @@ def resurect(history, gameplay=None):
         try:
             assert len(str_card) == 2
         except AssertionError:
-            print('long entry: \nentry {}\nstr_card {}'.format(entry, str_card))
+            print('long entry: \nentry {}\nstr_card {}'.format(
+                history[1], str_card))
         finally:
             color = decode_card_color(str_card[1])
             card = Card(color, str_card[0])
@@ -85,8 +86,9 @@ class rozgrywka:
             gracz(1, 'b', tpr[0], bot=False), gracz(2, 'c', tpr[1], bot=False))
 
         self.karty = tpr[2]
-        self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()]) if not test else ([self.karty.cards.pop(
-            self.karty.get_card_index(rank='Q', suit=3))], [self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=4))])
+        self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()]) if not test \
+            else ([self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=3))],
+                  [self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=4))])
         self.szach = False
         self.mat = False
         self.pat = False
@@ -103,15 +105,16 @@ class rozgrywka:
         self.capture = True
 
     def __str__(self):
-        gb = self.get_gracz('b')
-        gc = self.get_gracz('c')
+        blacks = self.get_gracz('b')
+        whites = self.get_gracz('c')
         print('\nKupki: |{0:>3} |  |{1:>3} |'.format(
             str(self.kupki[0][-1]), str(self.kupki[1][-1])))
         print('\nKARTA:  {}{}'.format('!' if self.burned else '', self.now_card))
-        print('\n{} {} (white): {}\n'.format(gb.name, gb.nr, gb.reka))
+        print('\n{} {} (white): {}\n'.format(
+            blacks.name, blacks.nr, blacks.reka))
         print('{}'.format(self.plansza))
-        print('{} {} (black): {}'.format(gc.name, gc.nr, gc.reka))
-        # print('\nDeck: \n{} ...\n'.format(self.karty.cards[-5:][::-1]))
+        print('{} {} (black): {}'.format(whites.name, whites.nr, whites.reka))
+        print('\nHistory: \n{}'.format(self.historia))
         return ''
 
     def snapshot(self, jsn=True, remove=None):
@@ -332,13 +335,10 @@ class rozgrywka:
         self.historia.append(record)
         return True
 
-    def czy_szach(self, k):
-        """Return True if color k is checked."""
-        s = self.plansza.czy_szach(k)
-        if s == (True, k):
+    def czy_szach(self, color):
+        """Return True if color is checked."""
+        if self.plansza.czy_szach(color) == (True, color):
             return True
-        # elif s == 2:
-        # 	return 2
         return False
 
     def czy_pat(self, k):
@@ -348,14 +348,16 @@ class rozgrywka:
         szach = self.czy_szach(k)
         for kar in self.get_gracz(k).reka:
             if ok_karta([kar], self.kupki):
+                # exclude the Queen because it can be played anytime, but it
+                # can't help you during check
                 if szach and kar.ran == 'Q':
                     continue
                 res = self.possible_moves(k, True, kar)
-                if len(res) > 0:
+                if res:
                     return False
             else:
                 res = self.possible_moves(k)
-                if len(res) > 0:
+                if res:
                     return False
         return True
 
