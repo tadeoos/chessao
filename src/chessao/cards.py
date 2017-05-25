@@ -38,27 +38,27 @@ class Deck:
     Holds one attribute ('cards') with a list of cards in order.
     """
 
-    def __init__(self, lista_kart=None):
+    def __init__(self, card_list=None):
         """
-        >>> print(Deck(lista_kart=[Card(1,'5')]))
+        >>> print(Deck(card_list=[Card(1,'5')]))
         [5♤]
         """
-        if lista_kart is None:
-            a = ['A', '2', '3', '4', '5', '6',
-                 '7', '8', '9', '10', 'J', 'Q', 'K']
-            k = [1, 2, 3, 4]
-            self.cards = [Card(b, c) for b in k for c in a]
+        if card_list is None:
+            ranks = ['A', '2', '3', '4', '5', '6',
+                     '7', '8', '9', '10', 'J', 'Q', 'K']
+            colors = [1, 2, 3, 4]
+            self.cards = [Card(col, rank) for col in colors for rank in ranks]
         else:
-            self.cards = lista_kart
+            self.cards = card_list
 
-    def deal(self, n=1):
+    def deal(self, repeat=1):
         """
-        Return a list of top n cards.
+        Return a list of top *repeat* cards.
 
         >>> Deck(lista_kart=[Card(1,'5')]).deal()
         [5♤]
         """
-        return [self.cards.pop() for _ in range(n)]
+        return [self.cards.pop() for _ in range(repeat)]
 
     def combine(self, karty):
         self.cards.extend(karty)
@@ -67,7 +67,7 @@ class Deck:
         """Return the index of a specified card."""
         return self.cards.index(Card(suit, rank))
 
-    def tasuj(self, until=None):
+    def tasuj(self):
         """Shuffle the deck."""
         random.shuffle(self.cards)
 
