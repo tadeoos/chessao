@@ -1,7 +1,9 @@
+"""This module is depracated."""
+
 import os
 import sys
 import traceback
-from chessao.gameplay import *
+from chessao.gameplay import *  # noqa
 
 
 li = [
