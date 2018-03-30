@@ -1,14 +1,17 @@
+"""
+Board and Pieces classes from Szachao module.
 
-# Board and Pieces classes from Szachao module
-# pieces value according to Hans Berliner's system
-# (https://en.wikipedia.org/wiki/Chess_piece_relative_value)
-
+Pieces values according to Hans Berliner's system
+(https://en.wikipedia.org/wiki/Chess_piece_relative_value)
+"""
 import random
 # from copy import deepcopy
 from math import floor
 from termcolor import colored
-from chessao.pieces import *
-from chessao.cards import Card, Deck
+from chessao.pieces import Pawn, Rook, Knight, Bishop, Queen, King
+from chessao.cards import Card
+
+EMPTY = ' '
 
 
 class Board:
@@ -16,30 +19,41 @@ class Board:
     Chess Board class.
     """
 
-    def __init__(self, rand=False, fenrep=False):
+    def __init__(self, rand=False, fenrep=None):
         """
-        Board constructor
+        Board constructor.
 
-        >>> 'K' in Board(rnd=1).fen()
+        >>> 'K' in Board(rand=1).fen()
         True
         """
         self.brd = [0 for i in range(120)]
+        self.mapdict = {l + str(j - 1): 10 * j + 1 + 'ABCDEFGH'.index(l)
+                        for j in range(2, 10) for l in 'ABCDEFGH'}
+        self.bicie = False
+        self.zbite = []
+        self.enpass = 300
+        self.fullmove = 0
+        self.halfmoveclock = 0
+
+        if not fenrep:
+            fenrep = 'RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQkq - 0 1'
 
         for position in range(21, 99 + 1):
             if (position % 10 != 0) and (position % 10 != 9):
-                self.brd[position] = ' '
+                self.brd[position] = EMPTY
 
-        if not rand and not fenrep:
-            for i in range(31, 39):
-                self.brd[i] = Pawn(color='b', position=i)
-            for i in range(81, 89):
-                self.brd[i] = Pawn('c', i)
-            fun = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
-            for i in ([20, 'b'], [90, 'c']):
-                for j in range(1, 9):
-                    self.brd[i[0] + j] = \
-                        fun[(j - 1)](color=i[1], position=(i[0] + j))
-        elif not fenrep:
+        # # TODO: use fenrep only!!!
+        # if not rand and not fenrep:
+        #     for i in range(31, 39):
+        #         self.brd[i] = Pawn(color='b', position=i)
+        #     for i in range(81, 89):
+        #         self.brd[i] = Pawn('c', i)
+        #     fun = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+        #     for i in ([20, 'b'], [90, 'c']):
+        #         for j in range(1, 9):
+        #             self.brd[i[0] + j] = \
+        #                 fun[(j - 1)](color=i[1], position=(i[0] + j))
+        if rand:
             for k in ('c', 'b'):
                 rand2 = random.choice(self.all_empty())
                 self.brd[rand2] = King(k, rand2)
@@ -54,20 +68,17 @@ class Board:
             for (position, piece) in self.parse_fen(fenrep).items():
                 self.brd[position] = piece
 
-        self.mapdict = {l + str(j - 1): 10 * j + 1 + 'ABCDEFGH'.index(l)
-                        for j in range(2, 10) for l in 'ABCDEFGH'}
-        self.bicie = False
-        self.zbite = []
-        self.enpass = 300
-        self.fullmove = 0
-        self.halfmoveclock = 0
+    def pieces(self):
+        """Generator yielding pieces on the board"""
+        for position in self.all_taken():
+            yield self.brd[position]
 
     def _move_piece(self, pos_to, pos_from):
         """Replace the piece from for the piece to"""
         self.brd[pos_to] = self.brd[pos_from]
         self.brd[pos_to].position = pos_to
         self.brd[pos_to].mvs_number += 1
-        self.brd[pos_from] = ' '
+        self.brd[pos_from] = EMPTY
         return
 
     def _turn_clock(self, piece_color, clock=1):
@@ -82,12 +93,22 @@ class Board:
 
     def rusz(self, pos_from, pos_to=None, karta=Card(1, '5'), only_bool=False):
         """
-        Move a piece on a board function
+        Move a piece on a board.
 
-        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').rusz('E1','B1')
+        >>> Board(fenrep='R3K2R/8/8/8/8/8/8/8').rusz('E1','C1')  # roszada
         True
-        >>> Board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k').rusz('E1','G1')
-        True
+        >>> Board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k KQ').rusz('E1','G1')  # zła roszada
+        Traceback (most recent call last):
+        ...
+        AssertionError: Move is not possible: E1 -> G1; R3K2R/8/8/pP6/8/NnrRqQbB/8/7k KQ- - 0 0
+        >>> Board(fenrep='R3K2R/8/8/pP6/8/NnrRqQbB/8/7k KQ').rusz('E1','C1')  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        AssertionError: ...
+        >>> Board(fenrep='K7/8/8/pP6/8/NnrRqQbB/8/r3k2r KQ').rusz('E8','C8')  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        AssertionError: ...
         >>> Board(fenrep='R3K2R/8/8/Q7/8/8/8/8').rusz('A4','A1', Card(1,'Q'))
         True
         >>> Board(fenrep='R3K2R/8/8/P7/8/8/8/8').rusz('A4','A5', Card(1,'Q'))
@@ -118,81 +139,87 @@ class Board:
         >>> b.rusz('H2', 'H5', only_bool=True)
         Traceback (most recent call last):
         ...
-        ValueError: BŁĄD w funkcji rusz! skad H2 dokad H5 karta 5♤ mvs 0, enpas 300
+        AssertionError: Move is not possible: H2 -> H5; RNBQKBNR/P1P1PPPP/1p6/8/8/4P3/1ppp1ppp/rnbqkbnr KQkq - 0 5
         """
+
         self.bicie = False
-        a = self.mapdict[pos_from]
-        if self.is_empty(a):
-            raise ValueError(
-                'There is no Piece in that field {}'.format(pos_from))
-        b = self.mapdict[pos_to]
+        start_position_int = self.mapdict[pos_from]
+        end_position_int = self.mapdict[pos_to]
+
+        if self.is_empty(start_position_int):
+            raise ValueError('There is no Piece in that field {}'.format(pos_from))
+
+        assert end_position_int in self.brd[start_position_int].moves(karta, self), \
+            f"Move is not possible: {pos_from} -> {pos_to}; {self.fen()}"
 
         # first check if the move is an enappsant one
-        if self.brd[a].name == 'Pawn' and self.enpass == b:
+        if self.brd[start_position_int].name == 'Pawn' and self.enpass == end_position_int:
             if only_bool:
                 return True
-            assert self.is_empty(b)
+            assert self.is_empty(end_position_int)
             self.bicie = True
-            if self.brd[a].color == 'b':
-                self.zbite.append(self.brd[b - 10])
-                self.brd[b - 10] = ' '
+            if self.brd[start_position_int].color == 'b':
+                self.zbite.append(self.brd[end_position_int - 10])
+                self.brd[end_position_int - 10] = EMPTY
             else:
-                self.zbite.append(self.brd[b + 10])
-                self.brd[b + 10] = ' '
-            self._move_piece(pos_from=a, pos_to=b)
-            self._turn_clock(piece_color=b, clock=0)
+                self.zbite.append(self.brd[end_position_int + 10])
+                self.brd[end_position_int + 10] = EMPTY
+            self._move_piece(pos_from=start_position_int, pos_to=end_position_int)
+            self._turn_clock(piece_color=end_position_int, clock=0)
             # clearing enpass after enpass -> problem in pat functiong
             self.enpass = 300
             return True
         # then set enpassant if possible
-        if self.brd[a].name == 'Pawn' and self.brd[a].mvs_number == 0 and abs(a - b) == 20:
-            self.enpass = (a + b) / 2
+        if self.brd[start_position_int].name == 'Pawn' and \
+            self.brd[start_position_int].mvs_number == 0 and \
+                abs(start_position_int - end_position_int) == 20:
+            self.enpass = (start_position_int + end_position_int) / 2
         else:
             self.enpass = 300
 
         # checking for castle
         if (karta.ran != 'K' or karta.kol not in (3, 4)) \
-                and self.brd[a].name == 'King' and abs(b - a) == 2:
+                and self.brd[start_position_int].name == 'King' and abs(end_position_int - start_position_int) == 2:
             if only_bool:
                 return True
             # determining rook position
-            rook_pos = (b - 1, b + 1) if b < a else (b + 1, b - 1)
+            rook_pos = (end_position_int - 2, end_position_int + 1) if end_position_int < start_position_int else (end_position_int + 1, end_position_int - 1)
             # moving the king
-            self._move_piece(pos_from=a, pos_to=b)
+            self._move_piece(pos_from=start_position_int, pos_to=end_position_int)
             # moving the rook
-            self._move_piece(pos_from=rook_pos[1], pos_to=rook_pos[0])
-            self._turn_clock(piece_color=b, clock=1)
+            self._move_piece(pos_from=rook_pos[0], pos_to=rook_pos[1])
+            self._turn_clock(piece_color=end_position_int, clock=1)
             return True
 
         # checking for Queen card and valid Queen move
-        if karta.ran == 'Q' and self.brd[a].name == 'Queen' \
-                and self.jaki_typ_zostal(self.brd[a].color) != {'King', 'Queen'}:
-            if b in self.brd[a].moves(karta, self):
+        if karta.ran == 'Q' and self.brd[start_position_int].name == 'Queen' \
+                and self.jaki_typ_zostal(self.brd[start_position_int].color) != {'King', 'Queen'}:
+            if end_position_int in self.brd[start_position_int].moves(karta, self):
                 if only_bool:
                     return True
-                self.swap(a, b)
-                self.brd[b].mvs_number += 1
-                self._turn_clock(piece_color=b, clock=1)
+                self.swap(start_position_int, end_position_int)
+                self.brd[end_position_int].mvs_number += 1
+                self._turn_clock(piece_color=end_position_int, clock=1)
                 return True
         else:
             # default move
-            if b in self.brd[a].moves(karta, self):
+            if end_position_int in self.brd[start_position_int].moves(karta, self):
                 if only_bool:
                     return True
-                if self.brd[a].name == 'Pawn':
+                if self.brd[start_position_int].name == 'Pawn':
                     clock_value = 0
                 else:
                     clock_value = 1
-                if not self.is_empty(b):
+                if not self.is_empty(end_position_int):
                     self.bicie = True
                     clock_value = 0
-                    self.zbite.append(self.brd[b])
-                self._move_piece(pos_from=a, pos_to=b)
-                self._turn_clock(piece_color=b, clock=clock_value)
+                    self.zbite.append(self.brd[end_position_int])
+                self._move_piece(pos_from=start_position_int, pos_to=end_position_int)
+                self._turn_clock(piece_color=end_position_int, clock=clock_value)
                 return True
 
         raise ValueError('BŁĄD w funkcji rusz! skad {} dokad {} karta {} mvs {}, enpas {}'.format(
-            pos_from, pos_to, karta, self.brd[a].mvs_number, self.enpass))
+            pos_from, pos_to, karta, self.brd[start_position_int].mvs_number, self.enpass))
 
     def __str__(self):
         print('    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}'.format(
@@ -229,19 +256,30 @@ class Board:
 
         return ''
 
+    def print_positions(self):
+        result_str = ''
+        for i, el in enumerate(self.brd):
+            if i % 10 == 0:
+                result_str += '\n'
+            appending = str(i) if el != 0 else '0'
+            result_str += ' {} '.format(appending)
+        return result_str
+
     def is_empty(self, i):
-        return self.brd[i] == ' '
+        if i not in range(120):
+            return False
+        return self.brd[i] == EMPTY
 
     def all_empty(self, random_pawn=False):
         """Return list of empty positions."""
         if random_pawn:
             return [i for i in range(len(self.brd))
-                    if self.brd[i] == ' ' and floor(i / 10) not in (2, 9)]
-        return [i for i in range(len(self.brd)) if self.brd[i] == ' ']
+                    if self.brd[i] == EMPTY and floor(i / 10) not in (2, 9)]
+        return [i for i in range(len(self.brd)) if self.brd[i] == EMPTY]
 
     def all_taken(self):
         """Return list of positions taken by some Piece."""
-        return [i for i in range(len(self.brd)) if self.brd[i] != ' ' and self.brd[i] != 0]
+        return [i for i in range(len(self.brd)) if self.brd[i] != EMPTY and self.brd[i] != 0]
 
     def position_bierki(self, naz, kol):
         """Reterurn a list of positions of a specified Piece of a specified color."""
@@ -251,8 +289,10 @@ class Board:
         taken = self.all_taken()
         return {self.brd[pos].name for pos in taken if self.brd[pos].color == color}
 
-    def get_piece(self, pos):
-        return self.brd[self.mapdict[pos]]
+    def get_piece(self, position):
+        if type(position) == str:
+            return self.brd[self.mapdict[position]]
+        return self.brd[position]
 
     def get_points(self, col):
         """
@@ -289,33 +329,46 @@ class Board:
         return (True, color) if self.pod_biciem(poz_k[0], color) else False
 
     def check_castle(self, kol):
-        k = self.position_bierki('King', kol)[0]
-        w = self.position_bierki('Rook', kol)
-        d = {'if': 0, 'lng': 0, 'shrt': 0}
-        if self.brd[k].mvs_number > 0 or len(w) == 0 or self.czy_szach(kol) == (True, kol):
-            return d
-        cntr = 0
-        for r in w:
-            if self.brd[r].mvs_number > 0:
+        """
+        Returns a dictionary with castle metadata
+
+        >>> Board().check_castle('b')
+        {'if': 0, 'lng': 0, 'shrt': 0}
+        >>> Board().check_castle('c')
+        {'if': 0, 'lng': 0, 'shrt': 0}
+        >>> b = Board(fenrep='R3K2R/PPPPP3/8/pP6/8/Nnr1qQbB/8/7k KQ')
+        >>> b.check_castle('b')
+        {'if': 2, 'lng': 23, 'shrt': 27}
+        """
+        king_pawn = self.position_bierki('King', kol)[0]
+        rook_positions = self.position_bierki('Rook', kol)
+        castle_dict = {'if': 0, 'lng': 0, 'shrt': 0}
+        if any([self.brd[king_pawn].mvs_number > 0,
+                len(rook_positions) == 0,
+                self.czy_szach(kol) == (True, kol)]):
+            return castle_dict
+        castle_counter = 0
+        for rook_pos in rook_positions:
+            if self.brd[rook_pos].mvs_number > 0:
                 continue
-            if r < k:
-                where = [i for i in range(r + 1, k)]
+            if rook_pos < king_pawn:
+                in_between_positions = [i for i in range(rook_pos + 1, king_pawn)]
             else:
-                where = [i for i in range(k + 1, r)]
+                in_between_positions = [i for i in range(king_pawn + 1, rook_pos)]
             c = 0
-            for pos in where:
-                if self.is_empty(pos) == 0 or self.pod_biciem(pos, kol):
+            for pos in in_between_positions:
+                if not self.is_empty(pos) or self.pod_biciem(pos, kol):
                     break
                 else:
                     c += 1
-            if c == len(where):
-                cntr += 1
-                if r < k:
-                    d['lng'] = r + 1
+            if c == len(in_between_positions):
+                castle_counter += 1
+                if rook_pos < king_pawn:
+                    castle_dict['lng'] = rook_pos + 2
                 else:
-                    d['shrt'] = r - 1
-        d['if'] = cntr
-        return d
+                    castle_dict['shrt'] = rook_pos - 1
+        castle_dict['if'] = castle_counter
+        return castle_dict
 
     def fen(self):
         """
@@ -360,62 +413,81 @@ class Board:
             res = '-'
         return res
 
-    def parse_fen(self, fen):
-        # return dictionary (pos:piece)
+    @staticmethod
+    def parse_fen(fen):
+        """
+        Returns dictionary {pos: piece}.
+
+        >>> Board.parse_fen('RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0')
+        ...     #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        {21: <chessao.pieces.Rook object at 0x...>, 22: <chessao.pieces.Knight object at 0x...>,
+        23: <chessao.pieces.Bishop object at 0x...>, 24: <chessao.pieces.Queen object at 0x...>,
+        25: <chessao.pieces.King object at 0x...>, 26: <chessao.pieces.Bishop object at 0x...>,
+        27: <chessao.pieces.Knight object at 0x...>, 28: <chessao.pieces.Rook object at 0x...>,
+        31: <chessao.pieces.Pawn object at 0x...>, 32: <chessao.pieces.Pawn object at 0x...>,
+        33: <chessao.pieces.Pawn object at 0x...>, 34: <chessao.pieces.Pawn object at 0x...>,
+        35: <chessao.pieces.Pawn object at 0x...>, 36: <chessao.pieces.Pawn object at 0x...>,
+        37: <chessao.pieces.Pawn object at 0x...>, 38: <chessao.pieces.Pawn object at 0x...>,
+        81: <chessao.pieces.Pawn object at 0x...>, 82: <chessao.pieces.Pawn object at 0x...>,
+        83: <chessao.pieces.Pawn object at 0x...>, 84: <chessao.pieces.Pawn object at 0x...>,
+        85: <chessao.pieces.Pawn object at 0x...>, 86: <chessao.pieces.Pawn object at 0x...>,
+        87: <chessao.pieces.Pawn object at 0x...>, 88: <chessao.pieces.Pawn object at 0x...>,
+        91: <chessao.pieces.Rook object at 0x...>, 92: <chessao.pieces.Knight object at 0x...>,
+        93: <chessao.pieces.Bishop object at 0x...>, 94: <chessao.pieces.Queen object at 0x...>,
+        95: <chessao.pieces.King object at 0x...>, 96: <chessao.pieces.Bishop object at 0x...>,
+        97: <chessao.pieces.Knight object at 0x...>, 98: <chessao.pieces.Rook object at 0x...>}
+        """
         rows = fen.split('/')
         res_dict = {}
         for i in range(len(rows)):
-            res_dict.update(self.parse_row_fen(rows[i], (i + 2) * 10))
+            res_dict.update(Board.parse_row_fen(rows[i], (i + 2) * 10))
         return res_dict
 
-    def parse_row_fen(self, s, i):
+    @staticmethod
+    def parse_row_fen(row_str, i):
+        """
+        >>> Board.parse_row_fen('RNBQKBNR', 20) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        {21: <chessao.pieces.Rook object at 0x...>, 22: <chessao.pieces.Knight object at 0x...>,
+         23: <chessao.pieces.Bishop object at 0x...>, 24: <chessao.pieces.Queen object at 0x...>,
+         25: <chessao.pieces.King object at 0x...>, 26: <chessao.pieces.Bishop object at 0x...>,
+         27: <chessao.pieces.Knight object at 0x...>, 28: <chessao.pieces.Rook object at 0x...>}
+        >>> Board.parse_row_fen('kPppRnNP', 10) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        {11: <chessao.pieces.King object at 0x...>, 12: <chessao.pieces.Pawn object at 0x...>,
+         13: <chessao.pieces.Pawn object at 0x...>, 14: <chessao.pieces.Pawn object at 0x...>,
+         15: <chessao.pieces.Rook object at 0x...>, 16: <chessao.pieces.Knight object at 0x...>,
+         17: <chessao.pieces.Knight object at 0x...>, 18: <chessao.pieces.Pawn object at 0x...>}
+        >>> rf = Board.parse_row_fen('3pP3', 40)
+        >>> rf #doctest: +ELLIPSIS
+        {44: <chessao.pieces.Pawn object at 0x...>, 45: <chessao.pieces.Pawn object at 0x...>}
+        >>> rf[44].color != rf[45].color
+        True
+        >>> Board.parse_row_fen('rnbqkbnr KQkq - 0 0', 90) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        {91: <chessao.pieces.Rook object at 0x...>, 92: <chessao.pieces.Knight object at 0x...>,
+         93: <chessao.pieces.Bishop object at 0x...>, 94: <chessao.pieces.Queen object at 0x...>,
+         95: <chessao.pieces.King object at 0x...>, 96: <chessao.pieces.Bishop object at 0x...>,
+         97: <chessao.pieces.Knight object at 0x...>, 98: <chessao.pieces.Rook object at 0x...>}
+        """
         pos = i + 1
-        dic = {}
-        y = 0
-        while y < len(s) and pos < i + 9:
-            if s[y].isnumeric():
-                pos += int(s[y])
-            elif s[y] == 'P':
-                dic[pos] = Pawn('b', pos)
-                pos += 1
-            elif s[y] == 'R':
-                dic[pos] = Rook('b', pos)
-                pos += 1
-            elif s[y] == 'N':
-                dic[pos] = Knight('b', pos)
-                pos += 1
-            elif s[y] == 'B':
-                dic[pos] = Bishop('b', pos)
-                pos += 1
-            elif s[y] == 'Q':
-                dic[pos] = Queen('b', pos)
-                pos += 1
-            elif s[y] == 'K':
-                dic[pos] = King('b', pos)
-                pos += 1
-            elif s[y] == 'p':
-                dic[pos] = Pawn('c', pos)
-                pos += 1
-            elif s[y] == 'r':
-                dic[pos] = Rook('c', pos)
-                pos += 1
-            elif s[y] == 'n':
-                dic[pos] = Knight('c', pos)
-                pos += 1
-            elif s[y] == 'b':
-                dic[pos] = Bishop('c', pos)
-                pos += 1
-            elif s[y] == 'q':
-                dic[pos] = Queen('c', pos)
-                pos += 1
-            elif s[y] == 'k':
-                dic[pos] = King('c', pos)
-                pos += 1
+        pieces_dict = {}
+        counter = 0
+        FEN_DICT = {
+            'p': Pawn,
+            'r': Rook,
+            'n': Knight,
+            'k': King,
+            'q': Queen,
+            'b': Bishop,
+        }
+        while counter < len(row_str) and pos < i + 9:
+            if row_str[counter].isnumeric():
+                pos += int(row_str[counter])
             else:
-                print('row fen err {} {}'.format(s, i))
-                raise ValueError
-            y += 1
-        return dic
+                color = 'b' if row_str[counter].isupper() else 'c'
+                piece = FEN_DICT[row_str[counter].lower()]
+                pieces_dict[pos] = piece(color, pos)
+                pos += 1
+            counter += 1
+        return pieces_dict
 
     def get_fen_rep(self, piece):
         letter = 'n' if piece.name == 'Knight' else piece.name[0]
@@ -428,7 +500,7 @@ class Board:
         res = ''
         empty_counter = 0
         for i in row:
-            if i == ' ':
+            if i == EMPTY:
                 empty_counter += 1
             elif empty_counter == 0:
                 res += self.get_fen_rep(i)
@@ -456,45 +528,86 @@ class Board:
         >>> Board(fenrep='R3K2R/P7/8/8/8/8/8/8').pod_biciem(42,'c')
         True
         """
-        for i in (1, -1, 10, -10, 9, 11, -9, -11):
-            a = pole + i
-            if (type(self.brd[a]) == King and self.brd[a].color != color):
-                return True
 
-        for i in (-12, -21, -19, -8, 8, 19, 21, 12):
-            a = pole + i
-            if (type(self.brd[a]) == Knight and self.brd[a].color != color):
-                return True
+        def non_sliding_piece_check(position, move_range, piece_type):
+            for i in move_range:
+                potential_capturing_piece_pos = position + i
+                if (type(self.brd[potential_capturing_piece_pos]) == piece_type and
+                   self.brd[potential_capturing_piece_pos].color != color):
+                    return True
+            return False
 
-        for i in (1, 10, -1, -10):
-            a = pole + i
-            while (self.brd[a] != 0):
-                if self.is_empty(a) == 0:
-                    if self.brd[a].color != color:
-                        if type(self.brd[a]) == Rook or type(self.brd[a]) == Queen:
-                            return True
+        def sliding_piece_check(position, move_range, piece_type):
+            for i in move_range:
+                a = position + i
+                while (self.brd[a] != 0):
+                    if not self.is_empty(a):
+                        if self.brd[a].color != color:
+                            if type(self.brd[a]) == piece_type or type(self.brd[a]) == Queen:
+                                return True
+                            else:
+                                break
                         else:
                             break
-                    else:
-                        break
-                a += i
-        for i in (9, 11, -11, -9):
-            a = pole + i
-            while (self.brd[a] != 0):
-                if self.is_empty(a) == 0:
-                    if self.brd[a].color != color:
-                        if type(self.brd[a]) == Bishop or type(self.brd[a]) == Queen:
-                            return True
-                        else:
-                            break
-                    else:
-                        break
-                a += i
+                    a += i
+            return False
 
-        where = (9, 11) if color == 'b' else (-9, -11)
-        for i in where:
-            a = pole + i
-            if (type(self.brd[a]) == Pawn and self.brd[a].color != color):
+        pawn_range = (9, 11) if color == 'b' else (-9, -11)
+
+        for move_range, piece_type in (
+            ((1, -1, 10, -10, 9, 11, -9, -11), King),
+            ((-12, -21, -19, -8, 8, 19, 21, 12), Knight),
+            (pawn_range, Pawn)
+        ):
+            if non_sliding_piece_check(pole, move_range, piece_type):
                 return True
+
+        for move_range, piece_type in (
+            ((1, 10, -1, -10), Rook),
+            ((9, 11, -11, -9), Bishop),
+        ):
+            if sliding_piece_check(pole, move_range, piece_type):
+                return True
+
+        # for i in (1, -1, 10, -10, 9, 11, -9, -11):
+        #     a = pole + i
+        #     if (type(self.brd[a]) == King and self.brd[a].color != color):
+        #         return True
+        #
+        # for i in (-12, -21, -19, -8, 8, 19, 21, 12):
+        #     a = pole + i
+        #     if (type(self.brd[a]) == Knight and self.brd[a].color != color):
+        #         return True
+
+        # for i in (1, 10, -1, -10):
+        #     a = pole + i
+        #     while (self.brd[a] != 0):
+        #         if self.is_empty(a) == 0:
+        #             if self.brd[a].color != color:
+        #                 if type(self.brd[a]) == Rook or type(self.brd[a]) == Queen:
+        #                     return True
+        #                 else:
+        #                     break
+        #             else:
+        #                 break
+        #         a += i
+        # for i in (9, 11, -11, -9):
+        #     a = pole + i
+        #     while (self.brd[a] != 0):
+        #         if self.is_empty(a) == 0:
+        #             if self.brd[a].color != color:
+        #                 if type(self.brd[a]) == Bishop or type(self.brd[a]) == Queen:
+        #                     return True
+        #                 else:
+        #                     break
+        #             else:
+        #                 break
+        #         a += i
+
+        # where = (9, 11) if color == 'b' else (-9, -11)
+        # for i in where:
+        #     a = pole + i
+        #     if (type(self.brd[a]) == Pawn and self.brd[a].color != color):
+        #         return True
 
         return False

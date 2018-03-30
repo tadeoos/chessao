@@ -1,18 +1,19 @@
+#!/usr/bin/env python
 import doctest
-import os
+from os import path
 import sys
 import time
 import unittest
 import coverage
 
-PATH_TO_SRC = os.path.split(os.path.dirname(__file__))[0]
-sys.path.insert(0, PATH_TO_SRC)
+PATH_TO_SRC_DIR = path.join(path.abspath(path.dirname(__file__)), '..')
+sys.path.insert(0, PATH_TO_SRC_DIR)  # make chessao module available to Python
 
 if __name__ == "__main__":
     try:
-        runs = int(sys.argv.pop())
-
-    except:
+        runs = int(sys.argv[1])
+        sys.argv.pop()
+    except IndexError:
         runs = 1
     print('Running {} games...'.format(runs))
     t1 = time.time()
@@ -38,8 +39,7 @@ if __name__ == "__main__":
     if test_run:
         tests.append(test_run)
     # tests.append('TestRun20')
-    unittest.main(module='unit_tests', exit=False,
-                  verbosity=2, defaultTest=tests)
+    unittest.main(module='unit_tests', exit=False, verbosity=2, defaultTest=tests)
     cov.stop()
     modls = [chess, gameplay, cards, helpers, pieces, players]
     cov.report(modls, ignore_errors=1, show_missing=1)

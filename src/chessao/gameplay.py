@@ -5,9 +5,9 @@ import sys
 import time
 from chessao.chess import Board
 from chessao.cards import Card, Deck
-from chessao.helpers import *
-from chessao.pieces import *
-from chessao.players import *
+from chessao.helpers import *  # noqa
+from chessao.pieces import *  # noqa
+from chessao.players import *  # noqa
 
 
 class GameplayEncoder(json.JSONEncoder):
@@ -189,6 +189,7 @@ class rozgrywka:
 
     def get_card(self, ovr=None):
         """First stage of a move: getting a card from a player."""
+
         # clearing self.capture
         self.capture = True
 
@@ -292,7 +293,7 @@ class rozgrywka:
                 self.plansza.rusz(where[0], where[1], card)
         except Exception as e:
             raise ChessaoGameplayError(
-                'self.plansza.rusz error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(where, cardresult_gameplay.snapshot()), gameplay=self, errors=e)
+                'self.plansza.rusz error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(where, card, self.snapshot()), gameplay=self, errors=e)
 
         # checking if pawn is getting promoted
         zam = czy_pion_na_koncu(self.plansza, self.to_move)

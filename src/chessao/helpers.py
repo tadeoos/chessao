@@ -1,6 +1,6 @@
 import json
 import random
-from chessao import CARDS_COLORS
+from chessao import CARDS_COLORS, NON_SCHODKABLE
 from chessao.cards import Card, Deck
 from chessao.chess import Board
 from chessao.pieces import Pawn
@@ -14,6 +14,15 @@ class ChessaoGameplayError(Exception):
         super(ChessaoGameplayError, self).__init__(message)
         self.gameplay = gameplay
         self.errors = errors
+
+
+def get_mapdict():
+    """Return dict with {'A1': 21, 'A2': 31 ...} mapping."""
+    return {
+        letter + str(number - 1): 10 * number + 1 + 'ABCDEFGH'.index(letter)
+        for number in range(2, 10)
+        for letter in 'ABCDEFGH'
+    }
 
 
 def invert_color(color):
@@ -32,7 +41,7 @@ def invert_color(color):
 
 def deal(deck, override=None, number=5):
     '''
-    Deal for #number cads to each player. 
+    Deal for #number cads to each player.
 
     Returns a tuple with two lists and Deck object.
     Override parameter specifies the hands for players.
@@ -77,13 +86,12 @@ def decode_card_color(card_str):
     >>> decode_card_color('sth')
     Traceback (most recent call last):
     ...
-    ValueError: incorrect card sring: sth
+    ValueError: incorrect card string: sth
     """
     try:
-        return [key for key, item in CARDS_COLORS.items() if item ==
-                card_str][0]
+        return [key for key, item in CARDS_COLORS.items() if item == card_str][0]
     except IndexError:
-        raise ValueError('incorrect card sring: {}'.format(card_str))
+        raise ValueError('incorrect card string: {}'.format(card_str))
 
 
 def decode_card(card_str):
@@ -160,6 +168,9 @@ def schodki_check(card_list):
         next_rank = int(card_list[i + 1].ran)
         big_stair_check = current_rank + 1 == next_rank
         low_stair_check = current_rank - 1 == next_rank
+
+        if card_list[i].ran in NON_SCHODKABLE:
+            return False
 
         if current_rank == next_rank:
             continue

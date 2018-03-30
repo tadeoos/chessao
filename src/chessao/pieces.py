@@ -1,12 +1,15 @@
+"""Chess pieces implementation."""
+
 from copy import deepcopy
-from chessao import PIECES_STR
-
-#######
-######## SZACHY  ########
+from chessao import PIECES_STR, BLACK_COLOR
 
 
-class Piece():
-    '''A chess piece abstract class.'''
+class ChessaoPieceException(Exception):
+    pass
+
+
+class Piece:
+    """A chess piece abstract class."""
 
     def __init__(self, color, position, name, val, mvs=0):
         self.color = color
@@ -16,15 +19,64 @@ class Piece():
         self.name = name
         self.val = val
 
+    def _moves(self, card, board):
+        raise NotImplementedError
+
     def moves(self, card, board):
-        '''Return a list of positions that a piece can move onto, on a specific card & board'''
+        """
+        Return a list of positions that a piece can move onto, on
+        a specific card & board.
+        """
+        if board.get_piece(self.position) != self:
+            raise ChessaoPieceException('Piece is not on the board')
+        return self._moves(card, board)
+
+    @classmethod
+    def under_attack(cls, position_int, color, board):
+        "Return True if position is under attack by a Piece of this class."
         raise NotImplementedError
 
     def __str__(self):
         return PIECES_STR[self.color][self.name]
 
+    # def __repr__(self):
+        # return "{} {} at {}".format(self.color, self.name, self.position)
+
+    def __eq__(self, other):
+        """Overrides the default implementation"""
+        if isinstance(self, other.__class__):
+            return self.__dict__ == other.__dict__
+        return False
+
     def to_json(self):
         return self.__dict__
+
+
+class SlidingPiece(Piece):
+
+    def __init__(self, color, position, name="Pawn", val=1, mvs=0):
+        super(SlidingPiece, self).__init__(color, position, name, val, mvs)
+        self.range = None
+
+    def _moves(self, card, board):
+        return self.sliding_move(card, board, self.range, self.position, self.color)
+
+    @staticmethod
+    def sliding_move(card, board, range_, position, color):
+        available_positions = []
+        for i in range_:
+            potential_position = position + i
+            while (board.brd[potential_position] != 0):
+                if board.is_empty(potential_position):
+                    available_positions.append(potential_position)
+                elif board.brd[potential_position].color != color:
+                    available_positions.append(potential_position)
+                    break
+                else:
+                    break
+                potential_position += i
+
+        return available_positions
 
 
 class Pawn(Piece):
@@ -32,96 +84,67 @@ class Pawn(Piece):
     def __init__(self, color, position, name="Pawn", val=1, mvs=0):
         super(Pawn, self).__init__(color, position, name, val, mvs)
 
-    def moves(self, card, board):
+    def move_helper(self, list_of_positions, board, direction=1):
+        # import pdb; pdb.set_trace()
+
+        updated_positions = list_of_positions
+        for pos in list_of_positions[::-1]:
+            if not board.is_empty(self.position + (direction * pos)):
+                ind = list_of_positions.index(pos)
+                updated_positions = list_of_positions[:ind]
+
+        capture_positions = (direction * 9, direction * 11)
+        return updated_positions, capture_positions
+
+    def _moves(self, card, board, direction=1):
         dop = [10, 20] if self.mvs_number == 0 else [10]
         if card.ran == '2':
             dop.append(dop[-1] + 10)
-        if self.color == 'b':
-            for d in dop[::-1]:
-                if self.position + d > 119:
-                    continue
-                if board.is_empty(self.position + d) == 0:
-                    ind = dop.index(d)
-                    dop = dop[:ind]
-            a = (9, 11)
+        if self.color == BLACK_COLOR:
+            direction = -1
+            dop, a = self.move_helper(dop, board, direction=direction)
         else:
-            for d in dop[::-1]:
-                if self.position - d < 0:
-                    continue
-                if board.is_empty(self.position - d) == 0:
-                    ind = dop.index(d)
-                    dop = dop[:ind]
-            a = (-9, -11)
+            dop, a = self.move_helper(dop, board)
 
         for i in a:
-            if (board.brd[self.position + i] != 0 and board.brd[self.position + i] != ' ' and board.brd[self.position + i].color != self.color) or (board.enpass == self.position + i):
+            possible_position = self.position + i
+            if (not board.is_empty(possible_position) and
+                board.brd[possible_position] != 0 and
+                board.brd[possible_position].color != self.color) or \
+                    (board.enpass == possible_position):
                 dop.append(abs(i))
 
-        res = [self.position + i if self.color ==
-               'b' else self.position - i for i in dop]
+        res = [self.position + direction * i for i in dop]
 
         return res
 
 
-class Rook(Piece):
+class Rook(SlidingPiece):
 
     def __init__(self, color, position, name='Rook', val=5.1, mvs=0):
-        super(Rook, self).__init__(color,
-                                   position, name, val, mvs)
+        super(Rook, self).__init__(color, position, name, val, mvs)
+        self.range = (1, 10, -1, -10)
 
-    def moves(self, card, board):
-        res = []
-        for i in (1, 10, -1, -10):
-            a = self.position + i
-            while (board.brd[a] != 0):
-                if board.is_empty(a) == 0:
-                    if board.brd[a].color != self.color:
-                        res.append(a)
-                        break
-                    else:
-                        break
-                res.append(a)
-                a += i
 
-        return res
+class Bishop(SlidingPiece):
+
+    def __init__(self, color, position, name='Bishop', val=3, mvs=0):
+        super(Bishop, self).__init__(color, position, name, val, mvs)
+        self.range = (9, 11, -11, -9)
 
 
 class Knight(Piece):
 
     def __init__(self, color, position, name='Knight', val=3.2, mvs=0):
-        super(Knight, self).__init__(color,
-                                     position, name, val, mvs)
+        super(Knight, self).__init__(color, position, name, val, mvs)
 
-    def moves(self, card, board):
+    def _moves(self, card, board):
         res = []
         for i in (-12, -21, -19, -8, 8, 19, 21, 12):
             a = self.position + i
             if board.brd[a] != 0:
-                if board.is_empty(a) == 1 or board.brd[a].color != self.color:
+                if board.is_empty(a) or board.brd[a].color != self.color:
                     res.append(a)
-
-        return res
-
-
-class Bishop(Piece):
-
-    def __init__(self, color, position, name='Bishop', val=3, mvs=0):
-        super(Bishop, self).__init__(color,
-                                     position, name, val, mvs)
-
-    def moves(self, card, board):
-        res = []
-        for i in (9, 11, -11, -9):
-            a = self.position + i
-            while (board.brd[a] != 0):
-                if board.is_empty(a) == 0:
-                    if board.brd[a].color != self.color:
-                        res.append(a)
-                        break
-                    else:
-                        break
-                res.append(a)
-                a += i
 
         return res
 
@@ -129,46 +152,32 @@ class Bishop(Piece):
 class Queen(Piece):
 
     def __init__(self, color, position, name='Queen', val=8.8, mvs=0):
-        super(Queen, self).__init__(color,
-                                    position, name, val, mvs)
+        super(Queen, self).__init__(color, position, name, val, mvs)
 
-    def moves(self, card, board):
+    def _moves(self, card, board):
         if card.ran == 'Q' and board.jaki_typ_zostal(self.color) != {'King', 'Queen'}:
-            res = [i for i in board.all_taken() if (board.brd[i].color == self.color and board.brd[
-                i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
+            res = [i for i in board.all_taken() if
+                   (board.brd[i].color == self.color and
+                    board.brd[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
             return res
 
-        res = []
-        for i in (9, 11, -11, -9, 1, -1, 10, -10):
-            a = self.position + i
-            while (board.brd[a] != 0):
-                if board.is_empty(a) == 0:
-                    if board.brd[a].color != self.color:
-                        res.append(a)
-                        break
-                    else:
-                        break
-                res.append(a)
-                a += i
-        return res
+        range_ = (9, 11, -11, -9, 1, -1, 10, -10)
+        return SlidingPiece.sliding_move(card, board, range_, self.position, self.color)
 
 
 class King(Piece):
 
     def __init__(self, color, position, name='King', val=10, mvs=0):
-        super(King, self).__init__(color,
-                                   position, name, val, mvs)
+        super(King, self).__init__(color, position, name, val, mvs)
 
-    def moves(self, card, board):
+    def _moves(self, card, board):
         res = []
         if card.ran == 'K' and card.kol in (3, 4):
-            zakres = [1, -1, 10, -10, 9, 11, -9, -
-                      11, 2, -2, 20, -20, 18, 22, -18, -22]
+            zakres = [1, -1, 10, -10, 9, 11, -9, -11,
+                      2, -2, 20, -20, 18, 22, -18, -22]
         else:
             zakres = [1, -1, 10, -10, 9, 11, -9, -11]
         for i in zakres:
-            # print(self.position)
-            # print(i)
             a = self.position + i
             if a > 20 and a < 99 and board.brd[a] != 0:
                 if board.is_empty(a):
@@ -196,3 +205,10 @@ class King(Piece):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res
+
+    @classmethod
+    def under_attack(cls, position_int, color, board):
+        for i in (1, -1, 10, -10, 9, 11, -9, -11):
+            a = position_int + i
+            if (type(board.brd[a]) == cls and board.brd[a].color != color):
+                return True
