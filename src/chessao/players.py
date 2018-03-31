@@ -8,11 +8,11 @@ from chessao.chess import Board
 from chessao.helpers import ok_karta, invert_color, nawaleta
 
 
-class Player():
-    '''A player abstract class.'''
+class Player:
+    """A player abstract class."""
 
-    def __init__(self, ida, kol, reka=None, bot=True, name='gracz'):
-        self.nr = ida
+    def __init__(self, id_, kol, reka=None, bot=True, name='gracz'):
+        self.nr = id_
         self.kol = kol
         self.reka = reka
         self.name = name
@@ -26,18 +26,18 @@ class Player():
 
     def choose_card(self, talie, plansza):
         """Returns a card from player hand."""
-        pass
+        raise NotImplementedError
 
     def get_three(self, n):
         raise NotImplementedError
 
     def choose_move(self, d, plansza, karta):
         """Select a move out ou a board."""
-        pass
+        raise NotImplementedError
 
     def choose_prom(self):
         """Choose a promotion for pawn at the end of the board."""
-        pass
+        raise NotImplementedError
 
 
 class gracz(Player):
