@@ -1,17 +1,31 @@
+from copy import deepcopy
 import json
 import os
 import re
 import sys
 import time
-from chessao.chess import Board
+
+from chessao import WHITE_COLOR
 from chessao.cards import Card, Deck
-from chessao.helpers import *  # noqa
-from chessao.pieces import *  # noqa
-from chessao.players import *  # noqa
+from chessao.chess import Board
+from chessao.helpers import (
+    ChessaoGameplayError,
+    # decode_card_color,
+    invert_color,
+    # deal,
+    decode_card,
+    ok_karta,
+    odejmij,
+    ktora_kupka,
+    czy_pion_na_koncu,
+)
+from chessao.pieces import Rook, Bishop, King, Knight, Queen
+from chessao.players import Player
+from chessao.utils import get_gameplay_defaults
 
 
 class GameplayEncoder(json.JSONEncoder):
-    '''A JSON encoder class for Gameplay object.'''
+    """A JSON encoder class for Gameplay object."""
 
     def default(self, obj):
         if isinstance(obj, Card):
@@ -27,10 +41,11 @@ class GameplayEncoder(json.JSONEncoder):
 
 
 def resurect(history, gameplay=None):
-    '''Create a Gameplay object from a history.'''
+    """Create a Gameplay object from a history."""
 
     if not gameplay:
-        result_gameplay = rozgrywka(fenrep=history[0])
+        defaults = get_gameplay_defaults(board=Board(fenrep=history[0]))
+        result_gameplay = ChessaoGame(**defaults)
     else:
         result_gameplay = gameplay
 
@@ -40,69 +55,59 @@ def resurect(history, gameplay=None):
         moving_color, str_card = history[1].split()
         where = []
 
-    if str_card[0] == '!':
-        card = Card(1, '5')
-    else:
-        try:
-            assert len(str_card) == 2
-        except AssertionError:
-            print('long entry: \nentry {}\nstr_card {}'.format(
-                history[1], str_card))
-        finally:
-            color = decode_card_color(str_card[1])
-            card = Card(color, str_card[0])
-
+    card = decode_card(str_card)
     where = where[1:6].split(':') if where else where
     promotion = where[-1] if '=' in where else None
     try:
-        result_gameplay.move(card, where, promotion)
+        result_gameplay.make_an_overriden_move_in_one_func(card=card,
+                                                           move=where,
+                                                           promotion=promotion)
     except Exception as e:
-        # print(e)
-        # print('color: {}, card: {}, where: {}'.format(color, card, where))
         info = sys.exc_info()[0]
-        print(sys.exc_info())
         raise ChessaoGameplayError(
-            'RESSURECT move function error \nSNAPSHOT:{}\n{}'.format(result_gameplay.snapshot(), info), gameplay=result_gameplay, errors=e)
-    if len(history) == 2:
+            'RESSURECT move function error\nSNAPSHOT:{}\n{}'.format(
+                result_gameplay.snapshot(), info),
+            gameplay=result_gameplay,
+            errors=e)
+
+    if len(history) == 2:  # end recursion
         return result_gameplay
     return resurect(history[1:], result_gameplay)
 
 
-# SZACHAO CLASS
 class ChessaoGame:
-
-
-class rozgrywka:
     """A gameplay class."""
 
-    def __init__(self, rnd=1, fenrep=False, auto=True, ovr=False, test=False):
-        # random.seed()
-        self.plansza = Board(rnd, fenrep)
-        self.karty = Deck()
-        self.karty.combine(Deck().cards)
-        self.karty.tasuj()
-        tpr = deal(self.karty, ovr)
-        # auto play
-        self.gracze = (gracz(1, 'b', tpr[0], bot=True), gracz_str(2, 'c', tpr[1])) if auto else (
-            gracz(1, 'b', tpr[0], bot=False), gracz(2, 'c', tpr[1], bot=False))
+    def __init__(self, board=None, cards_dict=None,
+                 players=None, default_setup=False):
 
-        self.karty = tpr[2]
-        self.kupki = ([self.karty.cards.pop()], [self.karty.cards.pop()]) if not test \
-            else ([self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=3))],
-                  [self.karty.cards.pop(self.karty.get_card_index(rank='Q', suit=4))])
+        if default_setup:
+            defaults = get_gameplay_defaults()
+            board = defaults['board']
+            players = defaults['players']
+            cards_dict = defaults['cards_dict']
+        else:
+            assert all([board, cards_dict, players]), 'Wrong arguments'
+
+        players[0].reka = cards_dict['hand_one']
+        players[1].reka = cards_dict['hand_two']
+
+        self.plansza = board
+        self.gracze = players
+        self.karty = cards_dict['deck']
+        self.kupki = cards_dict['piles']
         self.szach = False
         self.mat = False
         self.pat = False
         self.spalone = []
         self.historia = [self.plansza.fen()]
         self.zamiana = False
-        self.to_move = 'b'
+        self.to_move = WHITE_COLOR
         self.burned = False
         self.now_card = None
         self.now_move = None
         self.jack = None
         self.three = 0
-        self.four = False
         self.capture = True
 
     def __str__(self):
@@ -118,52 +123,50 @@ class rozgrywka:
         print('\nHistory: \n{}'.format(self.historia))
         return ''
 
-    def snapshot(self, jsn=True, remove=None):
-        """Return a JSON representation of a current state."""
+    def get_user_cards(self, color, first=True):
+        player = self.get_gracz(color)
+        if first:
+            return player.reka[0]
+        else:
+            return player.reka
+
+    def snapshot(self, remove=None):
+        """Return a JSON representation of a current state.
+
+        Args:
+            remove (iterable): attributes to remove from snapshot
+        """
         snap = self.__dict__
-        # del snap['gracze']
         if remove:
             for key in remove:
                 del snap[key]
         try:
-            res = json.dumps(self.__dict__, cls=GameplayEncoder,
-                             sort_keys=True, indent=2)
+            json_dumps = json.dumps(self.__dict__, cls=GameplayEncoder,
+                                    sort_keys=True, indent=2)
         except TypeError as e:
-            res = snap
-            cards = snap['karty']['cards']
-            raise ChessaoGameplayError('\nSNAP ERROR: {}\ntype of cards {}\n type of card {}\n'.format(
-                e, type(cards), type(cards[1]), self.snapshot()), gameplay=self, errors=e)
-        else:
-            return res
+            raise ChessaoGameplayError('Error in `snapshot`', gameplay=self, errors=e)
+        return json_dumps
 
-    def do_card_buisness(self, kar, three=False):
+    def do_card_buisness(self, played_cards, three=False):
         player = self.get_gracz(self.to_move)
+
+        player.reka = odejmij(player.reka, played_cards)
 
         if self.burned:
             if not three:
-                assert len(kar) == 1
-            try:
-                player.reka = odejmij(player.reka, kar)
-                # assert len(player.reka)==5
-            except AssertionError as e:
-                print('\n three: {} reka {}, kar {}'.format(
-                    self.three, player.reka, kar))
-            self.spalone.extend(kar)
-            if len(self.karty.cards) < len(kar):
-                self.przetasuj()
-            tas = self.karty.deal(len(kar))
-            player.reka.extend(tas)
+                assert len(played_cards) == 1
+            self.spalone.extend(played_cards)
         else:
             if self.szach:
-                assert kar[-1].ran != 'A'
-            player.reka = odejmij(player.reka, kar)
-            self.kupki[ktora_kupka(kar, self.kupki, player.bot)].extend(kar)
-            if len(self.karty.cards) < len(kar):
-                self.przetasuj()
-            tas = self.karty.deal(len(kar))
-            player.reka.extend(tas)
+                assert played_cards[-1].ran != 'A', "Ace was played during check"
+            self.kupki[ktora_kupka(played_cards, self.kupki, player.bot)].extend(played_cards)
 
-        assert len(player.reka) == 5
+        if len(self.karty.cards) < len(played_cards):
+            self.przetasuj()
+        tas = self.karty.deal(len(played_cards))
+        player.reka.extend(tas)
+
+        assert len(player.reka) == 5, 'Invalid amout of cards in players hand'
 
     def graj(self, video=False):
         """play a game untill there is stalemate or checkmate."""
@@ -188,6 +191,17 @@ class rozgrywka:
         print(mate_msg or stale_msg)
         return True
 
+    def make_an_overriden_move_in_one_func(self, card, move, **kwargs):
+        """
+        args:
+            card is a tuple: (if_burned, [Cards])
+            move is a two items long list of moves: ['A2', 'A3']
+        """
+        self.get_card(ovr=card)
+        self.now_move = self.get_move(ovr=move)
+        self.move(self.now_card, self.now_move, **kwargs)
+        return self
+
     def get_card(self, ovr=None):
         """First stage of a move: getting a card from a player."""
 
@@ -205,6 +219,7 @@ class rozgrywka:
         else:
             if ovr is not None:
                 card = ovr
+                assert self.card_ok_to_play(card), "Invalid card: {}".format(card)
             else:
                 card = player.choose_card(self.kupki, self.plansza)
                 while(not self.card_ok_to_play(card)):
@@ -217,8 +232,7 @@ class rozgrywka:
             # if you don't defend yourself on three you have to burn the card
             # (makes three more powerful)
             self.burned = 1
-            tmpcar = player.get_three(
-                3) if self.three == 3 else player.get_three(5)
+            tmpcar = player.get_three(3) if self.three == 3 else player.get_three(5)
             self.do_card_buisness(tmpcar, three=True)
             self.three = 0
         elif w[0] != 2:
@@ -230,14 +244,16 @@ class rozgrywka:
         if len(card) == 3:
             self.jack = card[2]
             assert self.jack in self.plansza.jaki_typ_zostal(
-                invert_color(self.to_move))
+                invert_color(self.to_move)), "Invalid piece requested on Jack"
         else:
             self.jack = None
+
         if self.now_card.ran == '4' and not self.burned:
             self.capture = False
+
         if self.now_card.ran == '3' and not self.burned:
             add = sum([3 for c in card[1] if c.ran == '3'])
-            assert add > 2
+            assert add > 2  # sanity check
             self.three += add
 
     def get_move(self, ovr=None):
@@ -294,7 +310,9 @@ class rozgrywka:
                 self.plansza.rusz(where[0], where[1], card)
         except Exception as e:
             raise ChessaoGameplayError(
-                'self.plansza.rusz error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(where, card, self.snapshot()), gameplay=self, errors=e)
+                'self.plansza.rusz error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(
+                    where, card, self.snapshot()),
+                gameplay=self, errors=e)
 
         # checking if pawn is getting promoted
         zam = czy_pion_na_koncu(self.plansza, self.to_move)
@@ -313,7 +331,7 @@ class rozgrywka:
             elif q == 'W':
                 self.plansza.brd[zam] = Rook(self.to_move, zam)
             else:
-                print('wrong input')
+                raise ChessaoGameplayError('Wrong promotion input')
 
         # after my move I must not be checked
         assert not self.czy_szach(self.to_move)
@@ -330,10 +348,19 @@ class rozgrywka:
         elif self.czy_pat(self.to_move):
             self.pat = True
         # updating history
-        record = '{color} {burn}{car}{jack}  {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(color=invert_color(self.to_move),
-                                                                                                   burn='!' if self.burned else '', car=card, jack=';' + self.jack[0] if self.jack != None else '',
-                                                                                                   piece=self.plansza.get_fen_rep(self.plansza.get_piece(where[1])), fro=where[0], to=where[1],
-                                                                                                   prom='=' + q if self.zamiana else '', check='+' if self.szach else '', mate='#' if self.mat else '', fenrep=self.plansza.fen())
+        record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(
+            color=invert_color(self.to_move),
+            burn='!' if self.burned else '',
+            car=card,
+            jack=';' + self.jack[0] if self.jack is not None else '',
+            piece=self.plansza.get_fen_rep(self.plansza.get_piece(where[1])),
+            fro=where[0],
+            to=where[1],
+            prom='=' + q if self.zamiana else '',
+            check='+' if self.szach else '',
+            mate='#' if self.mat else '',
+            fenrep=self.plansza.fen()
+        )
         self.historia.append(record)
         return True
 
@@ -343,57 +370,59 @@ class rozgrywka:
             return True
         return False
 
-    def czy_pat(self, k):
+    def czy_pat(self, color):
         """Return True if there is a stalemate."""
-        if self.plansza.halfmoveclock == 100 or len(self.plansza.all_taken()) == 2:
+        if self.plansza.halfmoveclock == 100 or \
+                len(self.plansza.all_taken()) == 2:
             return True
-        szach = self.czy_szach(k)
-        for kar in self.get_gracz(k).reka:
-            if ok_karta([kar], self.kupki):
-                # exclude the Queen because it can be played anytime, but it
-                # can't help you during check
-                if szach and kar.ran == 'Q':
+        szach = self.czy_szach(color)
+        for card in self.get_gracz(color).reka:
+            if ok_karta([card], self.kupki):
+                # exclude the Queen because it can be played anytime,
+                # but it can't help you during check
+                if szach and card.ran == 'Q':
                     continue
-                res = self.possible_moves(k, True, kar)
-                if res:
+                if self.possible_moves(color, True, card):
                     return False
-            else:
-                res = self.possible_moves(k)
-                if res:
+            elif self.possible_moves(color):
                     return False
         return True
 
-    def get_gracz(self, k):
-        """Return a player who has pieces of color k."""
-        return [g for g in self.gracze if g.kol == k][0]
+    def get_gracz(self, color):
+        """Return a player who has pieces of color `color`."""
+        return [player for player in self.gracze if player.kol == color][0]
 
     def cofnij(self, color, ruch):
-        """Reverese the move ."""
-        assert len(self.historia) > 2
-        a = self.plansza.mapdict[ruch[0]]
-        b = self.plansza.mapdict[ruch[1]]
+        """Reverese the move."""
+        # sanity check
+        assert len(self.historia) > 2, "There is no move to reverse"
+
+        move_start = self.plansza.mapdict[ruch[0]]
+        move_dest = self.plansza.mapdict[ruch[1]]
 
         # clearing enpassant and subtracting move counter
         self.plansza.enpass = 300
 
         # see if a promotion had been made
         if '=' in self.historia[-2]:
-            # if gambit teleżyńskiego occured...
+            # if gambit Teleżyńskiego occured...
             if 'q' in self.historia[-2].split()[2].lower():
-                self.plansza.brd[a] = self.plansza.zbite.pop()
+                self.plansza.brd[move_start] = self.plansza.zbite.pop()
             else:
-                self.plansza.brd[b] = self.plansza.zbite.pop()
+                self.plansza.brd[move_dest] = self.plansza.zbite.pop()
 
-        self.plansza.brd[b].mvs_number -= 1
+        self.plansza.brd[move_dest].mvs_number -= 1
 
         if self.plansza.bicie:
-            assert self.plansza.is_empty(a)
+            assert self.plansza.is_empty(move_start)
             rezurekt = self.plansza.zbite.pop()
-            self.plansza.brd[a] = rezurekt
-            self.plansza.swap(a, b)
+            self.plansza.brd[move_start] = rezurekt
+            self.plansza.swap(move_start, move_dest)
         else:
-            self.plansza.swap(a, b)
-        assert not self.plansza.is_empty(a) or not self.plansza.is_empty(b)
+            self.plansza.swap(move_start, move_dest)
+
+        # sanity check
+        assert not self.plansza.is_empty(move_start) or not self.plansza.is_empty(move_dest)
 
     def przetasuj(self):
         """Reshuffle the deck."""
@@ -408,18 +437,30 @@ class rozgrywka:
         out.combine(self.karty.cards)
         self.karty = out
         self.kupki = ([kup_1], [kup_2])
-        all_cards = len(self.karty.cards) + len(self.kupki[0]) + len(self.kupki[1]) + len(
-            self.spalone) + len(self.gracze[0].reka) + len(self.gracze[1].reka)
-        if all_cards != 104:
-            print('\nALL CARDS: {}'.format(all_cards))
-        #
-        assert all_cards == 104
+        assert self.get_cards_quantity() == 104, "Wrong cards quantity after reshuffle"
+
+    def get_cards_quantity(self):
+        all_cards = sum(map(
+            len,
+            [self.karty.cards,
+             self.kupki[0],
+             self.kupki[1],
+             self.spalone,
+             self.gracze[0].reka,
+             self.gracze[1].reka])
+        )
+        return all_cards
 
     def what_happened(self):
         """
-        this function is parsing the history to make sense of the situation. returns ints that code a situation.
-        0 = nothing special, 1 = turn loosing, 2 - king of spades, 3 - king
-        of hearts, 4 - jack
+        Parse history to make sense of the situation.
+        Returns int which codes a situation.
+
+        0 -> nothing special
+        1 -> turn loosing
+        2 -> king of spades
+        3 -> king of hearts
+        4 -> jack
         """
         s = self.historia[-1]
         s2 = self.historia[-2] if len(self.historia) > 1 else ''
@@ -430,11 +471,11 @@ class rozgrywka:
             return (0,)
         elif what == '4' and self.now_card.ran != '4':
             return (1,)
-        elif what == 'K' and s[3] == '♤' and ind != None:
+        elif what == 'K' and s[3] == '♤' and ind is not None:
             # r = re.search('\s(.+)\s',s2)
             c = self.from_history_get_card(2)
             return (2, [s2[:ind][-2:], s2[ind + 1:][:2]], c)
-        elif what == 'K' and s[3] == '♡' and ind != None:
+        elif what == 'K' and s[3] == '♡' and ind is not None:
             if self.plansza.get_piece(s2[ind + 1:][:2]).color != self.to_move:
                 return (1,)
             return (3, s2[ind + 1:][:2])
@@ -445,54 +486,32 @@ class rozgrywka:
         else:
             return (0,)
 
-    def check_if_move(self, n):
+    def from_history_get_card(self, number_of_turns):
         """
-        # check if n turnes ago there was a move made
-        # if true this means three possible scenarios happened - kspades,ace or
-        # lost turn
+        # returns a card played number_of_turns turns AGO
         """
-        return ':' in self.historia[-n]
-
-    def check_card(self, n, r, cl=None):
-        """
-        # check if card played n turns ago has a rank==ran (and color = col)
-        # if card was burned returns False
-        """
-        c = from_history_get_card(n)
-        if c[0] == 1:
-            return False
-        return c[1].ran == r and c[1].kol == cl if cl != None else c[1].ran == r
-
-    def from_history_get_card(self, n):
-        """
-        # returns a card played n turns AGO
-        """
-        if n > len(self.historia):
+        if number_of_turns > len(self.historia):
             return None
-        s = self.historia[-n]
-        r = re.search('\s(.+?)\s', s)
-        c = r.group(1)
-        return decode_card(c)
+        history_string = self.historia[-number_of_turns]
+        card = re.search('\s(.+?)\s', history_string).group(1)
+        return decode_card(card)
 
-    def card_ok_to_play(self, crd):
+    def card_ok_to_play(self, card):
         """
-        # if card is to be burned its always ok to play it
+        args:
+            card (tuple => (bool, [cards]))
         """
-        if crd[0] == 1:
+        burned = card[0]
+        top_card = card[1][0]
+
+        if burned:
             return True
-        c = crd[1][0]
+
         # conditions that if met block the card
-        cond1 = self.szach and (c.ran == 'A' or c.ran == 'Q')
+        card_should_not_be_played = self.szach and top_card.ran in ('A', 'Q')
 
-        # war2 = (kar[-1].ran=='K' and kar[-1].kol==1) and (last_card.ran=='A' or licznik<3 or temp=='ominięta')
-        # war3 = (kar[-1].ran=='K' and kar[-1].kol==2) and (licznik<2 or temp=='ominięta')
-        # war4 = last_card.ran=='J' and kar[-1].ran=='4' and ok_karta(kar,self.kupki)
-        # war5 = kar[-1].ran=='4' and self.szach and
-        # len(self.possible_moves(kolej, False, kar[-1]))==0
-
-        if cond1:
+        if card_should_not_be_played:
             return False
-
         return True
 
     def possible_moves(self, color, okzbi=True, kar=Card(1, '5'), burned=False, flag=(0,)):
