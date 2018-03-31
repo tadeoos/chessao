@@ -1,8 +1,7 @@
-import json
 import random
 from chessao import CARDS_COLORS, NON_SCHODKABLE
-from chessao.cards import Card, Deck
-from chessao.chess import Board
+from chessao.cards import Card, Deck  # noqa
+from chessao.chess import Board  # noqa
 from chessao.pieces import Pawn
 
 
@@ -290,13 +289,8 @@ def rozpakuj_input(inp):
 def last_line_check(color, first_sq, last_sq, board):
     '''Return the position of the Piece in the last row, if none return 0.'''
     for i in range(first_sq, last_sq):
-        try:
-            if type(board.brd[i]) == Pawn and board.brd[i].color == color:
-                return i
-        except AttributeError:
-            # print(board)
-            print(board.brd[i])
-            raise AttributeError
+        if type(board.brd[i]) == Pawn and board.brd[i].color == color:
+            return i
     return 0
 
 
