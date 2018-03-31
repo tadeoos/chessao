@@ -17,7 +17,7 @@ import chessao.helpers as helpers
 
 
 def play_game(rand=0):
-    game = gameplay.rozgrywka(rand)
+    game = gameplay.ChessaoGame(rand)
     played = game.graj(rand)
     return game, played
 
@@ -83,7 +83,7 @@ class TestRun1(unittest.TestCase):
     NUMBER = 1
 
     def setUp(self):
-        self.gameplay = gameplay.rozgrywka()
+        self.gameplay = gameplay.ChessaoGame()
 
     def test_run(self):
         self.assertFalse(self.gameplay.mat or self.gameplay.pat)
@@ -103,7 +103,7 @@ class TestRun1(unittest.TestCase):
                     print('SIZE OF Gameplay object: {} bytes'.format(asizeof.asizeof(g)))
                     self.assertTrue(played)
                 except helpers.ChessaoGameplayError as e:
-                    print(e.rozgrywka.snapshot)
+                    print(e.ChessaoGame.snapshot)
                     raise e
 
                 g_cards = g.spalone + g.karty.cards + g.kupki[0] + g.kupki[1]
@@ -116,7 +116,7 @@ class TestRun1(unittest.TestCase):
 class TestGamePlay(unittest.TestCase):
 
     def setUp(self):
-        self.gameplay = gameplay.rozgrywka()
+        self.gameplay = gameplay.ChessaoGame(default_setup=True)
         self.HISTORY = [
             "1N3R2/1p1N1p1K/3P4/2b4P/7P/1p2P2r/1p2p3/1r1k1bn1 - - 0 29",
             "b !7♤  NB1:C3",

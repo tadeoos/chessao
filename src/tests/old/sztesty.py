@@ -19,7 +19,7 @@ li = [
 # fen = '1d6/w1pw1S1g/3D4/p3p1k1/3Pp2K/pp6/3P3S/G7 KQkq - 0 0'
 
 # def simulate(fen = False, moves):
-# 	game = rozgrywka(fenrep=fen)
+# 	game = ChessaoGame(fenrep=fen)
 # 	i = 0
 # 	while i < len(moves):
 # 		game.move(moves[i][0], game.now_move[i][1])
@@ -42,11 +42,11 @@ def test(n=5, vid=False):
             randa = 1
         else:
             randa = 0
-        roz = rozgrywka(randa)
+        roz = ChessaoGame(randa)
         # while(roz.plansza.czy_szach()==2 or Card(1,'K') not in
         # roz.gracze[1].reka):
         while(roz.plansza.czy_szach('c') == (True, 'c')):
-            roz = rozgrywka(randa)
+            roz = ChessaoGame(randa)
 
         # print('Rozgrywka nr {}'.format(licznik))
         try:
@@ -93,10 +93,10 @@ def test(n=5, vid=False):
 
 def test_err(n):
     print('Testing -- test_err()')
-    roz = rozgrywka()
+    roz = ChessaoGame()
 
     while(roz.plansza.czy_szach('c') == (True, 'c')):
-        roz = rozgrywka()
+        roz = ChessaoGame()
     print('po rozgrywce')
 
     licznik = 0
@@ -110,9 +110,9 @@ def test_err(n):
         else:
             randa = 1
         print("\rPostęp: {:.1f}%".format(licznik / number_of_games), end="")
-        roz = rozgrywka(randa)
+        roz = ChessaoGame(randa)
         while(roz.plansza.czy_szach('c') == (True, 'c')):
-            roz = rozgrywka(randa)
+            roz = ChessaoGame(randa)
         try:
             a = roz.graj()
         except Exception as e:
@@ -128,9 +128,9 @@ def test_stat(n=5, m=2000):
     for i in range(n):
         res = [0, 0, 0, 0]
         for i in range(m):
-            roz = rozgrywka()
+            roz = ChessaoGame()
             while(roz.plansza.czy_szach() == 2):
-                roz = rozgrywka()
+                roz = ChessaoGame()
             if roz.czy_szach('c') == 2:
                 res[3] += 1
             elif roz.czy_szach('c'):

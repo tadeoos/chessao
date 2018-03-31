@@ -69,6 +69,7 @@ def resurect(history, gameplay=None):
 
 
 # SZACHAO CLASS
+class ChessaoGame:
 
 
 class rozgrywka:
