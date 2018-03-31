@@ -16,7 +16,7 @@ class Card:
     You would construct a two of spades with ``Card(1, '2')``
     """
 
-    def __init__(self, color, ranga):
+    def __init__(self, color, ranga, burned=False):
         """
         >>> Card(1, 20)
         Traceback (most recent call last):
@@ -26,6 +26,9 @@ class Card:
         Traceback (most recent call last):
             ...
         TypeError: Card color should be an integer: 1, 2, 3 or 4
+        >>> c = Card(1, '5', True)
+        >>> c.burned
+        True
         """
         if color not in CARDS_COLORS.keys():
             raise TypeError('Card color should be an integer: 1, 2, 3 or 4')
@@ -34,6 +37,7 @@ class Card:
 
         self.kol = color
         self.ran = ranga
+        self.burned = burned
 
     def __eq__(self, o):
         """
