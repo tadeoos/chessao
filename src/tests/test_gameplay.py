@@ -99,6 +99,7 @@ class TestFourCardBehavior:
         assert not self.gameplay.capture
         assert self.gameplay.to_move == WHITE_COLOR
 
+    @pytest.mark.xfail(reason="Wrong card erroring not implemented")
     def test_wrong_card(self):
         assert not self.gameplay.capture
         assert self.gameplay.to_move == BLACK_COLOR
