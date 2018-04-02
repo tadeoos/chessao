@@ -1,7 +1,6 @@
 import random
 from chessao import CARDS_COLORS, NON_SCHODKABLE
-from chessao.cards import Card, Deck  # noqa
-from chessao.chess import Board  # noqa
+from chessao.cards import Card
 from chessao.pieces import Pawn
 
 
@@ -297,7 +296,7 @@ def last_line_check(color, first_sq, last_sq, board):
 def czy_pion_na_koncu(brd, k):
     """
     Returns True if a Pawn reached the end of Board.
-
+    >>> from chessao.chess import Board
     >>> czy_pion_na_koncu(Board(), 'b')
     0
     >>> czy_pion_na_koncu(Board(), 'c')
