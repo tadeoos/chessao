@@ -201,7 +201,7 @@ class King(Piece):
 
         # checking for castle / cannot castle on a special king card
         cstl = board.check_castle(self.color)
-        if cstl['if'] > 0 and (card.ran != 'K' or card.kol not in (3, 4)):
+        if cstl['possible_castles'] > 0 and (card.ran != 'K' or card.kol not in (3, 4)):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res
