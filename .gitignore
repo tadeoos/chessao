@@ -1,7 +1,10 @@
 # project folders
 /videos/
 /www/
-
+/word_docs/
+/old_graphics/
+*.doc*
+.pytest_cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,0 +1,613 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Chessao’s documentation! &#8212; Chessao  documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Chessao  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Chessao&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#module-chessao.cards">Cards</a></li>
+<li><a class="reference internal" href="#module-chessao.chess">Chess</a></li>
+<li><a class="reference internal" href="#module-chessao.gameplay">Gameplay</a></li>
+<li><a class="reference internal" href="#module-chessao.helpers">Helpers</a></li>
+<li><a class="reference internal" href="#module-chessao.pieces">Pieces</a></li>
+<li><a class="reference internal" href="#module-chessao.players">Players</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-chessao-s-documentation">
+<h1>Welcome to Chessao&#8217;s documentation!<a class="headerlink" href="#welcome-to-chessao-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Chessao is a combination of chess and mao.
+See the sources <a class="reference external" href="https://github.com/tadeoos/chessao">here</a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+<div class="section" id="module-chessao.cards">
+<span id="cards"></span><h1>Cards<a class="headerlink" href="#module-chessao.cards" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="chessao.cards.Card">
+<em class="property">class </em><code class="descclassname">chessao.cards.</code><code class="descname">Card</code><span class="sig-paren">(</span><em>color</em>, <em>ranga</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Card class.</p>
+<p>The CARDS_COLORS variable is a dictionary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CARDS_COLORS</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;♤&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;♡&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;♢&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;♧&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Each card has two attributes: color and rank.</p>
+<p>You would construct a two of spades with <code class="docutils literal"><span class="pre">Card(1,</span> <span class="pre">'2')</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="chessao.cards.Deck">
+<em class="property">class </em><code class="descclassname">chessao.cards.</code><code class="descname">Deck</code><span class="sig-paren">(</span><em>lista_kart=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Deck of cards class.</p>
+<p>Holds one attribute (&#8216;cards&#8217;) with a list of cards in order.</p>
+<dl class="method">
+<dt id="chessao.cards.Deck.deal">
+<code class="descname">deal</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.deal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of top n cards.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Deck</span><span class="p">(</span><span class="n">lista_kart</span><span class="o">=</span><span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">deal</span><span class="p">()</span>
+<span class="go">[5♤]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.cards.Deck.get_card_index">
+<code class="descname">get_card_index</code><span class="sig-paren">(</span><em>rank='5'</em>, <em>suit=1</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.get_card_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the index of a specified card.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.cards.Deck.tasuj">
+<code class="descname">tasuj</code><span class="sig-paren">(</span><em>until=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.cards.Deck.tasuj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shuffle the deck.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-chessao.chess">
+<span id="chess"></span><h1>Chess<a class="headerlink" href="#module-chessao.chess" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="chessao.chess.Board">
+<em class="property">class </em><code class="descclassname">chessao.chess.</code><code class="descname">Board</code><span class="sig-paren">(</span><em>rnd=False</em>, <em>fenrep=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.chess.Board" title="Permalink to this definition">¶</a></dt>
+<dd><p>Chess Board class.</p>
+<dl class="method">
+<dt id="chessao.chess.Board.fen">
+<code class="descname">fen</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chessao.chess.Board.fen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a FEN representation of a board.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">()</span><span class="o">.</span><span class="n">fen</span><span class="p">()</span>
+<span class="go">&#39;RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.chess.Board.get_points">
+<code class="descname">get_points</code><span class="sig-paren">(</span><em>col</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.chess.Board.get_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a sum of points for pieces of color col</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">()</span><span class="o">.</span><span class="n">get_points</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">49</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.chess.Board.pod_biciem">
+<code class="descname">pod_biciem</code><span class="sig-paren">(</span><em>pole</em>, <em>color</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.chess.Board.pod_biciem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if a position is under attack.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">88</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;b3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;N3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">33</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">81</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/P7/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">pod_biciem</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.chess.Board.rusz">
+<code class="descname">rusz</code><span class="sig-paren">(</span><em>c</em>, <em>d=None</em>, <em>karta=5♤</em>, <em>only_bool=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.chess.Board.rusz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move a piece on a board function</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/8/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;E1&#39;</span><span class="p">,</span><span class="s1">&#39;B1&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/pP6/8/NnrRqQbB/8/7k&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;E1&#39;</span><span class="p">,</span><span class="s1">&#39;G1&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/Q7/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A4&#39;</span><span class="p">,</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;Q&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/P7/8/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A4&#39;</span><span class="p">,</span><span class="s1">&#39;A5&#39;</span><span class="p">,</span> <span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;Q&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/P7/q7/8/8/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A5&#39;</span><span class="p">,</span><span class="s1">&#39;A4&#39;</span><span class="p">,</span> <span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Board</span><span class="p">(</span><span class="n">fenrep</span><span class="o">=</span><span class="s1">&#39;R3K2R/8/8/P7/q7/8/1N6/8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;B7&#39;</span><span class="p">,</span><span class="s1">&#39;A5&#39;</span><span class="p">,</span> <span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Board</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;D2&#39;</span><span class="p">,</span><span class="s1">&#39;D4&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A7&#39;</span><span class="p">,</span><span class="s1">&#39;A6&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;D4&#39;</span><span class="p">,</span> <span class="s1">&#39;D5&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;E7&#39;</span><span class="p">,</span><span class="s1">&#39;E5&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;D5&#39;</span><span class="p">,</span><span class="s1">&#39;E6&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A6&#39;</span><span class="p">,</span><span class="s1">&#39;A5&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A5&#39;</span><span class="p">,</span> <span class="s1">&#39;A4&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span><span class="s1">&#39;B4&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;A4&#39;</span><span class="p">,</span><span class="s1">&#39;B3&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">rusz</span><span class="p">(</span><span class="s1">&#39;H2&#39;</span><span class="p">,</span> <span class="s1">&#39;H5&#39;</span><span class="p">,</span> <span class="n">only_bool</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">BŁĄD w funkcji rusz! skad H2 dokad H5 karta 5♤ mvs 0, enpas 300</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-chessao.gameplay">
+<span id="gameplay"></span><h1>Gameplay<a class="headerlink" href="#module-chessao.gameplay" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="chessao.gameplay.GameplayEncoder">
+<em class="property">class </em><code class="descclassname">chessao.gameplay.</code><code class="descname">GameplayEncoder</code><span class="sig-paren">(</span><em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.GameplayEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>A JSON encoder class for Gameplay object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.gameplay.resurect">
+<code class="descclassname">chessao.gameplay.</code><code class="descname">resurect</code><span class="sig-paren">(</span><em>history</em>, <em>gameplay=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.resurect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Gameplay object from a history.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="chessao.gameplay.rozgrywka">
+<em class="property">class </em><code class="descclassname">chessao.gameplay.</code><code class="descname">rozgrywka</code><span class="sig-paren">(</span><em>rnd=1</em>, <em>fenrep=False</em>, <em>auto=True</em>, <em>ovr=False</em>, <em>test=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka" title="Permalink to this definition">¶</a></dt>
+<dd><p>A gameplay class.</p>
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.card_ok_to_play">
+<code class="descname">card_ok_to_play</code><span class="sig-paren">(</span><em>crd</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.card_ok_to_play" title="Permalink to this definition">¶</a></dt>
+<dd><p># if card is to be burned its always ok to play it</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.check_card">
+<code class="descname">check_card</code><span class="sig-paren">(</span><em>n</em>, <em>r</em>, <em>cl=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.check_card" title="Permalink to this definition">¶</a></dt>
+<dd><p># check if card played n turns ago has a rank==ran (and color = col)
+# if card was burned returns False</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.check_if_move">
+<code class="descname">check_if_move</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.check_if_move" title="Permalink to this definition">¶</a></dt>
+<dd><p># check if n turnes ago there was a move made
+# if true this means three possible scenarios happened - kspades,ace or
+# lost turn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.cofnij">
+<code class="descname">cofnij</code><span class="sig-paren">(</span><em>color</em>, <em>ruch</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.cofnij" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverese the move .</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.czy_pat">
+<code class="descname">czy_pat</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.czy_pat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there is a stalemate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.czy_szach">
+<code class="descname">czy_szach</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.czy_szach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if color k is checked.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.from_history_get_card">
+<code class="descname">from_history_get_card</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.from_history_get_card" title="Permalink to this definition">¶</a></dt>
+<dd><p># returns a card played n turns AGO</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.get_card">
+<code class="descname">get_card</code><span class="sig-paren">(</span><em>ovr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.get_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>First stage of a move: getting a card from a player.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.get_gracz">
+<code class="descname">get_gracz</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.get_gracz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a player who has pieces of color k.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.get_move">
+<code class="descname">get_move</code><span class="sig-paren">(</span><em>ovr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.get_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Second stage of a move: get a chess move.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.graj">
+<code class="descname">graj</code><span class="sig-paren">(</span><em>video=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.graj" title="Permalink to this definition">¶</a></dt>
+<dd><p>play a game untill there is stalemate or checkmate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.move">
+<code class="descname">move</code><span class="sig-paren">(</span><em>card</em>, <em>where</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make an actual move.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.possible_moves">
+<code class="descname">possible_moves</code><span class="sig-paren">(</span><em>color</em>, <em>okzbi=True</em>, <em>kar=5♤</em>, <em>burned=False</em>, <em>flag=(0</em>, <em>)</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.possible_moves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict of possible moves.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.przetasuj">
+<code class="descname">przetasuj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.przetasuj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reshuffle the deck.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.snapshot">
+<code class="descname">snapshot</code><span class="sig-paren">(</span><em>jsn=True</em>, <em>remove=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a JSON representation of a current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.gameplay.rozgrywka.what_happened">
+<code class="descname">what_happened</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chessao.gameplay.rozgrywka.what_happened" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function is parsing the history to make sense of the situation. returns ints that code a situation.
+0 = nothing special, 1 = turn loosing, 2 - king of spades, 3 - king
+of hearts, 4 - jack</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-chessao.helpers">
+<span id="helpers"></span><h1>Helpers<a class="headerlink" href="#module-chessao.helpers" title="Permalink to this headline">¶</a></h1>
+<dl class="exception">
+<dt id="chessao.helpers.ChessaoGameplayError">
+<em class="property">exception </em><code class="descclassname">chessao.helpers.</code><code class="descname">ChessaoGameplayError</code><span class="sig-paren">(</span><em>message</em>, <em>gameplay</em>, <em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ChessaoGameplayError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom gameplay error</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.czy_pion_na_koncu">
+<code class="descclassname">chessao.helpers.</code><code class="descname">czy_pion_na_koncu</code><span class="sig-paren">(</span><em>brd</em>, <em>k</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.czy_pion_na_koncu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if a Pawn reached the end of Board.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">czy_pion_na_koncu</span><span class="p">(</span><span class="n">Board</span><span class="p">(),</span> <span class="s1">&#39;f&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.deal">
+<code class="descclassname">chessao.helpers.</code><code class="descname">deal</code><span class="sig-paren">(</span><em>deck</em>, <em>override=None</em>, <em>number=5</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.deal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deal for #number cads to each player.</p>
+<p>Returns a tuple with two lists and Deck object.
+Override parameter specifies the hands for players.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.decode_card">
+<code class="descclassname">chessao.helpers.</code><code class="descname">decode_card</code><span class="sig-paren">(</span><em>card_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.decode_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse card for gameflow</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card</span><span class="p">(</span><span class="s1">&#39;!10♡&#39;</span><span class="p">)</span>
+<span class="go">(1, [10♡])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card</span><span class="p">(</span><span class="s1">&#39;J♡;R&#39;</span><span class="p">)</span>
+<span class="go">(0, [J♡], &#39;Rook&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.decode_card_color">
+<code class="descclassname">chessao.helpers.</code><code class="descname">decode_card_color</code><span class="sig-paren">(</span><em>card_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.decode_card_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>return integer repr of a color</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card_color</span><span class="p">(</span><span class="s1">&#39;♡&#39;</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_card_color</span><span class="p">(</span><span class="s1">&#39;sth&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">incorrect card sring: sth</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.invert_color">
+<code class="descclassname">chessao.helpers.</code><code class="descname">invert_color</code><span class="sig-paren">(</span><em>color</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.invert_color" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the other color.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+<span class="go">&#39;b&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="go">&#39;c&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">invert_color</span><span class="p">(</span><span class="s1">&#39;sth&#39;</span><span class="p">)</span>
+<span class="go">&#39;b&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.ktora_kupka">
+<code class="descclassname">chessao.helpers.</code><code class="descname">ktora_kupka</code><span class="sig-paren">(</span><em>karta</em>, <em>kupki</em>, <em>rnd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ktora_kupka" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the index of a pile wherein the card goes.
+Expects a list with a card, and a list of two Deck objects.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ktora_kupka</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">card: [2♧] kupki ([9♤], [K♡])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.last_line_check">
+<code class="descclassname">chessao.helpers.</code><code class="descname">last_line_check</code><span class="sig-paren">(</span><em>color</em>, <em>first_sq</em>, <em>last_sq</em>, <em>board</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.last_line_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the position of the Piece in the last row, if none return 0.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.nawaleta">
+<code class="descclassname">chessao.helpers.</code><code class="descname">nawaleta</code><span class="sig-paren">(</span><em>jack_str</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.nawaleta" title="Permalink to this definition">¶</a></dt>
+<dd><p># this should be depracated
+Map the jack choice to a Piece Class.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nawaleta</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">)</span>
+<span class="go">&#39;Pawn&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.odejmij">
+<code class="descclassname">chessao.helpers.</code><code class="descname">odejmij</code><span class="sig-paren">(</span><em>hand</em>, <em>cards</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.odejmij" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hand after removing the specified cards from it.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">odejmij</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<span class="go">[5♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">odejmij</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">[</span><span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The card(s) is(are) not in the hand.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.ok_karta">
+<code class="descclassname">chessao.helpers.</code><code class="descname">ok_karta</code><span class="sig-paren">(</span><em>card</em>, <em>decks</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.ok_karta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if a card is can be put on one of a decks</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ok_karta</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ok_karta</span><span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">),</span> <span class="n">Card</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)],</span> <span class="p">([</span><span class="n">Card</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">)],[</span><span class="n">Card</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">)]))</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.rozpakuj_input">
+<code class="descclassname">chessao.helpers.</code><code class="descname">rozpakuj_input</code><span class="sig-paren">(</span><em>inp</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.rozpakuj_input" title="Permalink to this definition">¶</a></dt>
+<dd><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;24&#39;</span><span class="p">)</span>
+<span class="go">[2♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;104&#39;</span><span class="p">)</span>
+<span class="go">[10♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;!A4&#39;</span><span class="p">)</span>
+<span class="go">[A♧]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rozpakuj_input</span><span class="p">(</span><span class="s1">&#39;54,64,74&#39;</span><span class="p">)</span>
+<span class="go">[5♧, 6♧, 7♧]</span>
+<span class="go">rozpakuj_input(&#39;54,64&#39;)</span>
+<span class="go">[5♧]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.schodki_check">
+<code class="descclassname">chessao.helpers.</code><code class="descname">schodki_check</code><span class="sig-paren">(</span><em>card_list</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.schodki_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if &#8220;card stairs&#8221; are build correctly.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Card</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">)])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">)])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">)])</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">schodki_check</span><span class="p">([</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">),</span><span class="n">c</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">)])</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="chessao.helpers.str_to_card">
+<code class="descclassname">chessao.helpers.</code><code class="descname">str_to_card</code><span class="sig-paren">(</span><em>str_card</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.helpers.str_to_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Card obj from a string representation.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">str_to_card</span><span class="p">(</span><span class="s1">&#39;102&#39;</span><span class="p">)</span>
+<span class="go">10♡</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">str_to_card</span><span class="p">(</span><span class="s1">&#39;!102&#39;</span><span class="p">)</span>
+<span class="go">10♡</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-chessao.pieces">
+<span id="pieces"></span><h1>Pieces<a class="headerlink" href="#module-chessao.pieces" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="chessao.pieces.Piece">
+<em class="property">class </em><code class="descclassname">chessao.pieces.</code><code class="descname">Piece</code><span class="sig-paren">(</span><em>color</em>, <em>position</em>, <em>name</em>, <em>val</em>, <em>mvs=0</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.pieces.Piece" title="Permalink to this definition">¶</a></dt>
+<dd><p>A chess piece abstract class.</p>
+<dl class="method">
+<dt id="chessao.pieces.Piece.moves">
+<code class="descname">moves</code><span class="sig-paren">(</span><em>card</em>, <em>board</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.pieces.Piece.moves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of positions that a piece can move onto, on a specific card &amp; board</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-chessao.players">
+<span id="players"></span><h1>Players<a class="headerlink" href="#module-chessao.players" title="Permalink to this headline">¶</a></h1>
+<p>Players classes</p>
+<dl class="class">
+<dt id="chessao.players.Player">
+<em class="property">class </em><code class="descclassname">chessao.players.</code><code class="descname">Player</code><span class="sig-paren">(</span><em>ida</em>, <em>kol</em>, <em>reka=None</em>, <em>bot=True</em>, <em>name='gracz'</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.players.Player" title="Permalink to this definition">¶</a></dt>
+<dd><p>A player abstract class.</p>
+<dl class="method">
+<dt id="chessao.players.Player.choose_card">
+<code class="descname">choose_card</code><span class="sig-paren">(</span><em>talie</em>, <em>plansza</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.players.Player.choose_card" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a card from player hand.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.players.Player.choose_move">
+<code class="descname">choose_move</code><span class="sig-paren">(</span><em>d</em>, <em>plansza</em>, <em>karta</em><span class="sig-paren">)</span><a class="headerlink" href="#chessao.players.Player.choose_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a move out ou a board.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chessao.players.Player.choose_prom">
+<code class="descname">choose_prom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chessao.players.Player.choose_prom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose a promotion for pawn at the end of the board.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Chessao  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Tadek Teleżyński.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.6.
+    </div>
+  </body>
+</html>
