@@ -29,9 +29,9 @@ class TestBoard(unittest.TestCase):
 
     def test_pieces(self):
         with self.assertRaises(AssertionError):
-            self.board.rusz('E1', 'E2')
+            self.board.move('E1', 'E2')
 
-        self.assertTrue(self.board.rusz('E2', 'E4'))
+        self.assertTrue(self.board.move('E2', 'E4'))
 
 
 class TestPieces(unittest.TestCase):

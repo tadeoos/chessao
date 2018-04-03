@@ -243,7 +243,7 @@ class ChessaoGame:
 
         if len(card) == 3:
             self.jack = card[2]
-            assert self.jack in self.plansza.jaki_typ_zostal(
+            assert self.jack in self.plansza.piece_types_left(
                 invert_color(self.to_move)), "Invalid piece requested on Jack"
         else:
             self.jack = None
@@ -282,7 +282,7 @@ class ChessaoGame:
             # changing the color to move
             self.to_move = invert_color(self.to_move)
             # udapting check and mate although i think it shoudln't change
-            self.szach = self.czy_szach(self.to_move)
+            self.szach = self.color_is_checked(self.to_move)
             if self.szach and self.czy_pat(self.to_move):
                 self.szach = False
                 self.mat = True
@@ -305,12 +305,12 @@ class ChessaoGame:
         # actual move happens
         try:
             if self.burned:
-                self.plansza.rusz(where[0], where[1])
+                self.plansza.move(where[0], where[1])
             else:
-                self.plansza.rusz(where[0], where[1], card)
+                self.plansza.move(where[0], where[1], card)
         except Exception as e:
             raise ChessaoGameplayError(
-                'self.plansza.rusz error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(
+                'self.plansza.move error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(
                     where, card, self.snapshot()),
                 gameplay=self, errors=e)
 
@@ -318,29 +318,29 @@ class ChessaoGame:
         zam = czy_pion_na_koncu(self.plansza, self.to_move)
         if zam > 0:
             self.zamiana = True
-            self.plansza.zbite.append(self.plansza.brd[zam])
+            self.plansza.captured_pieces.append(self.plansza[zam])
             q = player.choose_prom() if not promotion else promotion
             if q == 'E':
                 return 'exit'
             elif q == 'D':
-                self.plansza.brd[zam] = Queen(self.to_move, zam)
+                self.plansza[zam] = Queen(self.to_move, zam)
             elif q == 'G':
-                self.plansza.brd[zam] = Bishop(self.to_move, zam)
+                self.plansza[zam] = Bishop(self.to_move, zam)
             elif q == 'S':
-                self.plansza.brd[zam] = Knight(self.to_move, zam)
+                self.plansza[zam] = Knight(self.to_move, zam)
             elif q == 'W':
-                self.plansza.brd[zam] = Rook(self.to_move, zam)
+                self.plansza[zam] = Rook(self.to_move, zam)
             else:
                 raise ChessaoGameplayError('Wrong promotion input')
 
         # after my move I must not be checked
-        assert not self.czy_szach(self.to_move)
+        assert not self.color_is_checked(self.to_move)
 
         # changing the color to move
         self.to_move = invert_color(self.to_move)
 
         # udapting check and mate
-        self.szach = self.czy_szach(self.to_move)
+        self.szach = self.color_is_checked(self.to_move)
 
         if self.szach and self.czy_pat(self.to_move):
             self.szach = False
@@ -364,9 +364,9 @@ class ChessaoGame:
         self.historia.append(record)
         return True
 
-    def czy_szach(self, color):
+    def color_is_checked(self, color):
         """Return True if color is checked."""
-        if self.plansza.czy_szach(color) == (True, color):
+        if self.plansza.color_is_checked(color) == (True, color):
             return True
         return False
 
@@ -375,7 +375,7 @@ class ChessaoGame:
         if self.plansza.halfmoveclock == 100 or \
                 len(self.plansza.all_taken()) == 2:
             return True
-        szach = self.czy_szach(color)
+        szach = self.color_is_checked(color)
         for card in self.get_gracz(color).reka:
             if ok_karta([card], self.kupki):
                 # exclude the Queen because it can be played anytime,
@@ -407,16 +407,16 @@ class ChessaoGame:
         if '=' in self.historia[-2]:
             # if gambit Teleżyńskiego occured...
             if 'q' in self.historia[-2].split()[2].lower():
-                self.plansza.brd[move_start] = self.plansza.zbite.pop()
+                self.plansza[move_start] = self.plansza.captured_pieces.pop()
             else:
-                self.plansza.brd[move_dest] = self.plansza.zbite.pop()
+                self.plansza[move_dest] = self.plansza.captured_pieces.pop()
 
-        self.plansza.brd[move_dest].mvs_number -= 1
+        self.plansza[move_dest].mvs_number -= 1
 
-        if self.plansza.bicie:
+        if self.plansza.capture_took_place:
             assert self.plansza.is_empty(move_start)
-            rezurekt = self.plansza.zbite.pop()
-            self.plansza.brd[move_start] = rezurekt
+            rezurekt = self.plansza.captured_pieces.pop()
+            self.plansza[move_start] = rezurekt
             self.plansza.swap(move_start, move_dest)
         else:
             self.plansza.swap(move_start, move_dest)
@@ -480,7 +480,7 @@ class ChessaoGame:
                 return (1,)
             return (3, s2[ind + 1:][:2])
         elif what == 'J' and self.now_card.ran != 'J':
-            if self.jack not in self.plansza.jaki_typ_zostal(self.to_move):
+            if self.jack not in self.plansza.piece_types_left(self.to_move):
                 return (1,)
             return (4, self.jack)
         else:
@@ -531,36 +531,40 @@ class ChessaoGame:
         elif flag[0] == 3:  # king of hearts
             a = [self.plansza.mapdict[flag[1]]]
         elif flag[0] == 4:  # jack
-            a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                i].color == color and self.plansza.brd[i].name == flag[1]]
-        elif kar.ran == 'Q' and len(self.plansza.position_bierki('Queen', color)) > 0:
+            a = [i for i in self.plansza.all_taken() if self.plansza[
+                i].color == color and self.plansza[i].name == flag[1]]
+        elif kar.ran == 'Q' and len(self.plansza.positions_of_piece('Queen', color)) > 0:
             assert flag[0] == 0
-            if self.plansza.jaki_typ_zostal(color) != {'King', 'Queen'}:
-                a = self.plansza.position_bierki('Queen', color)
+            if self.plansza.piece_types_left(color) != {'King', 'Queen'}:
+                a = self.plansza.positions_of_piece('Queen', color)
             else:
                 kar = Card(1, '5')
-                a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                    i].color == color]
+                a = [i for i in self.plansza.all_taken()
+                     if self.plansza[i].color == color]
         else:
-            a = [i for i in self.plansza.all_taken() if self.plansza.brd[
-                i].color == color]
+            a = [i for i in self.plansza.all_taken()
+                 if self.plansza[i].color == color]
 
         res = {}
         for i in a:
             skad = d[i]
             if okzbi:
-                gdzie = [d[c] for c in self.plansza.brd[i].moves(
-                    kar, self.plansza) if type(self.plansza.brd[c]) != King]
+                gdzie = [d[c] for c in self.plansza[i].moves(kar, self.plansza)
+                         if type(self.plansza[c]) != King]
             else:
-                gdzie = [d[c] for c in self.plansza.brd[i].moves(kar, self.plansza) if type(
-                    self.plansza.brd[c]) != King and (self.plansza.is_empty(c) or self.plansza.brd[c].color == color)]
+                gdzie = [d[c] for c in self.plansza[i].moves(kar, self.plansza)
+                         if type(self.plansza[c]) != King
+                         and (self.plansza.is_empty(c)
+                         or self.plansza[c].color == color)]
 
             if flag[0] == 2:
                 try:
                     gdzie.remove(flag[1][1])
                 except Exception as e:
-                    raise ChessaoGameplayError('\n Error in remove! color:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}\n{}'.format(
-                        color, okzbi, kar, burned, flag, gdzie, skad, a, self.snapshot()), gameplay=self, errors=e)
+                    raise ChessaoGameplayError(
+                        'Error in remove! color:{} okzbi:{} karta:{} burned: {} flag {} gdzie: {} skad {} a: {}\n{}'
+                        .format(color, okzbi, kar, burned, flag, gdzie, skad, a, self.snapshot()),
+                        gameplay=self, errors=e)
             if len(gdzie) > 0:
                 res[skad] = gdzie
 
@@ -570,11 +574,12 @@ class ChessaoGame:
                 try:
                     pln = self.plansza.simulate_move(key, where, kar)
                 except Exception as e:
-                    # print('\n color: {} from {} to {} karta {}'.format(
-                        # color, key, where, kar))
-                    raise ChessaoGameplayError('\n color: {} from {} to {} karta {}\nSNAPSHOT:{}'.format(
-                        color, key, where, kar, self.snapshot()), gameplay=self, errors=e)
-                if pln.czy_szach(color) == (True, color):
+                    raise ChessaoGameplayError(
+                        '\n color: {} from {} to {} karta {}\nSNAPSHOT:{}'.format(
+                            color, key, where, kar, self.snapshot()),
+                        gameplay=self,
+                        errors=e)
+                if pln.color_is_checked(color) == (True, color):
                     res[key].remove(where)
                 del pln
         final = {k: v for (k, v) in res.items() if v != []}

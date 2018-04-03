@@ -66,10 +66,10 @@ class SlidingPiece(Piece):
         available_positions = []
         for i in range_:
             potential_position = position + i
-            while (board.brd[potential_position] != 0):
+            while (board[potential_position] != 0):
                 if board.is_empty(potential_position):
                     available_positions.append(potential_position)
-                elif board.brd[potential_position].color != color:
+                elif board[potential_position].color != color:
                     available_positions.append(potential_position)
                     break
                 else:
@@ -109,8 +109,8 @@ class Pawn(Piece):
         for i in a:
             possible_position = self.position + i
             if (not board.is_empty(possible_position) and
-                board.brd[possible_position] != 0 and
-                board.brd[possible_position].color != self.color) or \
+                board[possible_position] != 0 and
+                board[possible_position].color != self.color) or \
                     (board.enpass == possible_position):
                 dop.append(abs(i))
 
@@ -142,8 +142,8 @@ class Knight(Piece):
         res = []
         for i in (-12, -21, -19, -8, 8, 19, 21, 12):
             a = self.position + i
-            if board.brd[a] != 0:
-                if board.is_empty(a) or board.brd[a].color != self.color:
+            if board[a] != 0:
+                if board.is_empty(a) or board[a].color != self.color:
                     res.append(a)
 
         return res
@@ -155,10 +155,10 @@ class Queen(Piece):
         super(Queen, self).__init__(color, position, name, val, mvs)
 
     def _moves(self, card, board):
-        if card.ran == 'Q' and board.jaki_typ_zostal(self.color) != {'King', 'Queen'}:
+        if card.ran == 'Q' and board.piece_types_left(self.color) != {'King', 'Queen'}:
             res = [i for i in board.all_taken() if
-                   (board.brd[i].color == self.color and
-                    board.brd[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
+                   (board[i].color == self.color and
+                    board[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
             return res
 
         range_ = (9, 11, -11, -9, 1, -1, 10, -10)
@@ -179,11 +179,11 @@ class King(Piece):
             zakres = [1, -1, 10, -10, 9, 11, -9, -11]
         for i in zakres:
             a = self.position + i
-            if a > 20 and a < 99 and board.brd[a] != 0:
+            if a > 20 and a < 99 and board[a] != 0:
                 if board.is_empty(a):
                     res.append(a)
                     continue
-                elif board.brd[a].color != self.color:
+                elif board[a].color != self.color:
                     b = 2 * i
                     if b in zakres:
                         zakres.remove(b)
@@ -193,11 +193,11 @@ class King(Piece):
 
         # cannot move to a position under check
         res2 = deepcopy(res)
-        board.brd[self.position] = ' '
+        board[self.position] = ' '
         for r in res2:
-            if board.pod_biciem(r, self.color):
+            if board.under_attack(r, self.color):
                 res.remove(r)
-        board.brd[self.position] = self
+        board[self.position] = self
 
         # checking for castle / cannot castle on a special king card
         cstl = board.check_castle(self.color)
@@ -210,5 +210,5 @@ class King(Piece):
     def under_attack(cls, position_int, color, board):
         for i in (1, -1, 10, -10, 9, 11, -9, -11):
             a = position_int + i
-            if (type(board.brd[a]) == cls and board.brd[a].color != color):
+            if (type(board[a]) == cls and board[a].color != color):
                 return True

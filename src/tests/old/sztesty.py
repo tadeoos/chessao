@@ -43,9 +43,9 @@ def test(n=5, vid=False):
         else:
             randa = 0
         roz = ChessaoGame(randa)
-        # while(roz.plansza.czy_szach()==2 or Card(1,'K') not in
+        # while(roz.plansza.color_is_checked()==2 or Card(1,'K') not in
         # roz.gracze[1].reka):
-        while(roz.plansza.czy_szach('c') == (True, 'c')):
+        while(roz.plansza.color_is_checked('c') == (True, 'c')):
             roz = ChessaoGame(randa)
 
         # print('Rozgrywka nr {}'.format(licznik))
@@ -95,7 +95,7 @@ def test_err(n):
     print('Testing -- test_err()')
     roz = ChessaoGame()
 
-    while(roz.plansza.czy_szach('c') == (True, 'c')):
+    while(roz.plansza.color_is_checked('c') == (True, 'c')):
         roz = ChessaoGame()
     print('po rozgrywce')
 
@@ -111,7 +111,7 @@ def test_err(n):
             randa = 1
         print("\rPostęp: {:.1f}%".format(licznik / number_of_games), end="")
         roz = ChessaoGame(randa)
-        while(roz.plansza.czy_szach('c') == (True, 'c')):
+        while(roz.plansza.color_is_checked('c') == (True, 'c')):
             roz = ChessaoGame(randa)
         try:
             a = roz.graj()
@@ -129,13 +129,13 @@ def test_stat(n=5, m=2000):
         res = [0, 0, 0, 0]
         for i in range(m):
             roz = ChessaoGame()
-            while(roz.plansza.czy_szach() == 2):
+            while(roz.plansza.color_is_checked() == 2):
                 roz = ChessaoGame()
-            if roz.czy_szach('c') == 2:
+            if roz.color_is_checked('c') == 2:
                 res[3] += 1
-            elif roz.czy_szach('c'):
+            elif roz.color_is_checked('c'):
                 res[0] += 1
-            elif roz.czy_szach('b'):
+            elif roz.color_is_checked('b'):
                 res[1] += 1
             else:
                 res[2] += 1

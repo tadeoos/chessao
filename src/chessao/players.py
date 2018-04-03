@@ -50,7 +50,7 @@ class gracz(Player):
             if not ok_karta([card], talie):
                 burn = 1
             if not burn and card.ran == 'J':
-                ch = [s[0] for s in plansza.jaki_typ_zostal(
+                ch = [s[0] for s in plansza.piece_types_left(
                     invert_color(self.kol)) if s != 'King']
                 # here is a problem with jack loosing its ability when there is
                 # only king left..
@@ -107,12 +107,12 @@ class gracz_str(gracz):
         rating_list = []
         for m in move_list:
             brd = plansza.simulate_move(m[0], m[1], karta)
-            check = 1 if brd.czy_szach(invert_color(self.kol)) else 0
-            # mat = 100 if brd.czy_szach(invert_color(self.kol)) and
+            check = 1 if brd.color_is_checked(invert_color(self.kol)) else 0
+            # mat = 100 if brd.color_is_checked(invert_color(self.kol)) and
             # brd.czy_pat(invert_color(self.kol)) else 0
-            broniony = 4 if plansza.pod_biciem(
+            broniony = 4 if plansza.under_attack(
                 plansza.mapdict[m[1]], self.kol) else 0
-            atakowany = 4 if plansza.pod_biciem(
+            atakowany = 4 if plansza.under_attack(
                 plansza.mapdict[m[1]], invert_color(self.kol)) else 0
             rating = (brd.get_points(self.kol) - brd.get_points(invert_color(self.kol))
                       ) + (check * broniony) + broniony - atakowany

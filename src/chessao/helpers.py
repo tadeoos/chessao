@@ -288,7 +288,7 @@ def rozpakuj_input(inp):
 def last_line_check(color, first_sq, last_sq, board):
     '''Return the position of the Piece in the last row, if none return 0.'''
     for i in range(first_sq, last_sq):
-        if type(board.brd[i]) == Pawn and board.brd[i].color == color:
+        if type(board[i]) == Pawn and board[i].color == color:
             return i
     return 0
 
