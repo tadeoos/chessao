@@ -212,11 +212,12 @@ class ChessaoGame:
 
         w = self.what_happened()
 
-        # if king of spades was played get card from history (2 halfmoves ago)
         if w[0] == 2:
+            # if king of spades was played get card from history (2 halfmoves ago)
             self.cofnij(self.to_move, w[1])
             card = w[2]
         else:
+            # set up a card
             if ovr is not None:
                 card = ovr
                 assert self.card_ok_to_play(card), "Invalid card: {}".format(card)
@@ -238,9 +239,7 @@ class ChessaoGame:
         elif w[0] != 2:
             self.do_card_buisness(card[1])
 
-        # now_card birth
-        self.now_card = card[1][0]
-
+        # check if jack was played
         if len(card) == 3:
             self.jack = card[2]
             assert self.jack in self.plansza.piece_types_left(
@@ -248,7 +247,10 @@ class ChessaoGame:
         else:
             self.jack = None
 
-        if self.now_card.ran == '4' and not self.burned:
+        # now_card birth
+        self.now_card = card[1][0]
+
+        if (self.now_card.ran == '4' and not self.burned) or w[0]==1:
             self.capture = False
 
         if self.now_card.ran == '3' and not self.burned:
@@ -265,10 +267,12 @@ class ChessaoGame:
             return []
 
         w = self.what_happened()
-        all_moves = self.possible_moves(
-            self.to_move, self.capture, self.now_card, self.burned, w)
+
+        all_moves = self.possible_moves(self.to_move, self.capture, self.now_card, self.burned, w)
+
         if len(all_moves) == 0:
             return []
+
         crd = self.now_card if not self.burned else Card(1, '5')
         move = player.choose_move(
             all_moves, self.plansza, crd) if ovr is None else ovr
@@ -313,7 +317,10 @@ class ChessaoGame:
                 'self.plansza.move error:\nwhere: {} card: {}\nSNAPSHOT: {}'.format(
                     where, card, self.snapshot()),
                 gameplay=self, errors=e)
+        self.promote()
+        self.after_move_actions(card, where)
 
+    def promote(self, promotion=None):
         # checking if pawn is getting promoted
         zam = czy_pion_na_koncu(self.plansza, self.to_move)
         if zam > 0:
@@ -333,6 +340,7 @@ class ChessaoGame:
             else:
                 raise ChessaoGameplayError('Wrong promotion input')
 
+    def after_move_actions(self, card, where):
         # after my move I must not be checked
         assert not self.color_is_checked(self.to_move)
 
@@ -362,7 +370,6 @@ class ChessaoGame:
             fenrep=self.plansza.fen()
         )
         self.historia.append(record)
-        return True
 
     def color_is_checked(self, color):
         """Return True if color is checked."""
@@ -462,29 +469,30 @@ class ChessaoGame:
         3 -> king of hearts
         4 -> jack
         """
-        s = self.historia[-1]
-        s2 = self.historia[-2] if len(self.historia) > 1 else ''
-        ind = s2.index(':') if ':' in s2 else None
-        what = s[2]
+        one_move_before = self.historia[-1]
+        what = one_move_before[2]  # either ! or card rank that was played
+
+        two_moves_before = self.historia[-2] if len(self.historia) > 1 else ''
+        ind = two_moves_before.index(':') if ':' in two_moves_before else None
+
         # if the card was burned or there is a check, last card doesn't matter
         if what == '!' or self.szach or len(self.historia) == 1:
             return (0,)
-        elif what == '4' and self.now_card.ran != '4':
+        elif self.now_card.ran != '4' and (two_moves_before[2] == '4' or what == '4'):
             return (1,)
-        elif what == 'K' and s[3] == '♤' and ind is not None:
-            # r = re.search('\s(.+)\s',s2)
+        elif what == 'K' and one_move_before[3] == '♤' and ind is not None:
+            # r = re.search('\s(.+)\s',two_moves_before)
             c = self.from_history_get_card(2)
-            return (2, [s2[:ind][-2:], s2[ind + 1:][:2]], c)
-        elif what == 'K' and s[3] == '♡' and ind is not None:
-            if self.plansza.get_piece(s2[ind + 1:][:2]).color != self.to_move:
+            return (2, [two_moves_before[:ind][-2:], two_moves_before[ind + 1:][:2]], c)
+        elif what == 'K' and one_move_before[3] == '♡' and ind is not None:
+            if self.plansza.get_piece(two_moves_before[ind + 1:][:2]).color != self.to_move:
                 return (1,)
-            return (3, s2[ind + 1:][:2])
+            return (3, two_moves_before[ind + 1:][:2])
         elif what == 'J' and self.now_card.ran != 'J':
             if self.jack not in self.plansza.piece_types_left(self.to_move):
                 return (1,)
             return (4, self.jack)
-        else:
-            return (0,)
+        return (0,)
 
     def from_history_get_card(self, number_of_turns):
         """

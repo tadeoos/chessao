@@ -84,6 +84,8 @@ target/
 venv/
 ENV/
 
+# mypy
+.mypy_cache
 
 # OS generated files #
 

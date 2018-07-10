@@ -9,6 +9,7 @@ pympler = "*"
 ipython = "*"
 ipdb = "*"
 pytest = "*"
+mypy = "*"
 
 [packages]
 coverage = "*"
@@ -19,6 +20,7 @@ ipdb = "*"
 pytest-cov = "*"
 coveralls = "*"
 pyyaml = "*"
+pluggy = "*"
 
 [requires]
 python_version = "3.6"

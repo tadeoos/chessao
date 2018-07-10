@@ -1,4 +1,5 @@
 import pytest
+
 from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.cards import Card
 from chessao.gameplay import ChessaoGame, resurect
@@ -64,6 +65,8 @@ class TestFourCardBehavior:
 
     @classmethod
     def setup_method(self, test_method):
+        """Setup test with a 4 of spades played at the begining of a game."""
+
         self.first_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
         self.second_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
         cards = get_default_cards(select_hands=(self.first_hand, self.second_hand))
@@ -83,11 +86,13 @@ class TestFourCardBehavior:
     @pytest.mark.xfail(reason="capture parameter gets cleared too early")
     def test_four(self):
         assert not self.gameplay.capture
+        print('history przed', self.gameplay.historia)
         self.gameplay.make_an_overriden_move_in_one_func(
             card=(1, [self.second_hand[3]]),
             move=[]
         )
         assert self.gameplay.to_move == WHITE_COLOR
+        print('history po', self.gameplay.historia)
         assert not self.gameplay.capture
 
     def test_four_on_four(self):

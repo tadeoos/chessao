@@ -1,4 +1,6 @@
 import random
+from typing import List, Set, Dict, Tuple, Optional
+
 from chessao import CARDS_COLORS, NON_SCHODKABLE
 from chessao.cards import Card
 from chessao.pieces import Pawn
@@ -14,7 +16,7 @@ class ChessaoGameplayError(Exception):
         self.errors = errors
 
 
-def get_mapdict():
+def get_mapdict() -> Dict[str, int]:
     """Return dict with {'A1': 21, 'A2': 31 ...} mapping."""
     return {
         letter + str(number - 1): 10 * number + 1 + 'ABCDEFGH'.index(letter)
@@ -23,7 +25,7 @@ def get_mapdict():
     }
 
 
-def invert_color(color):
+def invert_color(color) -> str:
     '''
     Return the other color.
 
@@ -61,7 +63,7 @@ def deal(deck, override=None, number=5):
     return (player_a, player_b, deck)
 
 
-def str_to_card(str_card):
+def str_to_card(str_card: str) -> Card:
     '''
     Return a Card obj from a string representation.
 
@@ -75,7 +77,7 @@ def str_to_card(str_card):
     return Card(int(str_card[-1]), str_card[:-1])
 
 
-def decode_card_color(card_str):
+def decode_card_color(card_str: str) -> int:
     """
     return integer repr of a color
 
@@ -92,7 +94,7 @@ def decode_card_color(card_str):
         raise ValueError('incorrect card string: {}'.format(card_str))
 
 
-def decode_card(card_str):
+def decode_card(card_str: str) -> Tuple[int, List[Card], str]:
     """
     Parse card for gameflow
 

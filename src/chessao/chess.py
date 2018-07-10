@@ -6,10 +6,12 @@ Pieces values according to Hans Berliner's system
 """
 import random
 from math import floor
+from typing import List, Set, Dict, Tuple, Optional, Union, Iterable
+
 from termcolor import colored
 
 from chessao import WHITE_COLOR, BLACK_COLOR
-from chessao.pieces import Pawn, Rook, Knight, Bishop, Queen, King
+from chessao.pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 from chessao.cards import Card
 from chessao.helpers import get_mapdict
 
@@ -21,20 +23,20 @@ class Board:
     Chess Board class.
     """
 
-    def __init__(self, rand=False, fenrep=None):
+    def __init__(self, rand: bool = False, fenrep: str = None) -> None:
         """
         Board constructor.
 
         >>> 'K' in Board(rand=1).fen()
         True
         """
-        self._brd = [0 for i in range(120)]
-        self.mapdict = get_mapdict()
-        self.capture_took_place = False
-        self.captured_pieces = []
-        self.enpass = 300
-        self.fullmove = 0
-        self.halfmoveclock = 0
+        self._brd: List[Union[int, str, Piece]] = [0 for i in range(120)]
+        self.mapdict: Dict[str, int] = get_mapdict()
+        self.capture_took_place: bool = False
+        self.captured_pieces: List = []
+        self.enpass: int = 300
+        self.fullmove: int = 0
+        self.halfmoveclock: int = 0
 
         if not fenrep:
             fenrep = 'RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr w KQkq - 0 1'
@@ -50,38 +52,37 @@ class Board:
                 for (piece, quantity, pawn) in [(Pawn, 8, True), (Bishop, 2, False),
                                                 (Knight, 2, False), (Rook, 2, False),
                                                 (Queen, 1, False)]:
-                    rand = random.randint(0, quantity)
-                    for i in range(rand):
+                    for i in range(random.randint(0, quantity)):
                         pos = random.choice(self.list_empty_positions(random_pawn=pawn))
                         self[pos] = piece(k, pos)
         else:
             for (position, piece) in self.parse_fen(fenrep).items():
                 self[position] = piece
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, str]) -> Union[int, str, Piece]:
         """
         >>> b = Board()
         >>> b[2]
         0
         """
-        if type(key) is str:
+        if isinstance(key, str):
             try:
                 key = self.mapdict[key.upper()]
             except KeyError:
                 raise IndexError('Invalid square name: {}'.format(key))
-        if type(key) is not slice and (key < 0 or key > 119):
+        elif not isinstance(key, slice) and (key < 0 or key > 119):
             raise IndexError('Board index out of range')
         return self._brd[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         self._brd[key] = value
 
-    def pieces(self):
+    def pieces(self) -> Iterable[Piece]:
         """Generator yielding pieces on the board"""
         for position in self.all_taken():
             yield self[position]
 
-    def _move_piece(self, pos_from, pos_to):
+    def _move_piece(self, pos_from: int, pos_to: int) -> None:
         """Replace the piece from `pos_from` to `pos_to`
 
         Args:
@@ -89,22 +90,25 @@ class Board:
             pos_from (int)
         """
         self[pos_to] = self[pos_from]
-        self[pos_to].position = pos_to
-        self[pos_to].mvs_number += 1
+        piece = self[pos_to]
+        if isinstance(piece, Piece):
+            piece.position = pos_to
+            piece.mvs_number += 1
+        else:
+            raise ValueError
         self[pos_from] = EMPTY
-        return
 
-    def _turn_clock(self, piece_color, clock=1):
+    def _turn_clock(self, piece_color: int, clock:bool = True):
         """If clock = i -> increment halfmoveclock else zero"""
         if clock:
             self.halfmoveclock += 1
         else:
             self.halfmoveclock = 0
+
         if self[piece_color].color == 'c':
             self.fullmove += 1
-        return
 
-    def _enpassant_move(self, start_position_int, end_position_int, only_bool):
+    def _enpassant_move(self, start_position_int: int, end_position_int: int, only_bool: bool):
         if only_bool:
             return True
         assert self.is_empty(end_position_int)
@@ -116,7 +120,7 @@ class Board:
             self.captured_pieces.append(self[end_position_int + 10])
             self[end_position_int + 10] = EMPTY
         self._move_piece(pos_from=start_position_int, pos_to=end_position_int)
-        self._turn_clock(piece_color=end_position_int, clock=0)
+        self._turn_clock(piece_color=end_position_int, clock=False)
         # clearing enpass after enpass -> problem in pat functiong
         self.enpass = 300
         return self
@@ -314,7 +318,7 @@ class Board:
                     if self[i] == EMPTY and floor(i / 10) not in (2, 9)]
         return [i for i in range(len(self._brd)) if self[i] == EMPTY]
 
-    def all_taken(self):
+    def all_taken(self) -> List[int]:
         """Return list of positions taken by some Piece."""
         return [i for i in range(len(self._brd))
                 if self[i] != EMPTY and self[i] != 0]
