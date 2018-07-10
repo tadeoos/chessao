@@ -1,7 +1,26 @@
-from chessao.cards import Deck
+import json
+
+from chessao import BLACK_COLOR, WHITE_COLOR
+from chessao.cards import Deck, Card
 from chessao.chess import Board
 from chessao.helpers import deal
-from chessao.players import gracz, gracz_str
+from chessao.players import Player, gracz, gracz_str
+
+
+class GameplayEncoder(json.JSONEncoder):
+    """A JSON encoder class for Gameplay object."""
+
+    def default(self, obj):
+        if isinstance(obj, Card):
+            return '{} {}'.format(obj.ran, obj.kol)
+        if isinstance(obj, Deck):
+            return obj.cards
+        if isinstance(obj, Board):
+            return obj.fen()
+        if isinstance(obj, Player):
+            return str(obj)
+
+        return json.JSONEncoder.default(self, obj)
 
 
 def get_default_board():
@@ -10,8 +29,8 @@ def get_default_board():
 
 def get_default_players():
     return (
-        gracz(1, 'b', bot=True),
-        gracz_str(2, 'c')
+        gracz(1, WHITE_COLOR, bot=True),
+        gracz_str(2, BLACK_COLOR)
     )
 
 
