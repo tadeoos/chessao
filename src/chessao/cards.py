@@ -94,7 +94,7 @@ class Card:
         rank_diff = CARDS_RANKS_MAPPING[self.rank] - CARDS_RANKS_MAPPING[card.rank]
         if abs(rank_diff) == 1 and self.color == card.color:
             return True
-        if abs(rank_diff) == 0:
+        if abs(rank_diff) == 0 and self.color != card.color:
             return True
         return False
 
@@ -195,7 +195,6 @@ class ChessaoCards:
             [self.deck.pop()],
             [self.deck.pop()]
         )
-        self. = None
         self.penultimate_card = None
         self.last_card = None
         self.current_card = None
@@ -295,20 +294,12 @@ class ChessaoCards:
         return True
 
     @staticmethod
-    def generate_stairs(cards: List[Card], strict=False):
-        def get_copy(card, list_of_cards):
-            index = list_of_cards.index(card)
-            copied = list_of_cards[:index] + list_of_cards[index+1:]
-            return copied
-
-        def get_neighbours(card, list_of_cards):
-            return [other for other in list_of_cards if card.is_near(other)]
+    def generate_stairs(cards: List[Card], strict: bool = False) -> List[List[Card]]:
 
         def get_graph(cards):
             graph = {}
             for card in cards:
-                rest = get_copy(card, cards)
-                graph[card] = get_neighbours(card, rest)
+                graph[card] = [other for other in cards if card.is_near(other)]
             return graph
 
         def find_all_paths(graph, start, end, path=[]):
