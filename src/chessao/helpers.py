@@ -1,7 +1,7 @@
 import random
 from typing import List, Set, Dict, Tuple, Optional
 
-from chessao import CARDS_COLORS, NON_SCHODKABLE
+from chessao import CARDS_COLORS
 from chessao.cards import Card
 from chessao.pieces import Pawn
 
@@ -140,46 +140,6 @@ def nawaleta(jack_str):
     return jack_str
 
 
-def schodki_check(card_list):
-    """
-    Check if "card stairs" are build correctly.
-
-    >>> c = Card
-    >>> schodki_check([c(1,'6'),c(1,'7'),c(2,'7')])
-    True
-    >>> schodki_check([c(1,'2'),c(2,'3')])
-    False
-    >>> schodki_check([c(1,'7'),c(1,'6'),c(1,'5')])
-    True
-    >>> schodki_check([c(3,'6'),c(1,'6'),c(2,'6'),c(2,'6'),c(4,'6')])
-    True
-    >>> schodki_check([c(2,'2'),c(1,'2'),c(1,'3')])
-    False
-    >>> schodki_check([c(2,'3'),c(1,'3'),c(4,'3')])
-    True
-    >>> schodki_check([c(2,'6'),c(2,'7'),c(3,'7'),c(3,'6')])
-    True
-    """
-
-    for i in range(len(card_list) - 1):
-
-        color_check = card_list[i].kol == card_list[i + 1].kol
-        current_rank = int(card_list[i].ran)
-        next_rank = int(card_list[i + 1].ran)
-        big_stair_check = current_rank + 1 == next_rank
-        low_stair_check = current_rank - 1 == next_rank
-
-        if card_list[i].ran in NON_SCHODKABLE:
-            return False
-
-        if current_rank == next_rank:
-            continue
-        if color_check:
-            if big_stair_check or low_stair_check:
-                continue
-        return False
-    return True
-
 
 def ok_karta(card, decks):
     """
@@ -191,7 +151,7 @@ def ok_karta(card, decks):
     False
     """
     if len(card) > 1:
-        if not schodki_check(card):
+        if not check_stairs(card):
             return False
 
     card_color = card[0].kol

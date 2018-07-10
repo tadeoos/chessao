@@ -172,7 +172,7 @@ def stat_avr(m=5, n=5, e=2000):
 # print('\n schodki ...')
 # for l in li:
 # 	print(l)
-# 	print(schodki_check(l))
+# 	print(check_stairs(l))
 
 
 # Matów: 18, Patów: 111, Błędów: 21

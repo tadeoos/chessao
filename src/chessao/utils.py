@@ -22,9 +22,9 @@ def get_default_cards(select_hands=None):
 
     Returns dict
     """
-    cards = Deck()
-    cards.combine(Deck().cards)
-    cards.tasuj()
+    cards = Deck.two_decks()
+    assert len(cards) == 104
+    cards.shuffle()
     hand_one, hand_two, deck = deal(cards, override=select_hands)
 
     if select_hands is not None:  # when hands are selected we assume testing context
