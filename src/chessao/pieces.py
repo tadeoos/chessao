@@ -98,7 +98,7 @@ class Pawn(Piece):
 
     def _moves(self, card, board, direction=1):
         dop = [10, 20] if self.mvs_number == 0 else [10]
-        if card.ran == '2':
+        if card.rank == '2':
             dop.append(dop[-1] + 10)
         if self.color == BLACK_COLOR:
             direction = -1
@@ -155,7 +155,7 @@ class Queen(Piece):
         super(Queen, self).__init__(color, position, name, val, mvs)
 
     def _moves(self, card, board):
-        if card.ran == 'Q' and board.piece_types_left(self.color) != {'King', 'Queen'}:
+        if card.rank == 'Q' and board.piece_types_left(self.color) != {'King', 'Queen'}:
             res = [i for i in board.all_taken() if
                    (board[i].color == self.color and
                     board[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
@@ -172,7 +172,7 @@ class King(Piece):
 
     def _moves(self, card, board):
         res = []
-        if card.ran == 'K' and card.kol in (3, 4):
+        if card.rank == 'K' and card.kol in (3, 4):
             zakres = [1, -1, 10, -10, 9, 11, -9, -11,
                       2, -2, 20, -20, 18, 22, -18, -22]
         else:
@@ -201,7 +201,7 @@ class King(Piece):
 
         # checking for castle / cannot castle on a special king card
         cstl = board.check_castle(self.color)
-        if cstl['possible_castles'] > 0 and (card.ran != 'K' or card.kol not in (3, 4)):
+        if cstl['possible_castles'] > 0 and (card.rank != 'K' or card.kol not in (3, 4)):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res

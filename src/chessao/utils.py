@@ -4,7 +4,7 @@ from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.cards import Deck, Card
 from chessao.chess import Board
 from chessao.helpers import deal
-from chessao.players import Player, gracz, gracz_str
+from chessao.players import Player, gracz, StrategicBot
 
 
 class GameplayEncoder(json.JSONEncoder):

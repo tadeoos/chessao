@@ -1,8 +1,9 @@
 """
 Players classes
 """
-
 import random
+from typing import List
+
 from chessao.cards import Card
 from chessao.chess import Board
 from chessao.helpers import ok_karta, invert_color, nawaleta
@@ -11,18 +12,18 @@ from chessao.helpers import ok_karta, invert_color, nawaleta
 class Player:
     """A player abstract class."""
 
-    def __init__(self, id_, color, reka=None, bot=True, name='gracz'):
+    def __init__(self, id_, color, hand=None, bot=True, name='gracz'):
         self.id = id_
         self.color = color
-        self.hand = reka
+        self.hand = hand or []
         self.name = name
         self.bot = bot
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.nr)
+        return '{} {}'.format(self.name, self.id)
 
     def __repr__(self):
-        return '{} {}'.format(self.name, self.nr)
+        return '{} {}'.format(self.name, self.id)
 
     def choose_card(self, talie, plansza):
         """Returns a card from player hand."""
@@ -34,6 +35,13 @@ class Player:
     def update_cards(self, cards: List[Card]):
         self.hand.extend(cards)
         assert len(self.hand) == 5
+
+    def remove_cards(self, cards: List[Card]):
+        for card in cards:
+            try:
+                self.hand.remove(card)
+            except ValueError:
+                raise ValueError(f"Card not in player's hand: {card}, hand: {self.hand}")
 
     def choose_move(self, d, plansza, karta):
         """Select a move out ou a board."""
@@ -53,15 +61,15 @@ class gracz(Player):
             card = random.choice(self.hand)
             if not ok_karta([card], talie):
                 burn = 1
-            if not burn and card.ran == 'J':
-                ch = [s[0] for s in plansza.piece_types_left(
-                    invert_color(self.color)) if s != 'King']
-                # here is a problem with jack loosing its ability when there is
-                # only king left..
-                if len(ch) == 0:
-                    return (burn, [card])
-                choice = random.choice(ch)
-                return (burn, [card], nawaleta(choice))
+            # if not burn and card.ran == 'J':
+            #     ch = [s[0] for s in plansza.piece_types_left(
+            #         invert_color(self.color)) if s != 'King']
+            #     # here is a problem with jack loosing its ability when there is
+            #     # only king left..
+            #     if len(ch) == 0:
+            #         return (burn, [card])
+            #     choice = random.choice(ch)
+            #     return (burn, [card], nawaleta(choice))
             return (burn, [card])
         else:
             print('\nKupki: |{0:>3} |  |{1:>3} |'.format(
@@ -104,7 +112,7 @@ class gracz(Player):
             return input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n').upper()
 
 
-class gracz_str(gracz):
+class StrategicBot(gracz):
 
     def choose_move(self, d, plansza, karta):
         move_list = [[skad, gdzie] for skad in d.keys() for gdzie in d[skad]]
