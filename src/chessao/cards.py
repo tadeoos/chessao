@@ -105,6 +105,13 @@ class Card:
             return rank == self.rank
         return color == self.color
 
+    @classmethod
+    def from_string(cls, str_card, burned=False):
+        if str_card.startswith('!'):
+            burned = True
+            str_card = str_card[1:]
+        return cls(int(str_card[-1]), str_card[:-1], burned)
+
 class Deck:
     """
     A Deck of cards class.
@@ -132,6 +139,10 @@ class Deck:
         [5♤]
         """
         return [self.cards.pop() for _ in range(repeat)]
+
+    def remove(self, cards: List[Card]):
+        for card in cards:
+            self.cards.remove(card)
 
     def combine(self, cards: List[Card]):
         """
@@ -179,8 +190,8 @@ class Deck:
     def two_decks(cls):
         first_deck = cls()
         second_deck = cls()
-        two_decks = first_deck.combine(second_deck.cards)
-        return two_decks
+        first_deck.combine(second_deck.cards)
+        return first_deck
 
     def pop(self):
         return self.cards.pop()
@@ -191,7 +202,7 @@ class ChessaoCards:
         self.deck = Deck.two_decks()
         self.deck.shuffle()
         self.burned = []
-        piles = (
+        self.piles = (
             [self.deck.pop()],
             [self.deck.pop()]
         )
@@ -200,14 +211,45 @@ class ChessaoCards:
         self.current_card = None
 
     @classmethod
-    def with_piles(cls, piles: List[Card]):
+    def for_tests(cls, piles: List[List[Card]], **kwargs):
         """Return ChessaoCards with specific piles."""
-        pass
+        cards = cls()
+        for pile in cards.piles:
+            cards.deck.combine(pile)
+        for pile in piles:
+            cards.deck.remove(pile)
+        cards.piles = piles
+        if kwargs.get('hands'):
+            for hand in kwargs.get('hands'):
+                cards._remove_from_anywhere(hand)
+        return cards
+
+    def _remove_from_anywhere(self, cards: List[Card]):
+        for card in cards:
+            try:
+                self.deck.remove([card])
+            except ValueError:
+                try:
+                    self.burned.remove(card)
+                except ValueError:
+                    try:
+                        self.piles[0].remove(card)
+                    except ValueError:
+                        self.piles[1].remove(card)
+
 
     def deal(self, repeat=1):
         return self.deck.deal(repeat)
 
-    def _put_card(card):
+    @property
+    def count(self) -> int:
+        return len(self.deck) + len(self.burned) + len(self.piles[0]) + len(self.piles[1])
+
+    @property
+    def all_cards(self) -> List[Card]:
+        return self.deck.cards + self.burned + self.piles[0] + self.piles[1]
+
+    def _put_card(self, card):
         self.penultimate_card = self.last_card
         self.last_card = self.current_card
         self.current_card = card
@@ -215,11 +257,12 @@ class ChessaoCards:
     def play_cards(self, cards: List[Card], pile: Optional[int]):
         if not self.validate_cards(cards):
             raise ValueError("Invalid card")
-        self.piles[pile].append(card)
+        self.piles[pile].extend(cards)
         self._put_card(cards[-1])
 
-    def burn_card(card: List[Card]):
-        self.burned.append(card[-1])
+    def burn_card(self, cards: List[Card]):
+        assert len(cards) == 1
+        self.burned.append(cards[-1])
         self._put_card(None)
 
     def validate_cards(self, cards: List[Card]):
