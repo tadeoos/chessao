@@ -2,64 +2,41 @@ import pytest
 
 from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.cards import Card
-from chessao.gameplay import ChessaoGame, resurect
+from chessao.players import Player
+from chessao.gameplay import ChessaoGame
 import chessao.helpers as helpers
-from chessao.utils import (
-    get_default_board,
-    get_default_cards,
-    get_default_players,
-    get_gameplay_defaults
-)
+
+from .utils import assert_lists_equal, card_list
 
 
-def simple_gameplay():
-    gameplay = ChessaoGame(default_setup=True)
-
-    white_player_cards = gameplay.get_user_cards(WHITE_COLOR, first=False)
-    black_player_cards = gameplay.get_user_cards(BLACK_COLOR, first=False)
-
-    cards_queue = [
-        white_player_cards[0],
-        black_player_cards[0],
-        white_player_cards[1]
-    ]
-
-    # first move from white
-    gameplay.make_an_overriden_move_in_one_func(
-        card=(1, [cards_queue[0]]),
-        move=['A2', 'A4']
+def test_sth():
+    piles = (card_list(['Q1']), card_list(['Q3']))
+    hands = (
+        card_list(['Q1', '41', 'J1', 'K1', '73']),
+        card_list(['Q3', '42', 'J2', 'K2', '73'])
     )
-    # first move from blacks
-    gameplay.make_an_overriden_move_in_one_func(
-        card=(1, [cards_queue[1]]),
-        move=['A7', 'A6']
-    )
-    # second move from white
-    gameplay.make_an_overriden_move_in_one_func(
-        card=(1, [cards_queue[2]]),
-        move=['A4', 'A5']
-    )
-    return gameplay, cards_queue
+    chessao = ChessaoGame.for_tests(hands, piles)
+    assert chessao.mate == False
 
+class TestPossibleMoves:
 
-def test_bad_constructor():
-    with pytest.raises(AssertionError):
-        ChessaoGame()
+    def test_positions_at_start(self, chessao_default):
+        assert chessao_default.possible_moves() == {
+            'A2': ['A3', 'A4'],
+            'B1': ['A3', 'C3'],
+            'B2': ['B3', 'B4'],
+            'C2': ['C3', 'C4'],
+            'D2': ['D3', 'D4'],
+            'E2': ['E3', 'E4'],
+            'F2': ['F3', 'F4'],
+            'G1': ['F3', 'H3'],
+            'G2': ['G3', 'G4'],
+            'H2': ['H3', 'H4']
+        }
 
-
-def test_obvious():
-    test_gameplay, used_cards = simple_gameplay()
-    print(test_gameplay.snapshot())
-    assert test_gameplay.to_move == BLACK_COLOR
-    assert not test_gameplay.mat
-    assert test_gameplay.historia == [
-        "RNBQKBNR/PPPPPPPP/8/8/8/8/pppppppp/rnbqkbnr KQkq - 0 0",
-        "b !{} PA2:A4 RNBQKBNR/1PPPPPPP/8/P7/8/8/pppppppp/rnbqkbnr KQkq A3 0 0".format(used_cards[0]),
-        "c !{} pA7:A6 RNBQKBNR/1PPPPPPP/8/P7/8/p7/1ppppppp/rnbqkbnr KQkq - 0 1".format(used_cards[1]),
-        "b !{} PA4:A5 RNBQKBNR/1PPPPPPP/8/8/P7/p7/1ppppppp/rnbqkbnr KQkq - 0 1".format(used_cards[2])
-    ]
-    assert test_gameplay.get_cards_quantity() == 104
-
+    def test_positions_when_four(self, chessao_four_played):
+        chessao_four_played.play_cards([Card(1, '5')])
+        assert chessao_four_played.possible_moves() == {}
 
 class TestFourCardBehavior:
 
@@ -69,46 +46,41 @@ class TestFourCardBehavior:
 
         self.first_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
         self.second_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
-        cards = get_default_cards(select_hands=(self.first_hand, self.second_hand))
-        gameplay_args = get_gameplay_defaults(cards=cards)
-        self.gameplay = ChessaoGame(**gameplay_args)
-        self.gameplay.make_an_overriden_move_in_one_func(
-            card=(0, [self.first_hand[0]]),
-            move=['A2', 'A4']
+        self.gameplay = ChessaoGame.for_tests([self.first_hand, self.second_hand])
+        self.gameplay.full_move(
+            cards=[self.first_hand[0]],
+            move=['A2','A4']
         )
-        assert not self.gameplay.capture
 
     def teardown_method(self, test_method):
         self.gameplay = None
         self.first_hand = None
         self.second_hand = None
 
-    @pytest.mark.xfail(reason="capture parameter gets cleared too early")
+    # @pytest.mark.xfail(reason="capture parameter gets cleared too early")
     def test_four(self):
-        assert not self.gameplay.capture
-        print('history przed', self.gameplay.historia)
-        self.gameplay.make_an_overriden_move_in_one_func(
-            card=(1, [self.second_hand[3]]),
-            move=[]
+        self.gameplay.full_move(
+            cards=[self.second_hand[3]],
+            move=[],
+            burn=True
         )
         assert self.gameplay.to_move == WHITE_COLOR
-        print('history po', self.gameplay.historia)
-        assert not self.gameplay.capture
+        # assert not self.gameplay.can_capture
 
     def test_four_on_four(self):
-        assert not self.gameplay.capture
-        self.gameplay.make_an_overriden_move_in_one_func(
-            card=(0, [self.second_hand[1]]),
-            move=['A7', 'A6']
+        self.gameplay.full_move(
+            cards=[self.second_hand[1]],
+            move=['A7','A6']
         )
-        assert not self.gameplay.capture
         assert self.gameplay.to_move == WHITE_COLOR
+        assert not self.gameplay.can_capture
 
     @pytest.mark.xfail(reason="Wrong card erroring not implemented")
     def test_wrong_card(self):
-        assert not self.gameplay.capture
+        assert not self.gameplay.can_capture
         assert self.gameplay.to_move == BLACK_COLOR
         with pytest.raises(helpers.ChessaoGameplayError):
-            self.gameplay.make_an_overriden_move_in_one_func(
-                card=(0, [Card(1, '5')]),
-                move=['A7', 'A6'])
+            self.gameplay.full_move(
+                cards=card[Card(1, '5')],
+                move=['A7', 'A6']
+            )
