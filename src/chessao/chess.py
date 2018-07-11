@@ -46,7 +46,7 @@ class Board:
                 self[position] = EMPTY
 
         if rand:
-            for k in ('c', 'b'):
+            for k in (BLACK_COLOR, WHITE_COLOR):
                 rand2 = random.choice(self.list_empty_positions())
                 self[rand2] = King(k, rand2)
                 for (piece, quantity, pawn) in [(Pawn, 8, True), (Bishop, 2, False),
@@ -105,7 +105,7 @@ class Board:
         else:
             self.halfmoveclock = 0
 
-        if self[piece_color].color == 'c':
+        if self[piece_color].color == BLACK_COLOR:
             self.fullmove += 1
 
     def _enpassant_move(self, start_position_int: int, end_position_int: int, only_bool: bool):
@@ -148,7 +148,7 @@ class Board:
         self._turn_clock(piece_color=end_position_int, clock=1)
         return self
 
-    def move(self, pos_from, pos_to=None, card=Card(1, '5'), only_bool=False):
+    def move(self, pos_from, pos_to=None, card=None, only_bool=False):
         """
         Move a piece on a board.
 
@@ -205,6 +205,8 @@ class Board:
         AssertionError: Move is not possible: H2 -> H5; RNBQKBNR/P1P1PPPP/1p6/8/8/4P3/1ppp1ppp/rnbqkbnr KQkq - 0 5
         """
 
+        card = card or Card(1, '5')
+
         self.capture_took_place = False
         start_position_int = self.mapdict[pos_from]
         end_position_int = self.mapdict[pos_to]
@@ -226,14 +228,14 @@ class Board:
                 self.enpass = 300
 
         # checking for castle
-        if all([card.ran != 'K' or card.kol not in (3, 4),
+        if all([card.rank != 'K' or card.kol not in (3, 4),
                 self[start_position_int].name == 'King',
                 abs(end_position_int - start_position_int) == 2]):
             return self._castle_move(start_position_int, end_position_int, only_bool)
 
         # checking for Queen card and valid Queen move
         enemy_pieces_left = self.piece_types_left(self[start_position_int].color)
-        if all([card.ran == 'Q',
+        if all([card.rank == 'Q',
                 self[start_position_int].name == 'Queen',
                 enemy_pieces_left != {'King', 'Queen'}]):
             return self._queen_move(start_position_int, end_position_int, only_bool)
@@ -551,7 +553,7 @@ class Board:
             if row_str[counter].isnumeric():
                 pos += int(row_str[counter])
             else:
-                color = 'b' if row_str[counter].isupper() else 'c'
+                color = WHITE_COLOR if row_str[counter].isupper() else BLACK_COLOR
                 piece = FEN_DICT[row_str[counter].lower()]
                 pieces_dict[pos] = piece(color, pos)
                 pos += 1
