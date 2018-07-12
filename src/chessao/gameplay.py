@@ -5,6 +5,7 @@ import re
 import sys
 import time
 from typing import List
+import logging
 
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card, ChessaoCards
@@ -43,6 +44,7 @@ class ChessaoGame:
         self.can_capture = kwargs.get('can_capture', True)
         self.jack = kwargs.get('jack', None)
         self.three = kwargs.get('three', 0)
+        self.logger = logging.getLogger(__name__)
 
         # deal cards
         if kwargs.get('deal', True):

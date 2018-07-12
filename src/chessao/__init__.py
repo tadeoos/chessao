@@ -38,3 +38,17 @@ PIECES_STR = {
 
     }
 }
+
+
+import logging
+
+# from logging import NullHandler
+# logging.getLogger(__name__).addHandler(NullHandler())
+
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s.%(lineno)s: %(message)s',
+                              datefmt='%m/%d/%Y %H:%M:%S')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
