@@ -110,7 +110,11 @@ class Card:
         if str_card.startswith('!'):
             burned = True
             str_card = str_card[1:]
-        return cls(int(str_card[-1]), str_card[:-1], burned)
+        if str_card[-1] in '♤♡♢♧':
+            color = '♤♡♢♧'.index(str_card[-1]) + 1
+        else:
+            color = int(str_card[-1])
+        return cls(color, str_card[:-1], burned)
 
 class Deck:
     """

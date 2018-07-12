@@ -17,6 +17,15 @@ from chessao.helpers import get_mapdict
 
 EMPTY = ' '
 
+FEN_DICT = {
+    'p': Pawn,
+    'r': Rook,
+    'n': Knight,
+    'k': King,
+    'q': Queen,
+    'b': Bishop,
+}
+
 
 class Board:
     """
@@ -541,14 +550,6 @@ class Board:
         pos = i + 1
         pieces_dict = {}
         counter = 0
-        FEN_DICT = {
-            'p': Pawn,
-            'r': Rook,
-            'n': Knight,
-            'k': King,
-            'q': Queen,
-            'b': Bishop,
-        }
         while counter < len(row_str) and pos < i + 9:
             if row_str[counter].isnumeric():
                 pos += int(row_str[counter])

@@ -4,12 +4,14 @@ import os
 import re
 import sys
 import time
+import re
+from collections import defaultdict
 from typing import List
 import logging
 
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card, ChessaoCards
-from chessao.chess import Board
+from chessao.chess import Board, FEN_DICT
 from chessao.helpers import (
     ChessaoGameplayError,
     # decode_card_color,
@@ -26,6 +28,80 @@ from chessao.players import Player
 from chessao.utils import get_gameplay_defaults, GameplayEncoder
 
 
+class ChessaoHistory:
+
+    def __init__(self, board: Board, ledger=None) -> None:
+        self.ledger = ledger or [board.fen()]
+
+    def __len__(self):
+        return len(self.ledger)
+
+    def add(self, chessao_game: 'ChessaoGame') -> None:
+        if not chessao_game.current_move:
+            record = f"""{chessao_game.to_move} {'!' if chessao_game.burned else ''}
+            {chessao_game.current_card} {chessao_game.board.fen()}"""
+        else:
+            record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(
+                color=chessao_game.to_move,
+                burn='!' if chessao_game.burned else '',
+                car=chessao_game.current_card,
+                jack=';' + chessao_game.jack[0] if chessao_game.jack is not None else '',
+                piece=chessao_game.board.get_fen_rep(chessao_game.board.get_piece(chessao_game.current_move[1])),
+                fro=chessao_game.current_move[0],
+                to=chessao_game.current_move[1],
+                prom='=' + chessao_game.promotion if chessao_game.promotion else '',
+                check='+' if chessao_game.check else '',
+                mate='#' if chessao_game.mate else '',
+                fenrep=chessao_game.board.fen()
+            )
+        self.ledger.append(record)
+
+    def get_move_from_turn(self, index: int, key: str = None):
+        parsed_move = self.parse_record(self.ledger[index])
+        if key:
+            return parsed_move[key]
+        return parsed_move
+
+    @staticmethod
+    def parse_record(record: str):
+        record_dict = defaultdict(lambda: None)
+        pattern = (fr'(?P<color>{WHITE_COLOR}|{BLACK_COLOR}) (?P<burn>!?)'
+                   r'(?P<card>\d{0,2}\w?[♤♡♢♧]);?(?P<jack>\w?) '
+                   r'((?P<piece>\w)(?P<start>\w\d):(?P<end>\w\d))?'
+                   r'(=(?P<promotion>\w))?(?P<check>\+?)(?P<mate>#?)\s?'
+                   r'(?P<board>[RNBPQKrpnbqk12345678/]{5,}) '
+                   r'(?P<white_castle>[KQ]+|-)(?P<black_castle>[kq]+|-) '
+                   r'(?P<enpassant>\w\d|-) (?P<halfomve>\d+) (?P<fullmove>\d+)'
+                   )
+
+        matched = re.search(pattern, record)
+        if matched is None:
+            raise ValueError(f"Record not matched: {record}")
+
+        for group in ('color', 'board', 'white_castle', 'black_castle', 'enpassant'):
+            record_dict[group] = matched.group(group)
+
+        for group in ('jack', 'piece', 'promotion'):
+            if matched.group(group):
+                record_dict[group] = FEN_DICT[matched.group(group).lower()]
+
+        for group in ('check', 'mate'):
+            if matched.group(group):
+                record_dict[group] = bool(matched.group(group))
+
+        if matched.group('start') == '':
+            assert matched.group('end') == ''
+            record_dict['move'] = []
+        else:
+            record_dict['move'] = [matched.group('start'), matched.group('end')]
+
+        record_dict['burned'] = bool(matched.group('burn'))
+        record_dict['card'] = Card.from_string(matched.group('card'))
+        record_dict['halfmove'] = int(matched.group('halfomve'))
+        record_dict['fullmove'] = int(matched.group('fullmove'))
+
+        return record_dict
+
 class ChessaoGame:
     """A gameplay class."""
 
@@ -33,7 +109,7 @@ class ChessaoGame:
 
         self.board = board or Board()
         self.cards = cards or ChessaoCards()
-        self.history = kwargs.get('history', [self.board.fen()])
+        self.history = kwargs.get('history', ChessaoHistory(self.board))
         self.current_move = kwargs.get('current_move', None)
         self.last_move = kwargs.get('last_move', None)
         self.to_move = kwargs.get('to_move', WHITE_COLOR)
@@ -221,23 +297,7 @@ History:
             self.to_move = WHITE_COLOR
 
     def add_to_history(self):
-        if not self.current_move:
-            record = f'{self.to_move} {self.current_card} '
-        else:
-            record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(
-                color=self.to_move,
-                burn='!' if self.burned else '',
-                car=self.current_card,
-                jack=';' + self.jack[0] if self.jack is not None else '',
-                piece=self.board.get_fen_rep(self.board.get_piece(self.current_move[1])),
-                fro=self.current_move[0],
-                to=self.current_move[1],
-                prom='=' + self.promotion if self.promotion else '',
-                check='+' if self.check else '',
-                mate='#' if self.mate else '',
-                fenrep=self.board.fen()
-            )
-        self.history.append(record)
+        self.history.add(self)
 
     @staticmethod
     def invert_color(color):
