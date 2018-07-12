@@ -62,9 +62,9 @@ class TestChessaoCards:
         stairs = ChessaoCards.generate_stairs(cards)
         assert stairs == []
 
-    def test_with_piles(self):
+    def test_for_tests(self):
         piles = [[Card.from_string('101')], [Card.from_string('Q2')]]
-        cards = ChessaoCards.with_piles(piles)
+        cards = ChessaoCards.for_tests(piles)
         assert cards.count == 104
         assert_lists_equal(Deck.two_decks().cards, cards.all_cards)
 

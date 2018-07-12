@@ -2,7 +2,7 @@ import random
 from typing import List, Set, Dict, Tuple, Optional
 
 from chessao import CARDS_COLORS
-from chessao.cards import Card
+from chessao.cards import Card, ChessaoCards
 from chessao.pieces import Pawn
 
 
@@ -151,15 +151,15 @@ def ok_karta(card, decks):
     False
     """
     if len(card) > 1:
-        if not check_stairs(card):
+        if not ChessaoCards.validate_stairs(card):
             return False
 
-    card_color = card[0].kol
-    card_rank = card[0].ran
+    card_color = card[0].color
+    card_rank = card[0].rank
 
     for deck in decks:
-        last_card_color = deck[-1].kol
-        last_card_rank = deck[-1].ran
+        last_card_color = deck[-1].color
+        last_card_rank = deck[-1].rank
         if card_color == last_card_color \
                 or card_rank == last_card_rank \
                 or 'Q' in (last_card_rank, card_rank):
@@ -202,12 +202,12 @@ def ktora_kupka(karta, kupki, rnd=False):
 
     '''
     res = []
-    card_rank = karta[0].ran
-    card_color = karta[0].kol
+    card_rank = karta[0].rank
+    card_color = karta[0].color
     for i, pile in enumerate(kupki):
-        pile_rank = pile[-1].ran
+        pile_rank = pile[-1].rank
 
-        color_check = card_color == pile[-1].kol
+        color_check = card_color == pile[-1].color
         rank_check = card_rank == pile_rank
         queen_check = pile_rank == 'Q'or card_rank == 'Q'
 

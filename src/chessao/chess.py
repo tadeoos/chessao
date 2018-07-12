@@ -185,10 +185,12 @@ class Board:
         Board: Q3K2R/8/8/R7/8/8/8/8 K - 1 0
         >>> Board(fenrep='R3K2R/8/8/P7/8/8/8/8').move('A4','A5', Card(1,'Q'))
         Board: R3K2R/8/8/8/P7/8/8/8 KQ - 0 0
-        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/8/8').move('A5','A4', Card(1,'6'))
-        Board: R3K2R/8/8/q7/8/8/8/8 KQ - 0 1
-        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/1N6/8').move('B7','A5', Card(1,'6'))
-        Board: R3K2R/8/8/P7/N7/8/8/8 KQ - 0 0
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/8/3k4').move('A5','A4', Card(1,'6'))
+        Board: R3K2R/8/8/q7/8/8/8/3k4 KQ - 0 1
+        >>> Board(fenrep='R3K2R/8/8/P7/q7/8/1N6/k7').move('B7','A5', Card(1,'6'))  #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        AssertionError: ...
         >>> b = Board()
         >>> b.move('D2','D4')
         Board: RNBQKBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbqkbnr KQkq D3 0 0

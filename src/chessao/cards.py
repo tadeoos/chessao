@@ -80,15 +80,15 @@ class Card:
 
     def is_near(self, card):
         """
-        >>> Card(1, '7').is_near(Card(1, '8')
+        >>> Card(1, '7').is_near(Card(1, '8'))
         True
-        >>> Card(1, '7').is_near(Card(2, '7')
+        >>> Card(1, '7').is_near(Card(2, '7'))
         True
-        >>> Card(1, '7').is_near(Card(1, '9')
+        >>> Card(1, '7').is_near(Card(1, '9'))
         False
-        >>> Card(1, 'K').is_near(Card(1, 'A')
+        >>> Card(1, 'K').is_near(Card(1, 'A'))
         True
-        >>> Card(1, '2').is_near(Card(1, '3')
+        >>> Card(1, '2').is_near(Card(1, '3'))
         True
         """
         rank_diff = CARDS_RANKS_MAPPING[self.rank] - CARDS_RANKS_MAPPING[card.rank]
@@ -174,7 +174,7 @@ class Deck:
         >>> from copy import copy
         >>> d = Deck()
         >>> cards_before = copy(d.cards)
-        >>> d.tasuj()
+        >>> d.shuffle()
         >>> cards_before != d.cards
         True
         """
@@ -316,8 +316,10 @@ class ChessaoCards:
         >>> validate_stairs([c(2,'2'),c(1,'2'),c(1,'3')])
         False
         >>> validate_stairs([c(2,'3'),c(1,'3'),c(4,'3')])
-        True
+        False
         >>> validate_stairs([c(2,'6'),c(2,'7'),c(3,'7'),c(3,'6')])
+        True
+        >>> validate_stairs([c(2,'6'),c(2,'5'),c(3,'5'),c(3,'4')])
         True
         """
 
