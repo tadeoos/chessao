@@ -8,5 +8,6 @@ env:
 install:
   - pip install pipenv
   - pipenv install --dev --three
-# before_script: flake8 .
+
+before_script: flake8 .
 script: pipenv run pytest
