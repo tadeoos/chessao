@@ -14,14 +14,16 @@ Coming soon.
 
 ### tests
 
-From the root directory run:
-
 ```bash
-python src/tests/chessao_tests.py 1 [or other number of games]
+pytest
 ```
+### TODO
 
-Run doctests for specific module (from /src directory):
-
-```bash
-python -m doctest chessao/cards.py -v
-```
+- [ ] 4 card
+- [ ] 3 card
+- [ ] jack
+- [x] Queen
+- [ ] King of spades
+- [ ] King of hearts
+- [ ] Other kings
+- [ ] Ace
