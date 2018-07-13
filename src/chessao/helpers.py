@@ -24,6 +24,13 @@ def get_mapdict() -> Dict[str, int]:
         for letter in 'ABCDEFGH'
     }
 
+def get_inverted_mapdict() -> Dict[int, str]:
+    """Return dict with {21: 'A1', 31: 'A2' ...} mapping."""
+    return {
+        10 * number + 1 + 'ABCDEFGH'.index(letter): letter + str(number - 1)
+        for number in range(2, 10)
+        for letter in 'ABCDEFGH'
+    }
 
 def invert_color(color) -> str:
     '''
