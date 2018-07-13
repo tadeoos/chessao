@@ -210,6 +210,7 @@ class ChessaoCards:
             [self.deck.pop()],
             [self.deck.pop()]
         )
+        self.absolute_current = None
         self.penultimate_card = None
         self.last_card = None
         self.current_card = None
@@ -253,10 +254,11 @@ class ChessaoCards:
     def all_cards(self) -> List[Card]:
         return self.deck.cards + self.burned + self.piles[0] + self.piles[1]
 
-    def _put_card(self, card):
+    def _put_card(self, card, burn=False):
         self.penultimate_card = self.last_card
         self.last_card = self.current_card
-        self.current_card = card
+        self.current_card = card if not burn else None
+        self.absolute_current = card
 
     def play_cards(self, cards: List[Card], pile: Optional[int]):
         if not self.validate_cards(cards):
@@ -267,7 +269,7 @@ class ChessaoCards:
     def burn_card(self, cards: List[Card]):
         assert len(cards) == 1
         self.burned.append(cards[-1])
-        self._put_card(None)
+        self._put_card(cards[-1], burn=True)
 
     def validate_cards(self, cards: List[Card]):
         """
