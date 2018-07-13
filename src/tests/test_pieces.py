@@ -55,3 +55,13 @@ def test_castle():
     king_moves = board.get_piece(25).moves(DEFAULT_CARD, board)
     assert 23 in king_moves, king_moves
     assert 27 in king_moves, king_moves
+
+def test_check_moves_are_removed():
+    board = Board(fenrep='R3K2R/2P1P3/2b5/pP6/8/Nnr1qQbB/8/7k KQ')
+    piece_moves = board.get_piece(33).moves(DEFAULT_CARD, board)
+    assert piece_moves == []
+
+def test_queen_moves():
+    board = Board(fenrep='RNB1K1NR/PPPP1PPP/8/2B1P3/4p2Q/2n2n2/pppp1ppp/r1bqkb1r KQkq E6 4 3')
+    piece_moves = board.get_piece("H5").moves(DEFAULT_CARD, board)
+    assert 86 in piece_moves

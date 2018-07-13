@@ -13,23 +13,54 @@ class Piece:
 
     def __init__(self, color, position, name, val, mvs=0):
         self.color = color
-        self.position = position
         self.mvs_number = mvs
         self.history = []
         self.name = name
+        self._position = position
         self.val = val
+
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position = value
+
+    @position.deleter
+    def position(self): # again, name must be the same
+        del self._position
 
     def _moves(self, card, board):
         raise NotImplementedError
 
+    def _move_results_in_check(self, board):
+        board[self.position] = ' '
+        king_pos = board.positions_of_piece('King', self.color)
+        try:
+            check = board.color_is_checked(self.color)
+        except AssertionError:
+            # raise AssertionError(f'{self} | pos: {self.position} |\n board: {board}')
+            raise
+        board[self.position] = self
+        return check
+
     def moves(self, card, board):
+        # TODO: write tests for pieces moves
         """
         Return a list of positions that a piece can move onto, on
         a specific card & board.
         """
         if board.get_piece(self.position) != self:
             raise ChessaoPieceException('Piece is not on the board')
-        return self._moves(card, board)
+
+        # if move results in check there are no moves
+        if self._move_results_in_check(board):
+                return []
+
+        moves = self._moves(card, board)
+
+        return moves
 
     @classmethod
     def under_attack(cls, position_int, color, board):
@@ -170,9 +201,12 @@ class King(Piece):
     def __init__(self, color, position, name='King', val=10, mvs=0):
         super(King, self).__init__(color, position, name, val, mvs)
 
+    def _move_results_in_check(self, board):
+        return False
+
     def _moves(self, card, board):
         res = []
-        if card.rank == 'K' and card.kol in (3, 4):
+        if card.rank == 'K' and card.color in (3, 4):
             zakres = [1, -1, 10, -10, 9, 11, -9, -11,
                       2, -2, 20, -20, 18, 22, -18, -22]
         else:
@@ -192,16 +226,15 @@ class King(Piece):
                     continue
 
         # cannot move to a position under check
-        res2 = deepcopy(res)
         board[self.position] = ' '
-        for r in res2:
+        for r in deepcopy(res):
             if board.under_attack(r, self.color):
                 res.remove(r)
         board[self.position] = self
 
         # checking for castle / cannot castle on a special king card
         cstl = board.check_castle(self.color)
-        if cstl['possible_castles'] > 0 and (card.rank != 'K' or card.kol not in (3, 4)):
+        if cstl['possible_castles'] > 0 and (card.rank != 'K' or card.color not in (3, 4)):
             res.extend([i for i in cstl.values() if i > 10])
 
         return res
