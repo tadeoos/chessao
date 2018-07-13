@@ -28,7 +28,7 @@ class Piece:
         self._position = value
 
     @position.deleter
-    def position(self): # again, name must be the same
+    def position(self):
         del self._position
 
     def _moves(self, card, board):

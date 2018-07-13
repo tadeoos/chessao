@@ -6,7 +6,7 @@ Pieces values according to Hans Berliner's system
 """
 import random
 from math import floor
-from typing import List, Set, Dict, Tuple, Optional, Union, Iterable
+from typing import List, Dict, Union, Iterable
 
 from termcolor import colored
 
@@ -62,7 +62,8 @@ class Board:
                                                 (Knight, 2, False), (Rook, 2, False),
                                                 (Queen, 1, False)]:
                     for i in range(random.randint(0, quantity)):
-                        pos = random.choice(self.list_empty_positions(random_pawn=pawn))
+                        pos = random.choice(
+                            self.list_empty_positions(random_pawn=pawn))
                         self[pos] = piece(k, pos)
         else:
             for (position, piece) in self.parse_fen(fenrep).items():
@@ -107,7 +108,7 @@ class Board:
             raise ValueError
         self[pos_from] = EMPTY
 
-    def _turn_clock(self, piece_color: int, clock:bool = True):
+    def _turn_clock(self, piece_color: int, clock: bool = True):
         """If clock = i -> increment halfmoveclock else zero"""
         if clock:
             self.halfmoveclock += 1
@@ -217,11 +218,14 @@ class Board:
         card = card or Card(1, '5')
 
         self.capture_took_place = False
-        start_position_int = self.mapdict[pos_from] if isinstance(pos_from, str) else pos_from
-        end_position_int = self.mapdict[pos_to] if isinstance(pos_to, str) else pos_to
+        start_position_int = self.mapdict[pos_from] if isinstance(
+            pos_from, str) else pos_from
+        end_position_int = self.mapdict[pos_to] if isinstance(
+            pos_to, str) else pos_to
 
         if self.is_empty(start_position_int):
-            raise ValueError('There is no Piece in that field {}'.format(pos_from))
+            raise ValueError(
+                'There is no Piece in that field {}'.format(pos_from))
 
         assert end_position_int in self[start_position_int].moves(card, self), \
             f"Move is not possible: {pos_from} -> {pos_to}; {self.fen()}"
@@ -243,7 +247,8 @@ class Board:
             return self._castle_move(start_position_int, end_position_int, only_bool)
 
         # checking for Queen card and valid Queen move
-        enemy_pieces_left = self.piece_types_left(self[start_position_int].color)
+        enemy_pieces_left = self.piece_types_left(
+            self[start_position_int].color)
         if all([card.rank == 'Q',
                 self[start_position_int].name == 'Queen',
                 enemy_pieces_left != {'King', 'Queen'}]):
@@ -261,7 +266,8 @@ class Board:
                 self.capture_took_place = True
                 clock_value = 0
                 self.captured_pieces.append(self[end_position_int])
-            self._move_piece(pos_from=start_position_int, pos_to=end_position_int)
+            self._move_piece(pos_from=start_position_int,
+                             pos_to=end_position_int)
             self._turn_clock(piece_color=end_position_int, clock=clock_value)
             return self
 
@@ -411,9 +417,11 @@ class Board:
 
             long_castle = rook_pos < king_pawn
             if long_castle:
-                in_between_positions = [i for i in range(rook_pos + 1, king_pawn)]
+                in_between_positions = [
+                    i for i in range(rook_pos + 1, king_pawn)]
             else:
-                in_between_positions = [i for i in range(king_pawn + 1, rook_pos)]
+                in_between_positions = [
+                    i for i in range(king_pawn + 1, rook_pos)]
 
             can_castle = True
             for pos in in_between_positions:
@@ -475,7 +483,7 @@ class Board:
         if self[king_pos].mvs_number > 0:
             return ''
         for rook_pos in rooks_postions:
-            if self[rook_pos].mvs_number > 0 or int(rook_pos/10) != int(king_pos/10):
+            if self[rook_pos].mvs_number > 0 or int(rook_pos / 10) != int(king_pos / 10):
                 continue
             if rook_pos > king_pos:
                 result += 'K'
@@ -547,7 +555,8 @@ class Board:
             if row_str[counter].isnumeric():
                 pos += int(row_str[counter])
             else:
-                color = WHITE_COLOR if row_str[counter].isupper() else BLACK_COLOR
+                color = WHITE_COLOR if row_str[counter].isupper(
+                ) else BLACK_COLOR
                 piece = FEN_DICT[row_str[counter].lower()]
                 pieces_dict[pos] = piece(color, pos)
                 pos += 1
@@ -601,7 +610,7 @@ class Board:
             for i in move_range:
                 potential_capturing_piece_pos = position + i
                 if (type(self[potential_capturing_piece_pos]) == piece_type and
-                   self[potential_capturing_piece_pos].color != color):
+                        self[potential_capturing_piece_pos].color != color):
                     return True
             return False
 

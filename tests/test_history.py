@@ -1,9 +1,8 @@
-import pytest
-
 from chessao.pieces import Pawn, Rook
 from chessao.chess import Board
 from chessao.cards import Card
 from chessao.gameplay import ChessaoHistory
+
 
 class TestHistory:
 

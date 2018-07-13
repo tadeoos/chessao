@@ -1,10 +1,5 @@
-from copy import deepcopy
-import json
-import os
 import re
-import sys
-import time
-import re
+
 from collections import defaultdict
 from typing import List
 import logging
@@ -12,21 +7,11 @@ import logging
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card, ChessaoCards
 from chessao.chess import Board, FEN_DICT, EMPTY
-from chessao.helpers import (
-    ChessaoGameplayError,
-    # decode_card_color,
-    invert_color,
-    # deal,
-    decode_card,
-    ok_karta,
-    odejmij,
-    ktora_kupka,
-    czy_pion_na_koncu,
-)
-from chessao.pieces import Rook, Bishop, King, Knight, Queen
+
+from chessao.pieces import King
 from chessao.players import Player
-from chessao.utils import get_gameplay_defaults, GameplayEncoder
-from chessao.helpers import get_inverted_mapdict
+from chessao.helpers import get_inverted_mapdict, ok_karta
+
 
 class ChessaoHistory:
 
@@ -51,8 +36,10 @@ class ChessaoHistory:
                 color=chessao_game.to_move,
                 burn='!' if chessao_game.burned else '',
                 car=chessao_game.cards.absolute_current,
-                jack=';' + chessao_game.jack[0] if chessao_game.jack is not None else '',
-                piece=chessao_game.board.get_fen_rep(chessao_game.board.get_piece(chessao_game.current_move[1])),
+                jack=';' +
+                chessao_game.jack[0] if chessao_game.jack is not None else '',
+                piece=chessao_game.board.get_fen_rep(
+                    chessao_game.board.get_piece(chessao_game.current_move[1])),
                 fro=chessao_game.current_move[0],
                 to=chessao_game.current_move[1],
                 prom='=' + chessao_game.promotion if chessao_game.promotion else '',
@@ -64,7 +51,7 @@ class ChessaoHistory:
 
     def get_move_from_turn(self, index: int, key: str = None):
         if not 0 < abs(index) < len(self.ledger):
-            #TODO: logging
+            # TODO: logging
             return defaultdict(lambda: None)
         parsed_move = self.parse_record(self.ledger[index])
         if key:
@@ -102,7 +89,8 @@ class ChessaoHistory:
             assert matched.group('end') == ''
             record_dict['move'] = []
         else:
-            record_dict['move'] = [matched.group('start'), matched.group('end')]
+            record_dict['move'] = [matched.group(
+                'start'), matched.group('end')]
 
         record_dict['burned'] = bool(matched.group('burn'))
         record_dict['card'] = Card.from_string(matched.group('card'))
@@ -110,6 +98,7 @@ class ChessaoHistory:
         record_dict['fullmove'] = int(matched.group('fullmove'))
 
         return record_dict
+
 
 class ChessaoGame:
     """A gameplay class."""
@@ -144,7 +133,7 @@ class ChessaoGame:
             Player(1, WHITE_COLOR, name='white', hand=hands[0]),
             Player(2, BLACK_COLOR, name='black', hand=hands[1])
         )
-        piles = piles or ([Card(2,'Q')], [Card(4,'Q')])
+        piles = piles or ([Card(2, 'Q')], [Card(4, 'Q')])
         cards = ChessaoCards.for_tests(piles, hands=hands)
         chessao = cls(players, board, cards, deal=False, **kwargs)
         assert len(hands[0]) + len(hands[1]) + len(cards.all_cards) == 104
@@ -210,7 +199,6 @@ class ChessaoGame:
             return False
         return all([getattr(piece, k) == v for k, v in kwargs.items()])
 
-
     def change_color(self):
         self.to_move = self.invert_color(self.to_move)
 
@@ -237,8 +225,10 @@ class ChessaoGame:
             burn = True
         self.play_cards(cards, pile, burn)
         if move:
-            assert move[0] in self.possible_moves(), f'{self.possible_moves()}| {self.current_card}'
-            assert move[1] in self.possible_moves()[move[0]], f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
+            assert move[0] in self.possible_moves(
+            ), f'{self.possible_moves()}| {self.current_card}'
+            assert move[1] in self.possible_moves(
+            )[move[0]], f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
             self.chess_move(move[0], move[1])
         else:
             self.current_move = []
@@ -252,6 +242,7 @@ class ChessaoGame:
             self.cards.play_cards(cards, pile)
         self.current_player.update_cards(self.cards.deal(len(cards)))
         self.set_capture()
+        self.handle_ace()
 
     def chess_move(self, start: str, end: str):
         self.current_move = [start, end]
@@ -263,6 +254,21 @@ class ChessaoGame:
         self.set_mate()
         self.add_to_history()
         self.change_color()
+
+    def handle_ace(self):
+        if self.card_is(self.current_card, 'A'):
+            if not self.check:
+                pass
+
+    def set_capture(self):
+        second_move_after_four = all([self.card_is(self.penultimate_card, '4'),
+                                      not self.card_is(self.last_card, '4')])
+
+        if any([self.card_is(self.current_card, '4'),
+                second_move_after_four]):
+            self.can_capture = False
+        else:
+            self.can_capture = True
 
     def set_check(self):
         color = self.invert_color(self.current_player.color)
@@ -288,27 +294,17 @@ class ChessaoGame:
                 # but it can't help you during check
                 if self.check and card.rank == 'Q':
                     continue
-                #TODO: handle this shiit, it's still shady
+                # TODO: handle this shiit, it's still shady
                 if self.possible_moves(card):
                     self.stalemate = False
                     self.to_move = self.invert_color(color)
                     return
             elif self.possible_moves(card):
-                    self.stalemate = False
-                    self.to_move = self.invert_color(color)
-                    return
+                self.stalemate = False
+                self.to_move = self.invert_color(color)
+                return
         self.stalemate = True
         self.to_move = self.invert_color(color)
-
-    def set_capture(self):
-        second_move_after_four = all([self.card_is(self.penultimate_card, '4'),
-                                      not self.card_is(self.last_card, '4')])
-
-        if any([self.card_is(self.current_card, '4'),
-                second_move_after_four]):
-            self.can_capture = False
-        else:
-            self.can_capture = True
 
     @property
     def player_should_lose_turn(self):
@@ -332,10 +328,6 @@ class ChessaoGame:
             four_condition,
             king_of_hearts_condition
         ])
-
-    @property
-    def should_change_last_move(self):  # king of spades
-        return self.card_is(self.current_card, 'K', 1)
 
     def positions_taken_by_color(self, color):
         return [pos for pos in self.board.all_taken()
@@ -378,7 +370,8 @@ class ChessaoGame:
         elif last_move['jack'] is not None:
             # if jack is active
             piece_name = self.get_piece_name(last_move['jack'])
-            possible_start = self.board.positions_of_piece(piece_name, self.to_move)
+            possible_start = self.board.positions_of_piece(
+                piece_name, self.to_move)
 
         possible_start = self.positions_taken_by_color(self.to_move)
         for start in possible_start:

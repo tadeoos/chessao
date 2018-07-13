@@ -5,8 +5,7 @@ import random
 from typing import List
 
 from chessao.cards import Card
-from chessao.chess import Board
-from chessao.helpers import ok_karta, invert_color, nawaleta
+from chessao.helpers import ok_karta, invert_color
 
 
 class Player:
@@ -45,7 +44,8 @@ class Player:
             try:
                 self.hand.remove(card)
             except ValueError:
-                raise ValueError(f"Card not in player's hand: {card}, hand: {self.hand}")
+                raise ValueError(
+                    f"Card not in player's hand: {card}, hand: {self.hand}")
 
     def choose_move(self, d, plansza, karta):
         """Select a move out ou a board."""
@@ -113,7 +113,8 @@ class gracz(Player):
         if self.bot:
             return random.choice(['D', 'G', 'S', 'W'])
         else:
-            return input('Na jaką figurę chcesz zamienić piona?\nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n').upper()
+            return input(f'''Na jaką figurę chcesz zamienić piona?
+                        \nD - Dama\nG - Goniec\nS - Skoczek\nW - Wieża\n''').upper()
 
 
 class StrategicBot(gracz):

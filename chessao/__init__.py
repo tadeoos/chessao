@@ -1,3 +1,5 @@
+import logging
+
 CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 CARDS_RANKS = ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
 CARDS_RANKS_MAPPING = {
@@ -39,8 +41,6 @@ PIECES_STR = {
     }
 }
 
-
-import logging
 
 # from logging import NullHandler
 # logging.getLogger(__name__).addHandler(NullHandler())

@@ -23,7 +23,8 @@ pytest
 - [ ] 3 card
 - [ ] jack
 - [x] Queen
-- [ ] King of spades
-- [ ] King of hearts
-- [ ] Other kings
+- [x] King of spades
+- [x] King of hearts
+- [x] Other kings
 - [ ] Ace
+- [ ] Integrations

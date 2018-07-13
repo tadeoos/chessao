@@ -1,6 +1,6 @@
 """Cards module."""
 import random
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict
 from itertools import permutations
 from functools import total_ordering
 from typing import List, Optional
@@ -27,7 +27,7 @@ class Card:
         >>> Card(1, 20)
         Traceback (most recent call last):
             ...
-        TypeError: Invalid card rank. Should be one of ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
+        TypeError: Invalid card rank. Should be one of ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')  # noqa
         >>> Card(10, 'K')
         Traceback (most recent call last):
             ...
@@ -39,7 +39,8 @@ class Card:
         if color not in CARDS_COLORS.keys():
             raise TypeError('Card color should be an integer: 1, 2, 3 or 4')
         if rank not in CARDS_RANKS:
-            raise TypeError('Invalid card rank. Should be one of {}'.format(CARDS_RANKS))
+            raise TypeError(
+                'Invalid card rank. Should be one of {}'.format(CARDS_RANKS))
 
         self.color = color
         self.rank = rank
@@ -91,7 +92,8 @@ class Card:
         >>> Card(1, '2').is_near(Card(1, '3'))
         True
         """
-        rank_diff = CARDS_RANKS_MAPPING[self.rank] - CARDS_RANKS_MAPPING[card.rank]
+        rank_diff = CARDS_RANKS_MAPPING[self.rank] - \
+            CARDS_RANKS_MAPPING[card.rank]
         if abs(rank_diff) == 1 and self.color == card.color:
             return True
         if abs(rank_diff) == 0 and self.color != card.color:
@@ -116,6 +118,7 @@ class Card:
             color = int(str_card[-1])
         return cls(color, str_card[:-1], burned)
 
+
 class Deck:
     """
     A Deck of cards class.
@@ -126,12 +129,13 @@ class Deck:
     def __init__(self, card_list=None):
         """
         >>> Deck().cards
-        [A♤, 2♤, 3♤, 4♤, 5♤, 6♤, 7♤, 8♤, 9♤, 10♤, J♤, Q♤, K♤, A♡, 2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♢, 2♢, 3♢, 4♢, 5♢, 6♢, 7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♧, 2♧, 3♧, 4♧, 5♧, 6♧, 7♧, 8♧, 9♧, 10♧, J♧, Q♧, K♧]
+        [A♤, 2♤, 3♤, 4♤, 5♤, 6♤, 7♤, 8♤, 9♤, 10♤, J♤, Q♤, K♤, A♡, 2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♢, 2♢, 3♢, 4♢, 5♢, 6♢, 7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♧, 2♧, 3♧, 4♧, 5♧, 6♧, 7♧, 8♧, 9♧, 10♧, J♧, Q♧, K♧]  # noqa
         >>> Deck(card_list=[Card(1,'5')]).cards
         [5♤]
         """
         if card_list is None:
-            self.cards = [Card(col, rank) for col in CARDS_COLORS.keys() for rank in CARDS_RANKS]
+            self.cards = [Card(col, rank) for col in CARDS_COLORS.keys()
+                          for rank in CARDS_RANKS]
         else:
             self.cards = card_list
 
@@ -200,6 +204,7 @@ class Deck:
     def pop(self):
         return self.cards.pop()
 
+
 class ChessaoCards:
 
     def __init__(self):
@@ -241,7 +246,6 @@ class ChessaoCards:
                         self.piles[0].remove(card)
                     except ValueError:
                         self.piles[1].remove(card)
-
 
     def deal(self, repeat=1):
         return self.deck.deal(repeat)
@@ -297,7 +301,7 @@ class ChessaoCards:
 
     def possible_cards(self, hand: List[Card]) -> List[Card]:
         single_cards = [card for card in hand
-                if self._card_can_be_played(card)]
+                        if self._card_can_be_played(card)]
         stairs = self.generate_stairs(hand, strict=True)
         return single_cards + stairs
 
@@ -368,7 +372,8 @@ class ChessaoCards:
                         paths.append(newpath)
             return paths
 
-        cards = list(OrderedDict((x, True) for x in cards).keys())  # for ease of written tests
+        cards = list(OrderedDict((x, True)
+                                 for x in cards).keys())  # for ease of written tests
         result = []
         graph = get_graph(cards)
         for node, end in permutations(cards, 2):

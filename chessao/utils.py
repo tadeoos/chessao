@@ -30,7 +30,7 @@ def get_default_board():
 def get_default_players():
     return (
         gracz(1, WHITE_COLOR, bot=True),
-        gracz_str(2, BLACK_COLOR)
+        StrategicBot(2, BLACK_COLOR)
     )
 
 

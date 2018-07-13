@@ -2,11 +2,10 @@ import pytest
 
 from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.cards import Card
-from chessao.players import Player
 from chessao.gameplay import ChessaoGame
 import chessao.helpers as helpers
 
-from .utils import assert_lists_equal, card_list
+from .utils import card_list
 
 
 def test_sth():
@@ -16,7 +15,8 @@ def test_sth():
         card_list(['Q3', '42', 'J2', 'K2', '73'])
     )
     chessao = ChessaoGame.for_tests(hands, piles)
-    assert chessao.mate == False
+    assert not chessao.mate
+
 
 class TestPossibleMoves:
 
@@ -38,29 +38,31 @@ class TestPossibleMoves:
         chessao_four_played.play_cards([Card(1, '5')])
         assert chessao_four_played.possible_moves() == {}
 
+
 class TestCheck:
 
     def test_scholars_mate(self, chessao_default):
-        chessao_default.full_move(cards=None, move=['E2','E4'], burn=True)
-        chessao_default.full_move(cards=None, move=['E7','E5'], burn=True)
-        chessao_default.full_move(cards=None, move=['D1','H5'], burn=True)
-        chessao_default.full_move(cards=None, move=['B8','C6'], burn=True)
-        chessao_default.full_move(cards=None, move=['F1','C4'], burn=True)
-        chessao_default.full_move(cards=None, move=['G8','F6'], burn=True)
-        chessao_default.full_move(cards=None, move=['H5','F7'], burn=True)
+        chessao_default.full_move(cards=None, move=['E2', 'E4'], burn=True)
+        chessao_default.full_move(cards=None, move=['E7', 'E5'], burn=True)
+        chessao_default.full_move(cards=None, move=['D1', 'H5'], burn=True)
+        chessao_default.full_move(cards=None, move=['B8', 'C6'], burn=True)
+        chessao_default.full_move(cards=None, move=['F1', 'C4'], burn=True)
+        chessao_default.full_move(cards=None, move=['G8', 'F6'], burn=True)
+        chessao_default.full_move(cards=None, move=['H5', 'F7'], burn=True)
 
         assert chessao_default.check
         assert chessao_default.finished
 
     def test_checking_piece_can_be_captured(self, chessao_default):
-        chessao_default.full_move(cards=None, move=['E2','E4'])
-        chessao_default.full_move(cards=None, move=['F7','F5'])
-        chessao_default.full_move(cards=None, move=['E4','E5'])
-        chessao_default.full_move(cards=None, move=['G8','F6'])
-        chessao_default.full_move(cards=None, move=['D1','H5'])
+        chessao_default.full_move(cards=None, move=['E2', 'E4'])
+        chessao_default.full_move(cards=None, move=['F7', 'F5'])
+        chessao_default.full_move(cards=None, move=['E4', 'E5'])
+        chessao_default.full_move(cards=None, move=['G8', 'F6'])
+        chessao_default.full_move(cards=None, move=['D1', 'H5'])
         assert chessao_default.check
-        chessao_default.full_move(cards=None, move=['F6','H5'])
+        chessao_default.full_move(cards=None, move=['F6', 'H5'])
         assert not chessao_default.check
+
 
 class TestFourCardBehavior:
 
@@ -68,12 +70,15 @@ class TestFourCardBehavior:
     def setup_method(self, test_method):
         """Setup test with a 4 of spades played at the begining of a game."""
 
-        self.first_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
-        self.second_hand = [*map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
-        self.gameplay = ChessaoGame.for_tests([self.first_hand, self.second_hand])
+        self.first_hand = [
+            *map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
+        self.second_hand = [
+            *map(helpers.str_to_card, ['41', '42', '51', '101', 'J1'])]
+        self.gameplay = ChessaoGame.for_tests(
+            [self.first_hand, self.second_hand])
         self.gameplay.full_move(
             cards=[self.first_hand[0]],
-            move=['A2','A4']
+            move=['A2', 'A4']
         )
 
     def teardown_method(self, test_method):
@@ -94,7 +99,7 @@ class TestFourCardBehavior:
     def test_four_on_four(self):
         self.gameplay.full_move(
             cards=[self.second_hand[1]],
-            move=['A7','A6']
+            move=['A7', 'A6']
         )
         assert self.gameplay.to_move == WHITE_COLOR
         assert not self.gameplay.can_capture
@@ -105,7 +110,7 @@ class TestFourCardBehavior:
         assert self.gameplay.to_move == BLACK_COLOR
         with pytest.raises(helpers.ChessaoGameplayError):
             self.gameplay.full_move(
-                cards=card[Card(1, '5')],
+                cards=[Card(1, '5')],
                 move=['A7', 'A6']
             )
 
@@ -117,7 +122,8 @@ class TestFourCardBehavior:
 # król się zbija w pewnym momencie (jakim?)
 # - dokleilem w self.possible_moves pozycje kinga
 # kkier unhashable type karta
-#  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
+# problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak
+# widzie ze cos zle ale olewam to dla k pika.
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
 # robię tak, że tracisz kolejkę.
 # czy mogę dać czwórkę na waleta?
@@ -128,7 +134,10 @@ class TestFourCardBehavior:
 # jest szach ) biały król zagrywa króla pik. -> system się jebie
 
 
-# może być też tak, że król się gracz się sam wpierdoli w pata. Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król, który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję? Samopodpierdolenie na remis?
+# może być też tak, że król się gracz się sam wpierdoli w pata.
+# Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król,
+# który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję?
+# Samopodpierdolenie na remis?
 # roboczo - tak
 
 # co jesli chce zagrać roszadę na królu trefl?

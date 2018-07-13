@@ -1,5 +1,5 @@
 import random
-from typing import List, Set, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 
 from chessao import CARDS_COLORS
 from chessao.cards import Card, ChessaoCards
@@ -24,6 +24,7 @@ def get_mapdict() -> Dict[str, int]:
         for letter in 'ABCDEFGH'
     }
 
+
 def get_inverted_mapdict() -> Dict[int, str]:
     """Return dict with {21: 'A1', 31: 'A2' ...} mapping."""
     return {
@@ -31,6 +32,7 @@ def get_inverted_mapdict() -> Dict[int, str]:
         for number in range(2, 10)
         for letter in 'ABCDEFGH'
     }
+
 
 def invert_color(color) -> str:
     '''
@@ -147,7 +149,6 @@ def nawaleta(jack_str):
     return jack_str
 
 
-
 def ok_karta(card, decks):
     """
     Returns True if a card is can be put on one of a decks
@@ -227,7 +228,6 @@ def ktora_kupka(karta, kupki, rnd=False):
             return random.randint(0, 1)
         usr_input = input(
             'Na którą kupkę dołożyć kartę? (0 - lewa / 1 - prawa) ')
-        assert a in ('1', '0')
         return int(usr_input)
     raise ValueError('card: {} kupki {}'.format(karta, kupki))
 

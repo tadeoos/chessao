@@ -10,19 +10,22 @@ DEFAULT_PLAYERS = (
     Player(2, BLACK_COLOR, name='black')
 )
 
+
 @fixture
 def chessao_default():
     return ChessaoGame(DEFAULT_PLAYERS)
 
+
 @fixture
 def chessao_check():
     chessao = ChessaoGame(DEFAULT_PLAYERS)
-    chessao.full_move(cards=None, move=['E2','E4'])
-    chessao.full_move(cards=None, move=['F7','F5'])
-    chessao.full_move(cards=None, move=['E4','E5'])
-    chessao.full_move(cards=None, move=['G8','F6'])
-    chessao.full_move(cards=None, move=['D1','H5'])
+    chessao.full_move(cards=None, move=['E2', 'E4'])
+    chessao.full_move(cards=None, move=['F7', 'F5'])
+    chessao.full_move(cards=None, move=['E4', 'E5'])
+    chessao.full_move(cards=None, move=['G8', 'F6'])
+    chessao.full_move(cards=None, move=['D1', 'H5'])
     return chessao
+
 
 @fixture
 def chessao_four_played():
@@ -31,6 +34,6 @@ def chessao_four_played():
     game = ChessaoGame.for_tests([first_hand, second_hand])
     game.full_move(
         cards=[first_hand[0]],
-        move=['A2','A4']
+        move=['A2', 'A4']
     )
     return game
