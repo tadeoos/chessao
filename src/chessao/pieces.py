@@ -34,15 +34,13 @@ class Piece:
     def _moves(self, card, board):
         raise NotImplementedError
 
-    def _move_results_in_check(self, board):
-        board[self.position] = ' '
-        king_pos = board.positions_of_piece('King', self.color)
-        try:
-            check = board.color_is_checked(self.color)
-        except AssertionError:
-            # raise AssertionError(f'{self} | pos: {self.position} |\n board: {board}')
-            raise
+    def _move_results_with_check(self, move, board):
+        end_piece = board[move]
+        board[self.position] = " "
+        board[move] = self
+        check = board.color_is_checked(self.color)
         board[self.position] = self
+        board[move] = end_piece
         return check
 
     def moves(self, card, board):
@@ -54,11 +52,8 @@ class Piece:
         if board.get_piece(self.position) != self:
             raise ChessaoPieceException('Piece is not on the board')
 
-        # if move results in check there are no moves
-        if self._move_results_in_check(board):
-                return []
-
-        moves = self._moves(card, board)
+        moves = [move for move in self._moves(card, board)
+                 if not self._move_results_with_check(move, board)]
 
         return moves
 
@@ -201,7 +196,7 @@ class King(Piece):
     def __init__(self, color, position, name='King', val=10, mvs=0):
         super(King, self).__init__(color, position, name, val, mvs)
 
-    def _move_results_in_check(self, board):
+    def _move_results_with_check(self, move, board):
         return False
 
     def _moves(self, card, board):

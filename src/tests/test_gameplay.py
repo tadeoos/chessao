@@ -52,8 +52,15 @@ class TestCheck:
         assert chessao_default.check
         assert chessao_default.finished
 
-    def test_checking_piece_can_be_captured(self):
-        pass
+    def test_checking_piece_can_be_captured(self, chessao_default):
+        chessao_default.full_move(cards=None, move=['E2','E4'])
+        chessao_default.full_move(cards=None, move=['F7','F5'])
+        chessao_default.full_move(cards=None, move=['E4','E5'])
+        chessao_default.full_move(cards=None, move=['G8','F6'])
+        chessao_default.full_move(cards=None, move=['D1','H5'])
+        assert chessao_default.check
+        chessao_default.full_move(cards=None, move=['F6','H5'])
+        assert not chessao_default.check
 
 class TestFourCardBehavior:
 

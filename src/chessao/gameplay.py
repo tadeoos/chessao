@@ -11,7 +11,7 @@ import logging
 
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card, ChessaoCards
-from chessao.chess import Board, FEN_DICT
+from chessao.chess import Board, FEN_DICT, EMPTY
 from chessao.helpers import (
     ChessaoGameplayError,
     # decode_card_color,
@@ -204,6 +204,13 @@ class ChessaoGame:
         except AttributeError:
             raise(f'{card} has no attribute is_')
 
+    def piece_has(self, position, **kwargs):
+        piece = self.board[position]
+        if piece == EMPTY:
+            return False
+        return all([getattr(piece, k) == v for k, v in kwargs.items()])
+
+
     def change_color(self):
         self.to_move = self.invert_color(self.to_move)
 
@@ -227,6 +234,7 @@ class ChessaoGame:
 
         if cards is None:  # for tests purposes
             cards = self.current_player.choose_any()
+            burn = True
         self.play_cards(cards, pile, burn)
         if move:
             assert move[0] in self.possible_moves(), f'{self.possible_moves()}| {self.current_card}'
@@ -316,7 +324,7 @@ class ChessaoGame:
         else:
             king_of_hearts_condition = all(
                 [self.card_is(self.last_card, 'K', 2),
-                 self.board[pen_move].color != self.to_move])
+                 self.piece_has(pen_move, color=self.to_move)])
 
         # king of spades and jack will be naturally handeled by get_possible_moves
 
