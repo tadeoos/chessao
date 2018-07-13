@@ -38,6 +38,23 @@ class TestPossibleMoves:
         chessao_four_played.play_cards([Card(1, '5')])
         assert chessao_four_played.possible_moves() == {}
 
+class TestCheck:
+
+    def test_scholars_mate(self, chessao_default):
+        chessao_default.full_move(cards=None, move=['E2','E4'], burn=True)
+        chessao_default.full_move(cards=None, move=['E7','E5'], burn=True)
+        chessao_default.full_move(cards=None, move=['D1','H5'], burn=True)
+        chessao_default.full_move(cards=None, move=['B8','C6'], burn=True)
+        chessao_default.full_move(cards=None, move=['F1','C4'], burn=True)
+        chessao_default.full_move(cards=None, move=['G8','F6'], burn=True)
+        chessao_default.full_move(cards=None, move=['H5','F7'], burn=True)
+
+        assert chessao_default.check
+        assert chessao_default.finished
+
+    def test_checking_piece_can_be_captured(self):
+        pass
+
 class TestFourCardBehavior:
 
     @classmethod
@@ -84,3 +101,31 @@ class TestFourCardBehavior:
                 cards=card[Card(1, '5')],
                 move=['A7', 'A6']
             )
+
+# bugi
+# ♡
+
+# co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
+# - dokleiłem jeszcze w movesm damki warunek na typ ktory zostal
+# król się zbija w pewnym momencie (jakim?)
+# - dokleilem w self.possible_moves pozycje kinga
+# kkier unhashable type karta
+#  problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak widzie ze cos zle ale olewam to dla k pika.
+# co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
+# robię tak, że tracisz kolejkę.
+# czy mogę dać czwórkę na waleta?
+# robię, że nie
+# może się wydarzyć taka sytuacja: czarne szachują białe. biały król
+# ucieka. czarne zagrywają króla pik. (co w efekcie połowicznie realizuje
+# króla pik - cofa rozgrywkę, ale zaraz karta już przestaje działać bo
+# jest szach ) biały król zagrywa króla pik. -> system się jebie
+
+
+# może być też tak, że król się gracz się sam wpierdoli w pata. Białe zagrywają 4, więc nie mogą zbijać, ale został im już tylko król, który ma jeden ruch -- zbić coś. Czy dopuszczamy taką opcję? Samopodpierdolenie na remis?
+# roboczo - tak
+
+# co jesli chce zagrać roszadę na królu trefl?
+# wprowadzam rozwiazanie ze roszady nie można zrobić na królu..
+
+# trzeba napisać test czy rozwiązanie z usuwaniem ruchów w Piece.moves() nie
+# zabiera szansy na to, żeby zbić tego co szachuje

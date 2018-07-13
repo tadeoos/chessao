@@ -26,7 +26,7 @@ from chessao.helpers import (
 from chessao.pieces import Rook, Bishop, King, Knight, Queen
 from chessao.players import Player
 from chessao.utils import get_gameplay_defaults, GameplayEncoder
-
+from chessao.helpers import get_inverted_mapdict
 
 class ChessaoHistory:
 
@@ -36,6 +36,12 @@ class ChessaoHistory:
     def __len__(self):
         return len(self.ledger)
 
+    def __str__(self):
+        return str(self.ledger)
+
+    def get(self):
+        return self.ledger
+
     def add(self, chessao_game: 'ChessaoGame') -> None:
         if not chessao_game.current_move:
             record = f"""{chessao_game.to_move} {'!' if chessao_game.burned else ''}
@@ -44,7 +50,7 @@ class ChessaoHistory:
             record = '{color} {burn}{car}{jack} {piece}{fro}:{to}{prom}{check}{mate} {fenrep}'.format(
                 color=chessao_game.to_move,
                 burn='!' if chessao_game.burned else '',
-                car=chessao_game.current_card,
+                car=chessao_game.cards.absolute_current,
                 jack=';' + chessao_game.jack[0] if chessao_game.jack is not None else '',
                 piece=chessao_game.board.get_fen_rep(chessao_game.board.get_piece(chessao_game.current_move[1])),
                 fro=chessao_game.current_move[0],
@@ -57,6 +63,9 @@ class ChessaoHistory:
         self.ledger.append(record)
 
     def get_move_from_turn(self, index: int, key: str = None):
+        if not 0 < abs(index) < len(self.ledger):
+            #TODO: logging
+            return defaultdict(lambda: None)
         parsed_move = self.parse_record(self.ledger[index])
         if key:
             return parsed_move[key]
@@ -145,15 +154,13 @@ class ChessaoGame:
         blacks = self._get_player_by_color(WHITE_COLOR)
         whites = self._get_player_by_color(BLACK_COLOR)
 
-        return f"""
-PILES: |{str(self.piles[0][-1]):>3} |  |{str(self.piles[1][-1]):>3} |
-CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
-{blacks.name} {blacks.id} (white): {blacks.hand}
-{self.board}
-{whites.name} {whites.id} (black): {whites.hand}
-History:
-{self.history}
-"""
+        return f"""PILES: |{str(self.piles[0][-1]):>3} |  |{str(self.piles[1][-1]):>3} |
+                   CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
+                   {blacks.name} {blacks.id} (white): {blacks.hand}
+                   {self.board}
+                   {whites.name} {whites.id} (black): {whites.hand}
+                   History:
+                   {self.history}"""
 
     @property
     def burned(self):
@@ -179,6 +186,34 @@ History:
     def current_player(self):
         return self._get_player_by_color(self.to_move)
 
+    @property
+    def finished(self):
+        return self.mate or self.stalemate
+
+    @staticmethod
+    def invert_color(color):
+        if color == WHITE_COLOR:
+            return BLACK_COLOR
+        return WHITE_COLOR
+
+    def card_is(self, card, rank=None, color=None):
+        if card is None:
+            return False
+        try:
+            return card.is_(rank, color)
+        except AttributeError:
+            raise(f'{card} has no attribute is_')
+
+    def change_color(self):
+        self.to_move = self.invert_color(self.to_move)
+
+    def swap_players_color(self):
+        for player in self.players:
+            player.color = self.invert_color(player.color)
+
+    def add_to_history(self):
+        self.history.add(self)
+
     def _get_player_by_color(self, color: str):
         if self.players[0].color == color:
             return self.players[0]
@@ -190,9 +225,12 @@ History:
                   pile: int = 0,
                   burn: bool = False):
 
+        if cards is None:  # for tests purposes
+            cards = self.current_player.choose_any()
         self.play_cards(cards, pile, burn)
         if move:
-            assert move[1] in self.possible_moves()[move[0]]
+            assert move[0] in self.possible_moves(), f'{self.possible_moves()}| {self.current_card}'
+            assert move[1] in self.possible_moves()[move[0]], f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
             self.chess_move(move[0], move[1])
         else:
             self.current_move = []
@@ -213,29 +251,53 @@ History:
 
     def end_move(self):
         self.set_check()
+        self.set_stalemate()
         self.set_mate()
         self.add_to_history()
         self.change_color()
 
     def set_check(self):
         color = self.invert_color(self.current_player.color)
-        if self.board.color_is_checked(color) == (True, color):
+        if self.board.color_is_checked(color):
             self.check = True
         else:
             self.check = False
 
     def set_mate(self):
-        pass
+        self.mate = self.check and self.stalemate
+
+    def set_stalemate(self):
+
+        if any([self.board.halfmoveclock == 100,
+                len(self.board.all_taken()) == 2]):
+            self.stalemate = True
+            return
+        color = self.invert_color(self.to_move)
+        self.to_move = color
+        for card in self._get_player_by_color(color).hand:
+            if ok_karta([card], self.piles):
+                # exclude the Queen because it can be played anytime,
+                # but it can't help you during check
+                if self.check and card.rank == 'Q':
+                    continue
+                #TODO: handle this shiit, it's still shady
+                if self.possible_moves(card):
+                    self.stalemate = False
+                    self.to_move = self.invert_color(color)
+                    return
+            elif self.possible_moves(card):
+                    self.stalemate = False
+                    self.to_move = self.invert_color(color)
+                    return
+        self.stalemate = True
+        self.to_move = self.invert_color(color)
 
     def set_capture(self):
-        try:
-            second_move_of_four = self.penultimate_card.is_('4') and not self.last_card.is_('4')
-        except AttributeError:
-            second_move_of_four = False
-        if any([
-            self.current_card is not None and self.current_card.is_('4'),
-            second_move_of_four
-            ]):
+        second_move_after_four = all([self.card_is(self.penultimate_card, '4'),
+                                      not self.card_is(self.last_card, '4')])
+
+        if any([self.card_is(self.current_card, '4'),
+                second_move_after_four]):
             self.can_capture = False
         else:
             self.can_capture = True
@@ -244,19 +306,37 @@ History:
     def player_should_lose_turn(self):
         if len(self.history) < 2:
             return False
-        four_condition = self.last_card.is_('4') and not self.current_card.is_('4')
-        # king_of_hearts_condition = self.last_card.is_('K', 2)
+        four_condition = all([
+            self.card_is(self.last_card, '4'),
+            not self.card_is(self.current_card, '4')])
+
+        pen_move = self.history.get_move_from_turn(-2, 'move')[1]
+        if pen_move is None:
+            king_of_hearts_condition = False
+        else:
+            king_of_hearts_condition = all(
+                [self.card_is(self.last_card, 'K', 2),
+                 self.board[pen_move].color != self.to_move])
+
+        # king of spades and jack will be naturally handeled by get_possible_moves
+
         return any([
-            four_condition
+            four_condition,
+            king_of_hearts_condition
         ])
 
     @property
     def should_change_last_move(self):  # king of spades
-        return self.current_card.is_('K', 1)
+        return self.card_is(self.current_card, 'K', 1)
 
     def positions_taken_by_color(self, color):
         return [pos for pos in self.board.all_taken()
                 if self.board[pos].color == color]
+
+    @staticmethod
+    def get_piece_name(piece_class):
+        """Do dummy initialization just to get the name."""
+        return piece_class(WHITE_COLOR, 45).name
 
     def possible_moves(self, card=None):
         """Return a dict of possible moves.
@@ -265,7 +345,7 @@ History:
         """
 
         def convert_to_strings(dictionary):
-            inverted_mapdict = {v: k for (k, v) in self.board.mapdict.items()}
+            inverted_mapdict = get_inverted_mapdict()
             new = []
             for key, list_of_positions in dictionary.items():
                 new.append((
@@ -273,34 +353,31 @@ History:
                     [inverted_mapdict[i] for i in list_of_positions]))
             return dict(new)
 
-        if self.player_should_lose_turn:
-            return {}
-
         possible_moves = {}
-        inverted_mapdict = {v: k for (k, v) in self.board.mapdict.items()}
         card = card or self.current_card
+
+        if self.player_should_lose_turn:
+            return possible_moves
+
+        penultimate_move = self.history.get_move_from_turn(-2)
+        last_move = self.history.get_move_from_turn(-1)
+        if self.card_is(last_move['card'], 'K', 1):
+            # if king of spades is active
+            possible_start = [penultimate_move['move'][0]]
+        elif self.card_is(last_move['card'], 'K', 2):
+            # if king of hearts is active
+            possible_start = [penultimate_move['move'][1]]
+        elif last_move['jack'] is not None:
+            # if jack is active
+            piece_name = self.get_piece_name(last_move['jack'])
+            possible_start = self.board.positions_of_piece(piece_name, self.to_move)
+
         possible_start = self.positions_taken_by_color(self.to_move)
         for start in possible_start:
             piece_card = card or Card(1, '5')  # mock card for moves checking
             end = [pos
                    for pos in self.board[start].moves(piece_card, self.board)
-                   if not isinstance(self.board[pos], King)
-                   ]
+                   if not isinstance(self.board[pos], King)]
             if end:
                 possible_moves[start] = end
         return convert_to_strings(possible_moves)
-
-    def change_color(self):
-        if self.to_move == WHITE_COLOR:
-            self.to_move = BLACK_COLOR
-        else:
-            self.to_move = WHITE_COLOR
-
-    def add_to_history(self):
-        self.history.add(self)
-
-    @staticmethod
-    def invert_color(color):
-        if color == WHITE_COLOR:
-            return BLACK_COLOR
-        return WHITE_COLOR
