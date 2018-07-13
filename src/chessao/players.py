@@ -29,6 +29,10 @@ class Player:
         """Returns a card from player hand."""
         raise NotImplementedError
 
+    def choose_any(self):
+        """Returns random card"""
+        return [random.choice(self.hand)]
+
     def get_three(self, n):
         raise NotImplementedError
 
