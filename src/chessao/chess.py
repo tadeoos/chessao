@@ -13,7 +13,7 @@ from termcolor import colored
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.pieces import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 from chessao.cards import Card
-from chessao.helpers import get_mapdict
+from chessao.helpers import get_mapdict, get_inverted_mapdict
 
 EMPTY = ' '
 
@@ -219,8 +219,8 @@ class Board:
         card = card or Card(1, '5')
 
         self.capture_took_place = False
-        start_position_int = self.mapdict[pos_from]
-        end_position_int = self.mapdict[pos_to]
+        start_position_int = self.mapdict[pos_from] if isinstance(pos_from, str) else pos_from
+        end_position_int = self.mapdict[pos_to] if isinstance(pos_to, str) else pos_to
 
         if self.is_empty(start_position_int):
             raise ValueError('There is no Piece in that field {}'.format(pos_from))
@@ -239,7 +239,7 @@ class Board:
                 self.enpass = 300
 
         # checking for castle
-        if all([card.rank != 'K' or card.kol not in (3, 4),
+        if all([card.rank != 'K' or card.color not in (3, 4),
                 self[start_position_int].name == 'King',
                 abs(end_position_int - start_position_int) == 2]):
             return self._castle_move(start_position_int, end_position_int, only_bool)
@@ -336,10 +336,14 @@ class Board:
         return [i for i in range(len(self._brd))
                 if self[i] != EMPTY and self[i] != 0]
 
-    def positions_of_piece(self, piece_name, color):
+    def positions_of_piece(self, piece_name, color, as_str=False):
         """Reterurn a list of positions of a specified Piece of a specified color."""
-        return [i for i in self.all_taken()
-                if self[i].name == piece_name and self[i].color == color]
+        positions = [i for i in self.all_taken()
+                     if self[i].name == piece_name and self[i].color == color]
+        if as_str:
+            inverted = get_inverted_mapdict()
+            return [inverted[pos] for pos in positions]
+        return positions
 
     def piece_types_left(self, color):
         taken = self.all_taken()
@@ -361,14 +365,6 @@ class Board:
                     for i in self.all_taken()
                     if self[i].color == col])
 
-    def simulate_move(self, from_, to_, card):
-        fenstr = self.fen().split()[0]
-        enp = self.fen().split()[2]
-        copied_board = Board(fenrep=fenstr)
-        copied_board.enpass = 300 if enp == '-' else self.mapdict[enp]
-        copied_board.move(from_, to_, card)
-        return copied_board
-
     def swap(self, pos_a, pos_b):
         self[pos_a], self[pos_b] = self[pos_b], self[pos_a]
         if not self.is_empty(pos_b):
@@ -380,18 +376,15 @@ class Board:
         """
         >>> b = Board(fenrep='8/8/K7/8/r7/8/k7/8')
         >>> b.color_is_checked(WHITE_COLOR)
-        (True, 'b')
+        True
         >>> b.color_is_checked(BLACK_COLOR)
         False
         """
-        # for tests purposes there can be no king..
-        if 'King' not in self.piece_types_left(color):
-            return False
-        poz_k = self.positions_of_piece('King', color)
-        assert len(poz_k) == 1
-        return (True, color) if self.under_attack(poz_k[0], color) else False
+        king_pos = self.positions_of_piece('King', color)
+        assert len(king_pos) == 1
+        return True if self.under_attack(king_pos[0], color) else False
 
-    def check_castle(self, kol):
+    def check_castle(self, color):
         """
         Returns a dictionary with castle metadata
 
@@ -403,14 +396,14 @@ class Board:
         >>> b.check_castle('b')
         {'possible_castles': 2, 'long': 23, 'short': 27}
         """
-        king_pawn = self.positions_of_piece('King', kol)[0]
-        rook_positions = self.positions_of_piece('Rook', kol)
+        king_pawn = self.positions_of_piece('King', color)[0]
+        rook_positions = self.positions_of_piece('Rook', color)
 
         castle_dict = {'possible_castles': 0, 'long': 0, 'short': 0}
 
         if any([self[king_pawn].mvs_number > 0,
                 len(rook_positions) == 0,
-                self.color_is_checked(kol) == (True, kol)]):
+                self.color_is_checked(color)]):
             return castle_dict
 
         castle_counter = 0
@@ -426,7 +419,7 @@ class Board:
 
             can_castle = True
             for pos in in_between_positions:
-                if not self.is_empty(pos) or self.under_attack(pos, kol):
+                if not self.is_empty(pos) or self.under_attack(pos, color):
                     can_castle = False
                     break
             if can_castle:
@@ -466,7 +459,7 @@ class Board:
                str(enp), str(self.halfmoveclock), str(self.fullmove)]
         return ' '.join(ret)
 
-    def fen_castle(self, kol):
+    def fen_castle(self, color):
         """Return castle part of FEN_DICT
 
         >>> b = Board()
@@ -475,11 +468,11 @@ class Board:
         >>> b.fen_castle('c')
         'kq'
         """
-        if 'Rook' not in self.piece_types_left(kol) or 'King' not in self.piece_types_left(kol):
+        if 'Rook' not in self.piece_types_left(color) or 'King' not in self.piece_types_left(color):
             return ''
         result = ''
-        king_pos = self.positions_of_piece('King', kol)[0]
-        rooks_postions = self.positions_of_piece('Rook', kol)
+        king_pos = self.positions_of_piece('King', color)[0]
+        rooks_postions = self.positions_of_piece('Rook', color)
         rooks_postions.sort(reverse=True)  # start iteration with King side
         if self[king_pos].mvs_number > 0:
             return ''
@@ -491,7 +484,7 @@ class Board:
             else:
                 result += 'Q'
         assert len(result) < 3, 'Fen caslte cannot give more than 2 results'
-        if kol == BLACK_COLOR:
+        if color == BLACK_COLOR:
             result = result.lower()
         return result
 
