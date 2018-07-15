@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "chessao"
+version = "0.1.0"
+description = "Chessao game engine"
+authors = ["Tadek Teleżyński <tadekte@gmail.com>"]
+license = "MIT"
+readme = 'README.md'
+repository = "https://github.com/tadeoos/chessao"
+homepage = "https://github.com/tadeoos/chessao"
+keywords = ['chess', 'mao', 'game', 'chessao']
+
+[tool.poetry.dependencies]
+python = "^3.6"
+termcolor = "^1.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.6"
+pytest-cov = "^2.5"
+flake8 = "^3.5"
+pympler = "^0.5.0"
