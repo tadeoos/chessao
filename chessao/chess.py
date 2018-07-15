@@ -275,40 +275,41 @@ class Board:
             'BŁĄD w funkcji move! skad {} dokad {} card {} mvs {}, enpas {}'.format(
                 pos_from, pos_to, card, self[start_position_int].mvs_number, self.enpass))
 
-    def __str__(self):
-        print('    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}'.format(
-            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'))
-        # print('    -----------------')
-        for i in range(len(self._brd)):
-            r = int(((i - (i % 10)) / 10) - 1)
-            if self[i] == 0:
-                continue
-            if r % 2 == 1:
-                if i % 10 == 1:
-                    print('    ', end="")
-                if i % 10 != 8 and (i % 10) % 2 == 1:
-                    print(colored('{!s:} '.format(
-                        self[i]), 'grey', attrs=['reverse']), end='')
-                elif i % 10 != 8:
-                    print(colored('{!s:} '.format(
-                        self[i]), 'white', attrs=['reverse']), end='')
-                else:
-                    print(colored('{!s:} '.format(self[i]), 'white', attrs=[
-                          'reverse']), end=' {}\n'.format(r))
-            else:
-                if i % 10 == 1:
-                    print('    ', end="")
-                if i % 10 != 8 and (i % 10) % 2 == 1:
-                    print(colored('{!s:} '.format(
-                        self[i]), 'white', attrs=['reverse']), end='')
-                elif i % 10 != 8:
-                    print(colored('{!s:} '.format(
-                        self[i]), 'grey', attrs=['reverse']), end='')
-                else:
-                    print(colored('{!s:} '.format(self[i]), 'grey', attrs=[
-                          'reverse']), end=' {}\n'.format(r))
+    def __str__(self, color=WHITE_COLOR):
 
-        return ''
+        def colorize(first, second):
+            result = ''
+            if position % 10 == 1:
+                result += ' ' * 4
+            if position % 10 != 8 and (position % 10) % 2 == 1:
+                result += colored('{!s:} '.format(self[position]), first, attrs=['reverse'])
+            elif position % 10 != 8:
+                result += colored('{!s:} '.format(self[position]), second, attrs=['reverse'])
+            else:
+                result += colored('{!s:} '.format(self[position]), second, attrs=['reverse'])
+                result += f' {row}\n'
+            return result
+
+        top = '    {:<2}{:<2}{:<2}{:<2}{:>2}{:>2}{:>2}{:>2}\n'.format(
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H')
+        result = ''
+        for position in range(len(self._brd)):
+            row = int(((position - (position % 10)) / 10) - 1)
+            if self[position] == 0:
+                continue
+            if row % 2 == 1:
+                result += colorize('grey', 'white')
+            else:
+                result += colorize('white', 'grey')
+
+        result = result[:-1]  # remove trailing \n
+        if color == WHITE_COLOR:
+            rows = result.split('\n')
+            result = '\n'.join(rows[::-1])
+        return top + result
+
+    def print_for(self, color):
+        return self.__str__(color)
 
     def __repr__(self):
         return 'Board: {}'.format(self.fen())

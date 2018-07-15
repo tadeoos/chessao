@@ -143,13 +143,14 @@ class ChessaoGame:
         blacks = self._get_player_by_color(WHITE_COLOR)
         whites = self._get_player_by_color(BLACK_COLOR)
 
-        return f"""PILES: |{str(self.piles[0][-1]):>3} |  |{str(self.piles[1][-1]):>3} |
-                   CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
-                   {blacks.name} {blacks.id} (white): {blacks.hand}
-                   {self.board}
-                   {whites.name} {whites.id} (black): {whites.hand}
-                   History:
-                   {self.history}"""
+        return f"""\
+PILES: |{str(self.piles[0][-1]):>3} |  |{str(self.piles[1][-1]):>3} |
+CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
+{blacks.name} {blacks.id} (white): {blacks.hand}
+{self.board.print_for(self.to_move)}
+{whites.name} {whites.id} (black): {whites.hand}
+History:
+{self.history}"""
 
     @property
     def burned(self):
