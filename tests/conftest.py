@@ -4,6 +4,7 @@ from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.cards import Card
 from chessao.gameplay import ChessaoGame
 from chessao.players import Player
+from .utils import card_list
 
 DEFAULT_PLAYERS = (
     Player(1, WHITE_COLOR, name='white'),
@@ -25,6 +26,60 @@ def chessao_check():
     chessao.full_move(cards=None, move=['G8', 'F6'])
     chessao.full_move(cards=None, move=['D1', 'H5'])
     return chessao
+
+
+@fixture()
+def hand_setup():
+
+    def _hand_setup(x, y):
+        neutral_cards = card_list(['51', '61', '71', '81', '91'])
+        hands = []
+        for hand in (x, y):
+            cards = card_list(hand) + neutral_cards
+            hands.append(cards[:5])
+        return ChessaoGame.for_tests(hands=hands)
+
+    return _hand_setup
+
+
+@fixture
+def three_setup():
+    fh = card_list(['31', '31', '61', '81', '53'])
+    sh = card_list(['32', 'A2', '52', '101', 'J1'])
+    hands = (fh, sh)
+    return ChessaoGame.for_tests(hands=hands)
+
+
+@fixture
+def kos_setup():
+    fh = card_list(['K1', '31', '61', '81', '53'])
+    sh = card_list(['K1', 'A2', '42', '101', 'J1'])
+    hands = (fh, sh)
+    return ChessaoGame.for_tests(hands=hands)
+
+
+@fixture
+def koh_setup():
+    fh = card_list(['K2', '31', '61', '81', '53'])
+    sh = card_list(['K2', 'A2', '42', '101', 'J1'])
+    hands = (fh, sh)
+    return ChessaoGame.for_tests(hands=hands)
+
+
+@fixture
+def q_setup():
+    fh = card_list(['K2', 'Q3', '61', '81', '53'])
+    sh = card_list(['K2', 'Q4', '42', '101', 'J1'])
+    hands = (fh, sh)
+    return ChessaoGame.for_tests(hands=hands)
+
+
+@fixture
+def stalemate_setup():
+    fh = card_list(['K2', 'Q3', 'K4', '81', '53'])
+    sh = card_list(['K2', 'Q4', '42', '101', 'J1'])
+    hands = (fh, sh)
+    return ChessaoGame.for_tests(hands=hands)
 
 
 @fixture
