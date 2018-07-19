@@ -12,9 +12,14 @@ keywords = ['chess', 'mao', 'game', 'chessao']
 [tool.poetry.dependencies]
 python = "^3.6"
 termcolor = "^1.1"
+click = "^6.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.6"
 pytest-cov = "^2.5"
 flake8 = "^3.5"
 pympler = "^0.5.0"
+ipdb = "^0.11.0"
+
+[tool.poetry.scripts]
+chessao = 'chessao.cli:cli'

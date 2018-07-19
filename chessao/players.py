@@ -19,10 +19,10 @@ class Player:
         self.bot = bot
 
     def __str__(self):
-        return '{} {}'.format(self.name, self.id)
+        return f'{self.name}(hand={self.hand}, color={self.color})'
 
     def __repr__(self):
-        return '{} {}'.format(self.name, self.id)
+        return str(self)
 
     def choose_card(self, talie, plansza):
         """Returns a card from player hand."""
@@ -58,7 +58,7 @@ class Player:
 
 class gracz(Player):
 
-    def choose_card(self, talie, plansza):
+    def choose_card(self, talie, plansza=None):
         if self.bot:
             los = random.randint(0, 4)
             burn = 1 if los == 0 else 0
@@ -87,24 +87,25 @@ class gracz(Player):
             return (ask_burn, [self.hand[ask]])
             # trza dokończyć..
 
-    def get_three(self, n):
+    def get_three(self, n, blacklist=[]):
         if self.bot:
-            return random.sample(self.hand, n)
+            sample = [c for c in self.hand if c not in blacklist]
+            return random.sample(sample, n)
         else:
             # functionality for humans
             return random.sample(self.hand, n)
             # return None
 
-    def choose_move(self, d, plansza, karta):
+    def choose_move(self, possible_moves):
         if self.bot:
-            random_ruch = random.choice(list(d.keys()))
-            random_nr = random.randint(0, len(d[random_ruch]) - 1)
-            return [random_ruch, d[random_ruch][random_nr]]
+            random_ruch = random.choice(list(possible_moves.keys()))
+            random_nr = random.randint(0, len(possible_moves[random_ruch]) - 1)
+            return [random_ruch, possible_moves[random_ruch][random_nr]]
         else:
-            print('Possible moves: {}'.format(d))
+            print('Possible moves: {}'.format(possible_moves))
             while True:
                 ask = input('Ruch: ').upper().split()
-                if ask[0] in d.keys() and ask[1] in d[ask[0]]:
+                if ask[0] in possible_moves.keys() and ask[1] in possible_moves[ask[0]]:
                     break
                 print('You cannot make this move, choose another one!')
             return ask

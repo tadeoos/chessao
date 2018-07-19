@@ -1,3 +1,6 @@
+import json
+import os
+
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card
 from chessao.gameplay import ChessaoGame
@@ -25,3 +28,12 @@ def random_game():
         if move:
             game.chess_move(move[0], move[1])
         game.end_move()
+
+
+def load_simulation_bugs():
+    data = {}
+    path = '/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/'
+    for filename in os.listdir(path):
+        with open(os.path.join(path, filename)) as f:
+            data[filename] = json.load(f)
+    return data
