@@ -1,6 +1,6 @@
 # Chessao
 
-![logo](logo_150px.png)
+![logo](misc/logo_150px.png)
 
 [![Build Status](https://travis-ci.org/tadeoos/chessao.svg?branch=master)](https://travis-ci.org/tadeoos/chessao)
 [![Coverage Status](https://coveralls.io/repos/github/tadeoos/chessao/badge.svg)](https://coveralls.io/github/tadeoos/chessao)
