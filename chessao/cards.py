@@ -3,7 +3,8 @@ import random
 from collections import OrderedDict
 from itertools import permutations
 from functools import total_ordering
-from typing import List, Optional
+from pprint import pformat
+from typing import List, Optional, Tuple
 
 from chessao import CARDS_COLORS, CARDS_RANKS, CARDS_RANKS_MAPPING
 
@@ -27,7 +28,7 @@ class Card:
         >>> Card(1, 20)
         Traceback (most recent call last):
             ...
-        TypeError: Invalid card rank. Should be one of ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')  # noqa
+        TypeError: Invalid card rank. Should be one of ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
         >>> Card(10, 'K')
         Traceback (most recent call last):
             ...
@@ -112,10 +113,11 @@ class Card:
         if str_card.startswith('!'):
             burned = True
             str_card = str_card[1:]
-        if str_card[-1] in '♤♡♢♧':
-            color = '♤♡♢♧'.index(str_card[-1]) + 1
+        card_color = str_card[-1]
+        if card_color in '♤♡♢♧':
+            color = '♤♡♢♧'.index(card_color) + 1
         else:
-            color = int(str_card[-1])
+            color = int(card_color)
         return cls(color, str_card[:-1], burned)
 
 
@@ -129,7 +131,7 @@ class Deck:
     def __init__(self, card_list=None):
         """
         >>> Deck().cards
-        [A♤, 2♤, 3♤, 4♤, 5♤, 6♤, 7♤, 8♤, 9♤, 10♤, J♤, Q♤, K♤, A♡, 2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♢, 2♢, 3♢, 4♢, 5♢, 6♢, 7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♧, 2♧, 3♧, 4♧, 5♧, 6♧, 7♧, 8♧, 9♧, 10♧, J♧, Q♧, K♧]  # noqa
+        [A♤, 2♤, 3♤, 4♤, 5♤, 6♤, 7♤, 8♤, 9♤, 10♤, J♤, Q♤, K♤, A♡, 2♡, 3♡, 4♡, 5♡, 6♡, 7♡, 8♡, 9♡, 10♡, J♡, Q♡, K♡, A♢, 2♢, 3♢, 4♢, 5♢, 6♢, 7♢, 8♢, 9♢, 10♢, J♢, Q♢, K♢, A♧, 2♧, 3♧, 4♧, 5♧, 6♧, 7♧, 8♧, 9♧, 10♧, J♧, Q♧, K♧]
         >>> Deck(card_list=[Card(1,'5')]).cards
         [5♤]
         """
@@ -154,14 +156,14 @@ class Deck:
 
     def combine(self, cards: List[Card]):
         """
-        Add a list of Cards to the Deck.
+        Add a list of Cards to the bottom of the Deck.
 
         >>> d = Deck(card_list=[Card(1,'5')])
         >>> d.combine([Card(1,'6'), Card(2, '7')])
         >>> d.cards
-        [5♤, 6♤, 7♡]
+        [6♤, 7♡, 5♤]
         """
-        self.cards.extend(cards)
+        self.cards = cards + self.cards
 
     def get_card_index(self, rank='5', suit=1):
         """Return the index of a specified card.
@@ -204,12 +206,19 @@ class Deck:
     def pop(self):
         return self.cards.pop()
 
+    def dump(self) -> Tuple[str]:
+        return tuple([str(card) for card in self.cards])
+
 
 class ChessaoCards:
 
-    def __init__(self):
-        self.deck = Deck.two_decks()
-        self.deck.shuffle()
+    def __init__(self, deck: Optional[Tuple[str]] = None):
+        if deck is None:
+            self.deck = Deck.two_decks()
+            self.deck.shuffle()
+        else:
+            self.deck = Deck(card_list=[Card.from_string(card) for card in deck])
+        self.starting_deck = self.deck.dump()
         self.burned = []
         self.piles = (
             [self.deck.pop()],
@@ -219,6 +228,13 @@ class ChessaoCards:
         self.penultimate_card = None
         self.last_card = None
         self.current_card = None
+        self.current_pile = 0
+
+    def __str__(self):
+        return f"Piles: {self.piles}"
+
+    def __repr__(self):
+        return pformat(self.__dict__)
 
     @classmethod
     def for_tests(cls, piles: List[List[Card]], **kwargs):
@@ -248,6 +264,15 @@ class ChessaoCards:
                         self.piles[1].remove(card)
 
     def deal(self, repeat=1):
+        deck_len = len(self.deck)
+        if repeat > deck_len:
+            cards_left = self.deck.deal(deck_len)
+            assert len(self.deck) == 0
+            self.reshuffle()
+            new_cards = cards_left + self.deck.deal(repeat-deck_len)
+            assert len(new_cards) == repeat
+            assert self.count == 94, self.count
+            return new_cards
         return self.deck.deal(repeat)
 
     @property
@@ -258,21 +283,31 @@ class ChessaoCards:
     def all_cards(self) -> List[Card]:
         return self.deck.cards + self.burned + self.piles[0] + self.piles[1]
 
+    def reshuffle(self):
+        new_piles = ([self.piles[0].pop()], [self.piles[1].pop()])
+        self.deck.combine(self.burned)
+        self.deck.combine(self.piles[0])
+        self.deck.combine(self.piles[1])
+        self.deck.shuffle()
+        self.burned = []
+        self.piles = new_piles
+
     def _put_card(self, card, burn=False):
         self.penultimate_card = self.last_card
         self.last_card = self.current_card
         self.current_card = card if not burn else None
+        assert type(card) == Card
         self.absolute_current = card
 
     def play_cards(self, cards: List[Card], pile: Optional[int]):
         if not self.validate_cards(cards):
             raise ValueError("Invalid card")
         self.piles[pile].extend(cards)
+        self.current_pile = pile
         self._put_card(cards[-1])
 
     def burn_card(self, cards: List[Card]):
-        assert len(cards) == 1
-        self.burned.append(cards[-1])
+        self.burned.extend(cards)
         self._put_card(cards[-1], burn=True)
 
     def validate_cards(self, cards: List[Card]):
@@ -284,11 +319,12 @@ class ChessaoCards:
         # >>> validate_cards([Card(1,'5'), Card(2,'7')], ([Card(1,'9')],[Card(3, 'K')]))
         # False
         """
+
         if len(cards) > 1:
             if not self.validate_stairs(cards):
                 return False
 
-        card = cards[-1]
+        card = cards[0]
         return self._card_can_be_played(card)
 
     def _card_can_be_played(self, card: Card):
@@ -297,6 +333,14 @@ class ChessaoCards:
                     card.rank == pile[-1].rank,
                     'Q' in (card.rank, pile[-1].rank)]):
                 return True
+        return False
+
+    def pick_a_pile(self, card):
+        for i, pile in enumerate(self.piles):
+            if any([card.color == pile[-1].color,
+                    card.rank == pile[-1].rank,
+                    'Q' in (card.rank, pile[-1].rank)]):
+                return i
         return False
 
     def possible_cards(self, hand: List[Card]) -> List[Card]:
@@ -351,12 +395,6 @@ class ChessaoCards:
     @staticmethod
     def generate_stairs(cards: List[Card], strict: bool = False) -> List[List[Card]]:
 
-        def get_graph(cards):
-            graph = {}
-            for card in cards:
-                graph[card] = [other for other in cards if card.is_near(other)]
-            return graph
-
         def find_all_paths(graph, start, end, path=[]):
             # thanks to https://www.python.org/doc/essays/graphs
             path = path + [start]
@@ -375,7 +413,10 @@ class ChessaoCards:
         cards = list(OrderedDict((x, True)
                                  for x in cards).keys())  # for ease of written tests
         result = []
-        graph = get_graph(cards)
+
+        graph = {card: [other for other in cards if card.is_near(other)]
+                 for card in cards}
+
         for node, end in permutations(cards, 2):
             result.extend(find_all_paths(graph, node, end))
 
