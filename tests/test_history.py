@@ -3,7 +3,7 @@ import re
 from chessao.pieces import Pawn, Rook, King
 from chessao.chess import Board
 from chessao.cards import Card
-from chessao.gameplay import ChessaoHistory
+from chessao.history import ChessaoHistory
 
 
 class TestHistory:
