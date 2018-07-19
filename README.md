@@ -7,7 +7,7 @@
 
 Combination of Chess and [Mao](https://en.wikipedia.org/wiki/Mao_(card_game)).
 
-Coming soon.
+Coming soonish.
 
 
 ## Development
@@ -19,12 +19,14 @@ pytest
 ```
 ### TODO
 
-- [ ] 4 card
-- [ ] 3 card
+- [x] 4 card
+- [x] 3 card
 - [ ] jack
 - [x] Queen
-- [x] King of spades
-- [x] King of hearts
+- [ ] King of spades
+- [ ] King of hearts
 - [x] Other kings
-- [ ] Ace
-- [ ] Integrations
+- [x] Ace
+- [ ] stalemate
+- [ ] Promotion
+- [ ] Tests for known corner cases
