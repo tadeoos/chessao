@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/tadeoos/chessao.svg?branch=master)](https://travis-ci.org/tadeoos/chessao)
 [![Coverage Status](https://coveralls.io/repos/github/tadeoos/chessao/badge.svg)](https://coveralls.io/github/tadeoos/chessao)
 
-Combination of Chess and [Mao](https://en.wikipedia.org/wiki/Mao_(card_game)).
+Combination of Chess and [Macau](https://en.wikipedia.org/wiki/Mau_mau_(card_game)).
 
 Coming soonish.
 
