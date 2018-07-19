@@ -181,7 +181,7 @@ class Queen(Piece):
         super(Queen, self).__init__(color, position, name, val, mvs)
 
     def _moves(self, card, board):
-        if card.rank == 'Q' and board.piece_types_left(self.color) != {'King', 'Queen'}:
+        if card.rank == 'Q' and board.piece_types_left(self.color) != {King, Queen}:
             res = [i for i in board.all_taken() if
                    (board[i].color == self.color and
                     board[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]

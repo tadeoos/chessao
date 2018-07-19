@@ -251,7 +251,7 @@ class Board:
             self[start_position_int].color)
         if all([card.rank == 'Q',
                 self[start_position_int].name == 'Queen',
-                enemy_pieces_left != {'King', 'Queen'}]):
+                enemy_pieces_left != {King, Queen}]):
             return self._queen_move(start_position_int, end_position_int, only_bool)
 
         else:
@@ -352,7 +352,7 @@ class Board:
 
     def piece_types_left(self, color):
         taken = self.all_taken()
-        return {self[pos].name for pos in taken if self[pos].color == color}
+        return {type(self[pos]) for pos in taken if self[pos].color == color}
 
     def get_piece(self, position):
         if type(position) == str:
@@ -371,9 +371,11 @@ class Board:
                     if self[i].color == col])
 
     def swap(self, pos_a, pos_b):
+        """Swap what's on two positions. Asserts that pos_b is not empty."""
         self[pos_a], self[pos_b] = self[pos_b], self[pos_a]
         if not self.is_empty(pos_b):
             self[pos_b].position = pos_b
+        assert not self.is_empty(pos_a)
         self[pos_a].position = pos_a
         return self
 
@@ -475,7 +477,7 @@ class Board:
         >>> b.fen_castle('c')
         'kq'
         """
-        if 'Rook' not in self.piece_types_left(color) or 'King' not in self.piece_types_left(color):
+        if Rook not in self.piece_types_left(color) or King not in self.piece_types_left(color):
             return ''
         result = ''
         king_pos = self.positions_of_piece('King', color)[0]
@@ -491,6 +493,8 @@ class Board:
             else:
                 result += 'Q'
         assert len(result) < 3, 'Fen caslte cannot give more than 2 results'
+        if len(result) == 2:
+            assert len(set(result)) == 2, f"Got two of the same when parsing FEN {self}"
         if color == BLACK_COLOR:
             result = result.lower()
         return result
