@@ -249,7 +249,6 @@ History:
                    burn: bool = False,
                    jack: Optional[str] = None,
                    cards_to_remove: Optional[List[Card]] = None):
-        self.discarded_cards = cards_to_remove
         self.current_player.remove_cards(cards)
         if burn:
             self.cards.burn_card(cards)
@@ -268,6 +267,7 @@ History:
             assert self.three == 5
             cards_to_remove = [c for c in self.current_player.hand]
         assert len(cards_to_remove) == self.three
+        self.discarded_cards = cards_to_remove
         self.current_player.remove_cards(cards_to_remove)
         self.cards.burned.extend(cards_to_remove)
         self.current_player.update_cards(
