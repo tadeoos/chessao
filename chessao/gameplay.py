@@ -3,13 +3,13 @@ from collections import defaultdict
 from pprint import pformat
 from typing import List, Optional, Tuple
 
-from chessao import WHITE_COLOR, BLACK_COLOR
+from chessao import WHITE_COLOR, BLACK_COLOR, MAPDICT, INVERTED_MAPDICT
 from chessao.cards import Card, ChessaoCards
 from chessao.chess import Board, FEN_DICT, EMPTY
 
 from chessao.pieces import King, Piece
 from chessao.players import Player
-from chessao.helpers import get_inverted_mapdict, ok_karta, invert_dict, get_mapdict
+from chessao.helpers import ok_karta, invert_dict
 from chessao.history import ChessaoHistory
 
 
@@ -25,6 +25,10 @@ class BadMoveError(ChessaoError):
     pass
 
 
+class CardsRemovalError(ChessaoError):
+    pass
+
+
 class ChessaoGame:
     """A gameplay class."""
 
@@ -34,7 +38,6 @@ class ChessaoGame:
         self.cards = cards or ChessaoCards()
         self.history = kwargs.get('history', ChessaoHistory(self.board))
         self.current_move = kwargs.get('current_move', None)
-        self.last_move = kwargs.get('last_move', None)
         self.to_move = kwargs.get('to_move', WHITE_COLOR)
         self.check = kwargs.get('check', False)
         self.mate = kwargs.get('mate', False)
@@ -146,6 +149,14 @@ History:
         return self._get_player_by_color(self.to_move)
 
     @property
+    def last_move(self):
+        return self.history.get_move_from_turn(-1)
+
+    @property
+    def moves(self):
+        return len(self.history) - 1
+
+    @property
     def finished(self):
         return self.mate or self.stalemate
 
@@ -241,6 +252,7 @@ History:
         else:
             self.current_move = []
 
+        self.chess_move(move)
         self.end_move()
 
     def play_cards(self,
@@ -249,7 +261,12 @@ History:
                    burn: bool = False,
                    jack: Optional[str] = None,
                    cards_to_remove: Optional[List[Card]] = None):
-        self.current_player.remove_cards(cards)
+        try:
+            self.current_player.remove_cards(cards)
+        except ValueError:
+            msg = (f"Moves: {len(self.history)}, reshuffled: {self.cards.reshuffled}"
+                   f" cards: {cards}, player: {self.current_player}, last three moves: {self.history.ledger[-3:]}")
+            raise CardsRemovalError(msg) from None
         if burn:
             self.cards.burn_card(cards)
         else:
@@ -284,9 +301,17 @@ History:
         self.board.swap(mapdict[done_move[0]],
                         mapdict[done_move[1]])
 
-    def chess_move(self, start: str, end: str):
-        self.current_move = [start, end]
+    def chess_move(self, move: List[str]):
+        if not move:
+            self.current_move = []
+            return
+        start, end = move[0], move[1]
+        possible_moves = self.possible_moves()
+        assert start in possible_moves, f'{self.possible_moves()}| {self.current_card}'
+        move_ends = possible_moves[move[0]]
+        assert end in move_ends, f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
         self.board.move(start, end, self.current_card)
+        self.current_move = [start, end]
 
     def end_move(self):
         self.set_check()
@@ -368,7 +393,7 @@ History:
                 if self.board[pos].color == color]
 
     def king_of_spades_active(self):
-        if len(self.history) < 2:
+        if self.moves < 2:
             return False
         last_move = self.history.get_move_from_turn(-1)
         last_move_burned = last_move['burned']
@@ -389,24 +414,21 @@ History:
         """
 
         def convert_to_strings(dictionary):
-            inverted_mapdict = get_inverted_mapdict()
             new = []
             for key, list_of_positions in dictionary.items():
                 try:
-                    start = inverted_mapdict[key]
+                    start = INVERTED_MAPDICT[key]
                 except KeyError:
                     start = key
                 new.append((
                     start,
-                    [inverted_mapdict[i] for i in list_of_positions]))
+                    [INVERTED_MAPDICT[i] for i in list_of_positions]))
             return dict(new)
 
         possible_moves = {}
         card = card or self.current_card
         possible_start = self.positions_taken_by_color(self.to_move)
         self.logger.debug(f'Setting up... card={card} posstart={possible_start}')
-        # if self.player_should_lose_turn:
-        #     return possible_moves
 
         penultimate_move = self.history.get_move_from_turn(-2)
         last_move = self.history.get_move_from_turn(-1)
