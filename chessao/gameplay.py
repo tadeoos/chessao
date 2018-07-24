@@ -228,8 +228,7 @@ History:
         if self.king_of_spades_active():
             self._handle_king_of_spades()
         else:
-            self.play_cards(cards, pile, burn,
-                            jack=jack, cards_to_remove=cards_to_discard)
+            self.play_cards(cards, pile, burn, jack=jack, cards_to_remove=cards_to_discard)
 
         # Handle Ace
         if self.card_is(self.current_card, 'A'):
@@ -237,21 +236,9 @@ History:
                 self.swap_players_color()
                 self.add_to_history()
                 return
-        if self.card_is(self.current_card, 'K', 1):
-            self.logger.info("King of spades played")
-            move = []
         if self.player_should_lose_turn:
             self.logger.info("Player loosing turn...")
             move = []
-        if move:
-            possible_moves = self.possible_moves()
-            assert move[0] in possible_moves, f'{self.possible_moves()}| {self.current_card}'
-            move_ends = possible_moves[move[0]]
-            assert move[1] in move_ends, f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
-            self.chess_move(move[0], move[1])
-        else:
-            self.current_move = []
-
         self.chess_move(move)
         self.end_move()
 
@@ -350,15 +337,22 @@ History:
         self.mate = self.check and self.stalemate
 
     def set_stalemate(self):
-
+        cur_player = self.current_player
         if any([self.board.halfmoveclock == 100,
                 len(self.board.all_taken()) == 2]):
             self.stalemate = True
             return
         color = self.invert_color(self.to_move)
         self.to_move = color
-        for card in self._get_player_by_color(color).hand:
-            if ok_karta([card], self.piles):
+        checked_player = self._get_player_by_color(color)
+        assert cur_player.name != checked_player.name
+        for card in checked_player.hand:
+            if ok_karta([card], self.piles) and not self.card_is(card, 'A'):
+
+                if self.card_is(card, 'K', 1):  # king of spades is a valid move
+                    self.stalemate = False
+                    self.to_move = self.invert_color(color)
+                    return
                 # exclude the Queen because it can be played anytime,
                 # but it can't help you during check
                 # if self.check and card.rank == 'Q':
@@ -377,14 +371,12 @@ History:
 
     @property
     def player_should_lose_turn(self):
-        number_of_moves = len(self.history)
-        if number_of_moves < 2:
-            return False
+        if self.card_is(self.current_card, 'K', 1) and self.moves > 1:
+            self.logger.info("King of spades played")
+            return True
         if all([self.card_is(self.last_card, '4'),
                 not self.card_is(self.current_card, '4')]):
             return True  # four is active
-        if number_of_moves < 3:
-            return False
 
         return not bool(self.possible_moves())
 
@@ -427,6 +419,7 @@ History:
 
         possible_moves = {}
         card = card or self.current_card
+        blacklisted_moves = []  # for king of spades
         possible_start = self.positions_taken_by_color(self.to_move)
         self.logger.debug(f'Setting up... card={card} posstart={possible_start}')
 
@@ -445,6 +438,7 @@ History:
                     # if king of spades is active
                     self.logger.debug('King of spades active...')
                     possible_start = [penultimate_move['move'][0]]
+                    blacklisted_moves.append(MAPDICT[penultimate_move['move'][1]])
                 elif self.card_is(last_move['card'], 'K', 2):
                     # if king of hearts is active
                     self.logger.debug('King of hearts active...')
@@ -466,9 +460,14 @@ History:
             try:
                 end = [pos
                        for pos in self.board[start].moves(piece_card, self.board)
-                       if not isinstance(self.board[pos], King)]
-            except AttributeError:
-                raise BadMoveError(f"Possible starts: {possible_start}, board: {self.board}")
+                       if not isinstance(self.board[pos], King) and pos not in blacklisted_moves]
+            except (AttributeError, TypeError):
+                msg = (f"Possible starts: {possible_start}, move: {self.current_move}, card: {card}"
+                       f"Current_player: {self.current_player} Last 2 moves: {self.history.get()[-2:]}"
+                       f"Board: {self.board}")
+                # import ipdb; ipdb.set_trace()
+
+                raise BadMoveError(msg)
             if end:
                 possible_moves[start] = end
         self.logger.debug(f'Result: {convert_to_strings(possible_moves)}')
