@@ -1,6 +1,7 @@
 import pytest
 
 from chessao import BLACK_COLOR, WHITE_COLOR
+from chessao.chess import EMPTY
 from chessao.cards import Card
 from chessao.gameplay import ChessaoGame
 import chessao.helpers as helpers
@@ -95,13 +96,35 @@ class TestKingOfSpades:
 
     def test_simple(self, kos_setup):
         game = kos_setup
+        assert game.to_move == WHITE_COLOR
         game.full_move(cards=None, move=['E2', 'E4'])
+        assert game.to_move == BLACK_COLOR
+        assert game.moves == 1
         game.full_move(cards=[Card(1, 'K')], move=[])
         assert game.to_move == WHITE_COLOR
-        assert game.king_of_spades_active
-        game._handle_king_of_spades()
+        print(game.history.get_move_from_turn(-1))
+        assert game.king_of_spades_active()
         assert game.current_card is None
         assert game.possible_moves() == {'E2': ['E3']}
+
+    @pytest.mark.xfail(raises=AssertionError, reason="Not handled yet")
+    def test_king_after_four(self, hand_setup):
+        g = hand_setup(['84', 'K1', '41'], ['93', 'Q3'])
+        assert g.to_move == WHITE_COLOR
+        g.full_move(cards=[Card(1, '4')], move=['B1', 'C3'])
+        assert g.to_move == BLACK_COLOR
+        g.full_move(cards=[Card(3, '9')], move=[])
+        assert g.to_move == WHITE_COLOR
+        g.full_move(cards=[Card(1, 'K')], move=[])
+        assert g.king_of_spades_active()
+
+    def test_king_at_the_begining(self, hand_setup):
+        # when played at the begining, it should work as normal
+        g = hand_setup(['84', 'K1'], ['93', 'Q3'])
+        assert g.to_move == WHITE_COLOR
+        g.full_move(cards=[Card(1, 'K')], move=['B1', 'C3'])
+        assert not g.king_of_spades_active()
+        assert g.board['B1'] == EMPTY
 
 
 class TestKingOfHearts:
@@ -310,14 +333,17 @@ class TestFourCardBehavior:
             )
 
 
-@pytest.mark.xfail(reason="Testing bugs")
+simulation_data, ids_ = load_simulation_bugs(parametrize=True)
+
+
+# @pytest.mark.xfail(reason="Testing bugs")
+@pytest.mark.skip
 @pytest.mark.simbugs
-def test_simulation_bugs():
-    d = load_simulation_bugs()
-    for bug, data in d.items():
-        game = ChessaoGame.from_ledger(data['ledger'], data['starting_deck'])
-        assert game.stalemate == data['stalemate']
-        assert game.mate == data['mate']
+@pytest.mark.parametrize("ledger,starting_deck,stalemate,mate", simulation_data, ids=ids_)
+def test_simulation_bugs(ledger, starting_deck, stalemate, mate):
+    game = ChessaoGame.from_ledger(ledger, starting_deck)
+    assert game.stalemate == stalemate
+    assert game.mate == mate
 
 # bugi
 # ♡

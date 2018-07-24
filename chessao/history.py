@@ -67,7 +67,7 @@ class ChessaoHistory:
         return parsed_move
 
     @staticmethod
-    def parse_record(record: str):
+    def parse_record(record: str) -> dict:
         record_dict = defaultdict(lambda: None)
         pattern = PATTERN
 
@@ -89,10 +89,11 @@ class ChessaoHistory:
             if matched.group(group):
                 record_dict[group] = bool(matched.group(group))
 
-        if matched.group('start') == '':
-            assert matched.group('end') == ''
+        if matched.group('start') in (None, ''):
+            assert matched.group('end') in (None, '')
             record_dict['move'] = []
         else:
+            assert matched.group('start') is not None
             record_dict['move'] = [matched.group('start'), matched.group('end')]
 
         if matched.group('discarded'):

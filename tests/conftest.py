@@ -50,9 +50,9 @@ def three_setup():
     return ChessaoGame.for_tests(hands=hands)
 
 
-@fixture
+@fixture(scope='function')
 def kos_setup():
-    fh = card_list(['K1', '31', '61', '81', '53'])
+    fh = card_list(['71', '31', '61', '81', '53'])
     sh = card_list(['K1', 'A2', '42', '101', 'J1'])
     hands = (fh, sh)
     return ChessaoGame.for_tests(hands=hands)

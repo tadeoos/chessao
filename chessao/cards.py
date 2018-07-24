@@ -229,6 +229,7 @@ class ChessaoCards:
         self.last_card = None
         self.current_card = None
         self.current_pile = 0
+        self.reshuffled = False
 
     def __str__(self):
         return f"Piles: {self.piles}"
@@ -291,6 +292,7 @@ class ChessaoCards:
         self.deck.shuffle()
         self.burned = []
         self.piles = new_piles
+        self.reshuffled = True
 
     def _put_card(self, card, burn=False):
         self.penultimate_card = self.last_card

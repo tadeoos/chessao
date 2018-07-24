@@ -41,6 +41,12 @@ PIECES_STR = {
     }
 }
 
+MAPDICT = {
+    letter + str(number - 1): 10 * number + 1 + 'ABCDEFGH'.index(letter)
+    for number in range(2, 10)
+    for letter in 'ABCDEFGH'
+}
+INVERTED_MAPDICT = {val: key for key, val in MAPDICT.items()}
 
 # from logging import NullHandler
 # logging.getLogger(__name__).addHandler(NullHandler())

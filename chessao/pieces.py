@@ -111,8 +111,6 @@ class Pawn(Piece):
         super(Pawn, self).__init__(color, position, name, val, mvs)
 
     def move_helper(self, list_of_positions, board, direction=1):
-        # import pdb; pdb.set_trace()
-
         updated_positions = list_of_positions
         for pos in list_of_positions[::-1]:
             if not board.is_empty(self.position + (direction * pos)):
