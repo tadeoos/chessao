@@ -3,10 +3,10 @@ import pytest
 from chessao import BLACK_COLOR, WHITE_COLOR
 from chessao.chess import EMPTY
 from chessao.cards import Card
-from chessao.gameplay import ChessaoGame
+from chessao.gameplay import ChessaoGame, CardValidationError
 import chessao.helpers as helpers
 
-from .utils import card_list, load_simulation_bugs
+from .utils import card_list
 
 
 def test_sth():
@@ -64,8 +64,18 @@ class TestCheck:
         chessao_default.full_move(cards=None, move=['F6', 'H5'])
         assert not chessao_default.check
 
+    def test_card_cannot_mate(self, fen_setup):
+        g = fen_setup('7K/8/Q7/4B2R/8/8/8/1k6', ["K1"], [])
+        g.full_move([Card(1, '7')], ["H4", "H8"])
+        assert g.check
+        g.full_move([Card(1, '7')], ["B8", "C7"])
+        assert not g.check
+        g.full_move([Card(1, 'K')], [])
+        assert g.check
+        assert not g.mate
+        assert not g.player_should_lose_turn
 
-class TestStalemate():
+class TestStalemate:
 
     def test_after_simulate(self, stalemate_setup):
         g = stalemate_setup
@@ -74,19 +84,6 @@ class TestStalemate():
         g.full_move(cards=[Card(1, '8')], move=['E1', 'F2'], burn=1)
         g.full_move(cards=[Card(1, 'J')], move=['A7', 'A6'], jack='q')
         g.full_move(cards=[Card(4, 'K')], move=['D1', 'E1'])
-        assert not g.stalemate
-        assert not g.mate
-        assert not g.finished
-
-    def test_weird(self, hand_setup):
-        g = hand_setup(['84', 'J3'], ['93', 'Q3'])
-        assert g.to_move == WHITE_COLOR
-        g.full_move(cards=[Card(4, '8')], move=['B1', 'C3'])
-        g.full_move(cards=[Card(3, '9')], move=['G7', 'G5'])
-        g.full_move(cards=[Card(3, 'J')], move=['F2', 'F4'], jack='b')
-        assert not g.stalemate
-        g.full_move(cards=[Card(3, 'Q')], move=['D8', 'A7'])
-        assert g.to_move == WHITE_COLOR
         assert not g.stalemate
         assert not g.mate
         assert not g.finished
@@ -104,19 +101,21 @@ class TestKingOfSpades:
         assert game.to_move == WHITE_COLOR
         print(game.history.get_move_from_turn(-1))
         assert game.king_of_spades_active()
-        assert game.current_card is None
+        assert game.current_card == Card(1, 'K')
         assert game.possible_moves() == {'E2': ['E3']}
 
-    @pytest.mark.xfail(raises=AssertionError, reason="Not handled yet")
+    # @pytest.mark.xfail(raises=AssertionError, reason="Not handled yet")
     def test_king_after_four(self, hand_setup):
+        """If you play KOS after lost move, KOS has no power."""
+
         g = hand_setup(['84', 'K1', '41'], ['93', 'Q3'])
         assert g.to_move == WHITE_COLOR
         g.full_move(cards=[Card(1, '4')], move=['B1', 'C3'])
         assert g.to_move == BLACK_COLOR
         g.full_move(cards=[Card(3, '9')], move=[])
         assert g.to_move == WHITE_COLOR
-        g.full_move(cards=[Card(1, 'K')], move=[])
-        assert g.king_of_spades_active()
+        g.full_move(cards=[Card(1, 'K')], move=['E2', 'E3'])
+        assert not g.king_of_spades_active()
 
     def test_king_at_the_begining(self, hand_setup):
         # when played at the begining, it should work as normal
@@ -125,6 +124,34 @@ class TestKingOfSpades:
         g.full_move(cards=[Card(1, 'K')], move=['B1', 'C3'])
         assert not g.king_of_spades_active()
         assert g.board['B1'] == EMPTY
+
+    def test_king_after_three(self, hand_setup):
+        # three card should have his powers only once
+        g = hand_setup(['34'], ['K1', 'Q3', '21', '52'])
+        assert g.to_move == WHITE_COLOR
+        g.full_move(cards=[Card(4, '3')], move=['B1', 'C3'])
+        assert g.moves == 1
+        g.full_move(cards=[Card(1, 'K')], move=['B1', 'C3'],  # move doesn't matter
+                    cards_to_discard=card_list(['Q3', '21', '52']))
+        assert g.king_of_spades_active()
+        assert g.player_should_lose_turn  # current card is still KOS
+        g.full_move(cards=[], move=['B1', 'A3'])
+        assert g.board['A3'].name == 'Knight'
+        g.full_move(cards=None, move=['E7', 'E6'])
+
+    def test_after_enpassant(self, hand_setup):
+        g = hand_setup([], ['K1', '63', '71', '52'])
+        g.full_move(cards=None, move=['E2', 'E4'])
+        g.full_move(cards=[Card(3, '6')], move=['F7', 'F5'])
+        g.full_move(cards=None, move=['E4', 'E5'])
+        g.full_move(cards=[Card(1, '7')], move=['D7', 'D5'])
+        g.full_move(cards=None, move=['E5', 'D6'])
+        assert g.board['D5'] == EMPTY
+        g.full_move(cards=[Card(1, 'K')], move=[])
+        assert g.board['D6'] == EMPTY
+        assert g.board['E5'].name == 'Pawn'
+        assert g.board['D5'].name == 'Pawn'
+        assert g.player_should_lose_turn  # current card is still KOS
 
 
 class TestKingOfHearts:
@@ -138,6 +165,15 @@ class TestKingOfHearts:
         assert game.possible_moves() == {}
         assert game.player_should_lose_turn
 
+    def test_turn_losing_after_capture(self, koh_setup):
+        g = koh_setup
+        g.full_move(cards=[Card(1, '6')], move=['E2', 'E4'], burn=1)
+        g.full_move(cards=None, move=['D7', 'D5'])
+        g.full_move(cards=[Card(2, 'K')], move=['E4', 'D5'])
+        assert g.board['D5'].color == WHITE_COLOR
+        assert g.possible_moves() == {}
+        assert g.player_should_lose_turn
+
 
 class TestQueen:
 
@@ -149,6 +185,28 @@ class TestQueen:
         pos_moves = game.possible_moves()
         assert set(pos_moves.keys()) == {'D1'}
         assert set(pos_moves['D1']) == expected
+
+    @pytest.mark.xfail(reason="Queen after jack raises error in current implementation")
+    def test_queen_after_jack(self, hand_setup):
+        # test that Queen cards doesn't trumps active jack
+        g = hand_setup(['J1', 'K2'], ['93', 'Q3'])
+        g.full_move(cards=[Card(1, 'J')], move=['E2', 'E4'], pile=1, jack='n')
+        assert g.jack == 'n'
+        g.play_cards([Card(3, 'Q')])
+        pos_starts = set(g.possible_moves().keys())
+        assert pos_starts != {'D8'}
+        assert pos_starts == {'B8', 'G8'}
+
+    def test_queen_after_jack_errors(self, hand_setup):
+        g = hand_setup(['84', 'J3'], ['93', 'Q3'])
+        assert g.to_move == WHITE_COLOR
+        g.full_move(cards=[Card(4, '8')], move=['B1', 'C3'])
+        g.full_move(cards=[Card(3, '9')], move=['G7', 'G5'])
+        g.full_move(cards=[Card(3, 'J')], move=['F2', 'F4'], jack='b')
+        assert not g.stalemate
+        assert g.jack == 'b'
+        with pytest.raises(CardValidationError):
+            g.full_move(cards=[Card(3, 'Q')], move=['D8', 'A7'])
 
 
 class TestAce:
@@ -224,6 +282,14 @@ class TestJack:
         chessao.play_cards(cards=[fh[-2]], pile=1, jack='n')
         assert chessao.jack == 'n'
         assert chessao.possible_moves() != {}
+
+    def test_four_on_jack(self, hand_setup):
+        # when 4 is played after Jack, turn is lost
+        g = hand_setup(['J1'], ['41'])
+        g.full_move(cards=[Card(1, 'J')], move=['E2', 'E4'], jack='r')
+        g.full_move(cards=[Card(1, '4')], move=[])
+        g.play_cards(cards=[Card(1, '7')])
+        assert g.player_should_lose_turn
 
 
 class TestThree:
@@ -333,32 +399,48 @@ class TestFourCardBehavior:
             )
 
 
-simulation_data, ids_ = load_simulation_bugs(parametrize=True)
+class TestPromotion:
+
+    def test_simple(self, fen_setup):
+        g = fen_setup('K7/8/8/8/8/8/4P3/k7')
+        g.full_move(None, ['E7', 'E8'], promotion='q')
+        assert g.board.promotion_took_place
+        assert g.board['E8'].name == 'Queen'
+        assert g.check
+
+    def test_king_of_spades_after(self, fen_setup):
+        g = fen_setup('K7/8/8/8/8/8/4P3/k7', None, ['K1'])
+        g.board['E7'].mvs_number = 6
+        g.full_move(None, ['E7', 'E8'], promotion='q')
+        g.full_move([Card(1, 'K')], [])
+        assert g.board['E8'] == EMPTY
+        assert g.board['E7'].name == 'Pawn'
+        assert g.board['E7'].mvs_number == 6
+        assert g.player_should_lose_turn
 
 
-# @pytest.mark.xfail(reason="Testing bugs")
-@pytest.mark.skip
-@pytest.mark.simbugs
-@pytest.mark.parametrize("ledger,starting_deck,stalemate,mate", simulation_data, ids=ids_)
-def test_simulation_bugs(ledger, starting_deck, stalemate, mate):
-    game = ChessaoGame.from_ledger(ledger, starting_deck)
-    assert game.stalemate == stalemate
-    assert game.mate == mate
+class TestMoves:
+
+    def test_enpassant(self, chessao_default):
+        chessao_default.full_move(cards=None, move=['E2', 'E4'])
+        chessao_default.full_move(cards=None, move=['F7', 'F5'])
+        chessao_default.full_move(cards=None, move=['E4', 'E5'])
+        chessao_default.full_move(cards=None, move=['D7', 'D5'])
+        chessao_default.full_move(cards=None, move=['E5', 'D6'])
+        assert chessao_default.board['D5'] == EMPTY
+
 
 # bugi
 # ♡
 
 # co kiedy król zagrywa specjalnego króla i ma w zasięgu króla przeciwnego?
 # - dokleiłem jeszcze w movesm damki warunek na typ ktory zostal
-# król się zbija w pewnym momencie (jakim?)
-# - dokleilem w self.possible_moves pozycje kinga
-# kkier unhashable type karta
-# problem w tempie, zmienilem troche na glupa, zeby bral dobre miejsce jak
-# widzie ze cos zle ale olewam to dla k pika.
+
 # co kiedy zagrywam waleta, żądam ruchu damą, którą następnie zbijam?
 # robię tak, że tracisz kolejkę.
 # czy mogę dać czwórkę na waleta?
-# robię, że nie
+# TAk
+
 # może się wydarzyć taka sytuacja: czarne szachują białe. biały król
 # ucieka. czarne zagrywają króla pik. (co w efekcie połowicznie realizuje
 # króla pik - cofa rozgrywkę, ale zaraz karta już przestaje działać bo
