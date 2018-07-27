@@ -50,7 +50,8 @@ class Piece:
         a specific card & board.
         """
         if board.get_piece(self.position) != self:
-            raise ChessaoPieceException('Piece is not on the board')
+            raise ChessaoPieceException(
+                f'Piece is not on the board. Pos={self.position} Board=\n{board}')
 
         moves = [move for move in self._moves(card, board)
                  if not self._move_results_with_check(move, board)]
@@ -179,7 +180,9 @@ class Queen(Piece):
         super(Queen, self).__init__(color, position, name, val, mvs)
 
     def _moves(self, card, board):
-        if card.rank == 'Q' and board.piece_types_left(self.color) != {King, Queen}:
+        pieces_left = board.piece_types_left(self.color)
+        if card.rank == 'Q' and pieces_left != {King, Queen}:
+            assert Queen in pieces_left
             res = [i for i in board.all_taken() if
                    (board[i].color == self.color and
                     board[i].name in ('Pawn', 'Bishop', 'Knight', 'Rook'))]
