@@ -1,15 +1,15 @@
 import logging
 from collections import defaultdict
 from pprint import pformat
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
-from chessao import WHITE_COLOR, BLACK_COLOR, MAPDICT, INVERTED_MAPDICT
+from chessao import WHITE_COLOR, BLACK_COLOR, MAPDICT
 from chessao.cards import Card, ChessaoCards
 from chessao.chess import Board, FEN_DICT, EMPTY
 
-from chessao.pieces import King, Piece
+from chessao.pieces import King, Piece, Queen
 from chessao.players import Player
-from chessao.helpers import ok_karta, invert_dict
+from chessao.helpers import ok_karta, invert_dict, convert_to_strings
 from chessao.history import ChessaoHistory
 
 
@@ -26,6 +26,10 @@ class BadMoveError(ChessaoError):
 
 
 class CardsRemovalError(ChessaoError):
+    pass
+
+
+class CardValidationError(ChessaoError):
     pass
 
 
@@ -105,10 +109,10 @@ PILES: |{str(self.piles[0][-1]):>3} |  |{str(self.piles[1][-1]):>3} |
 CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
 {blacks.name} {blacks.id} (white): {blacks.hand}
 {self.board.print_for(self.to_move)}
-{whites.name} {whites.id} (black): {whites.hand}
-History:
-{self.cards.starting_deck}
-{self.history}"""
+{whites.name} {whites.id} (black): {whites.hand}"""
+# History:
+# {self.cards.starting_deck}
+# {self.history}"""
 
     def __repr__(self):
         return pformat(self.__dict__)
@@ -172,8 +176,10 @@ History:
 
     @property
     def three(self):
+        second_go_after_king = self.card_is(self.penultimate_card, 'K', 1)
         if all([self.card_is(self.last_card, '3'),
-                not self.card_is(self.current_card, '3')]):
+                not self.card_is(self.current_card, '3'),
+                not second_go_after_king]):
             three = 5 if self.card_is(self.penultimate_card, '3') else 3
         else:
             three = 0
@@ -220,13 +226,14 @@ History:
                   pile: int = 0,
                   burn: bool = False,
                   jack: Optional[str] = None,
-                  cards_to_discard: Optional[List[Card]] = None) -> None:
+                  cards_to_discard: Optional[List[Card]] = None,
+                  promotion: Optional[str] = None) -> None:
 
         if cards is None:  # for tests purposes
             cards = self.current_player.choose_any()
             burn = True
         if self.king_of_spades_active():
-            self._handle_king_of_spades()
+            self._play_penultimate_card()
         else:
             self.play_cards(cards, pile, burn, jack=jack, cards_to_remove=cards_to_discard)
 
@@ -239,7 +246,7 @@ History:
         if self.player_should_lose_turn:
             self.logger.info("Player loosing turn...")
             move = []
-        self.chess_move(move)
+        self.chess_move(move, promotion)
         self.end_move()
 
     def play_cards(self,
@@ -248,6 +255,7 @@ History:
                    burn: bool = False,
                    jack: Optional[str] = None,
                    cards_to_remove: Optional[List[Card]] = None):
+        self._cards_checks(cards[-1])
         try:
             self.current_player.remove_cards(cards)
         except ValueError:
@@ -277,18 +285,18 @@ History:
         self.current_player.update_cards(
             self.cards.deal(len(cards_to_remove)))
 
-    def _handle_king_of_spades(self):
-        penultimate_move = self.history.get_move_from_turn(-2)
-        card = penultimate_move['card']
-        burn = penultimate_move['burned']
-        done_move = penultimate_move['move']
-        assert done_move, "Can't redo undone move"
+    def _play_penultimate_card(self):
+        pen_move = self.history.get_move_from_turn(-2)
+        card = pen_move['card']
+        burn = pen_move['burned']
         self.cards._put_card(card, burn)
-        mapdict = get_mapdict()
-        self.board.swap(mapdict[done_move[0]],
-                        mapdict[done_move[1]])
 
-    def chess_move(self, move: List[str]):
+    def _revert_last_move(self):
+        done_move = self.last_move['move']
+        assert done_move, f"Can't redo undone move: {self.last_move}, Board:\n{self.board}"
+        self.board.revert_move(done_move[0], done_move[1])
+
+    def chess_move(self, move: List[str], promotion: Optional[str]):
         if not move:
             self.current_move = []
             return
@@ -297,13 +305,22 @@ History:
         assert start in possible_moves, f'{self.possible_moves()}| {self.current_card}'
         move_ends = possible_moves[move[0]]
         assert end in move_ends, f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
-        self.board.move(start, end, self.current_card)
+        self.board.move(start, end, self.current_card, promotion)
         self.current_move = [start, end]
 
     def end_move(self):
-        self.set_check()
-        self.set_stalemate()
-        self.set_mate()
+        if self.card_is(self.current_card, 'K', 1) and self.moves > 0 and self.last_move['move']:
+            self.logger.info("Handling king of spades...")
+            pm = self.history.get_move_from_turn(-2)
+            self.check = pm['check']
+            self.stalemate = pm['stalemate']
+            self.mate = pm['mate']
+            self._revert_last_move()
+        else:
+            self.set_check()
+            self.set_stalemate()
+            self.set_mate()
+
         self.add_to_history()
         self.change_color()
 
@@ -341,6 +358,10 @@ History:
         if any([self.board.halfmoveclock == 100,
                 len(self.board.all_taken()) == 2]):
             self.stalemate = True
+            if self.board.halfmoveclock == 100:
+                self.logger.info('Stalemate out of boringness')
+            else:
+                self.logger.info('Stalemate: only kings left')
             return
         color = self.invert_color(self.to_move)
         self.to_move = color
@@ -371,7 +392,7 @@ History:
 
     @property
     def player_should_lose_turn(self):
-        if self.card_is(self.current_card, 'K', 1) and self.moves > 1:
+        if self.card_is(self.current_card, 'K', 1) and self.moves > 0:
             self.logger.info("King of spades played")
             return True
         if all([self.card_is(self.last_card, '4'),
@@ -388,8 +409,9 @@ History:
         if self.moves < 2:
             return False
         last_move = self.history.get_move_from_turn(-1)
+        penultimate_move = self.history.get_move_from_turn(-2)
         last_move_burned = last_move['burned']
-        if not last_move_burned:
+        if not last_move_burned and penultimate_move['move']:
             if self.card_is(last_move['card'], 'K', 1):
                 return True
         return False
@@ -402,60 +424,71 @@ History:
     def possible_moves(self, card=None, stalemate_checking=False):
         """Return a dict of possible moves.
 
-            meant to be invoked after card was played and before move was made.
+            meant to be invoked after card was played and before move was made
+            or during stalemate checking.
         """
 
-        def convert_to_strings(dictionary):
-            new = []
-            for key, list_of_positions in dictionary.items():
-                try:
-                    start = INVERTED_MAPDICT[key]
-                except KeyError:
-                    start = key
-                new.append((
-                    start,
-                    [INVERTED_MAPDICT[i] for i in list_of_positions]))
-            return dict(new)
-
-        possible_moves = {}
         card = card or self.current_card
-        blacklisted_moves = []  # for king of spades
         possible_start = self.positions_taken_by_color(self.to_move)
-        self.logger.debug(f'Setting up... card={card} posstart={possible_start}')
-
+        # self.logger.debug(f'Setting up... card={card} posstart={possible_start}')
         penultimate_move = self.history.get_move_from_turn(-2)
         last_move = self.history.get_move_from_turn(-1)
-        last_move_burned = last_move['burned']
+
         if stalemate_checking:
+            # mock a situation as one move ahead
             penultimate_move = last_move
             last_move = defaultdict(
                 lambda: None,
-                {'card': card,
+                {'card': self.current_card,
                  'jack': FEN_DICT[self.jack] if self.jack else None})
-        if not last_move_burned:
+
+        possible_start, blacklisted_moves = self._filter_possible_starts(
+            possible_start=possible_start,
+            card=card,
+            penultimate_move=penultimate_move,
+            last_move=last_move)
+
+        return self._get_possible_moves(possible_start, card, blacklisted_moves)
+
+    def _filter_possible_starts(self, possible_start,
+                                card, penultimate_move,
+                                last_move) -> Tuple[List[int], List[int]]:
+        """Shrink down default possible starting positions based on active special cards."""
+
+        blacklisted_moves = []  # for king of spades
+        if not last_move['burned']:
             if penultimate_move['move']:
+
                 if self.card_is(last_move['card'], 'K', 1):
-                    # if king of spades is active
                     self.logger.debug('King of spades active...')
                     possible_start = [penultimate_move['move'][0]]
                     blacklisted_moves.append(MAPDICT[penultimate_move['move'][1]])
+
                 elif self.card_is(last_move['card'], 'K', 2):
-                    # if king of hearts is active
                     self.logger.debug('King of hearts active...')
-                    possible_start = [penultimate_move['move'][1]]
-            if all([last_move['jack'] is not None,
-                    not self.card_is(self.current_card, 'J')]):
-                # if jack is active
-                self.logger.debug('Jack active...')
-                piece_name = self.get_piece_name(last_move['jack'])
-                possible_start = self.board.positions_of_piece(
-                    piece_name, self.to_move)
-        if self.card_is(card, 'Q'):
+                    last_move_end = penultimate_move['move'][1]
+                    if self.board[last_move_end].color == self.to_move:
+                        possible_start = [penultimate_move['move'][1]]
+                    else:
+                        possible_start = []
+
+        if all([last_move['jack'] is not None,
+                not self.card_is(self.current_card, 'J')]):
+            self.logger.debug('Jack active...')
+            piece_name = self.get_piece_name(last_move['jack'])
+            possible_start = self.board.positions_of_piece(piece_name, self.to_move)
+        elif self.card_is(card, 'Q') and Queen in self.board.piece_types_left(self.to_move):
             self.logger.debug('Queen active...')
             possible_start = self.board.positions_of_piece('Queen', self.to_move)
 
+        return possible_start, blacklisted_moves
+
+    def _get_possible_moves(self, possible_start: List[int],
+                            card: Optional[Card],
+                            blacklisted_moves: List[int]) -> Dict[str, List[str]]:
+        possible_moves = {}
         for start in possible_start:
-            self.logger.debug(f'Possible start at the end: {possible_start}')
+            # self.logger.debug(f'Possible start at the end: {possible_start}')
             piece_card = card or Card(1, '5')  # mock card for moves checking
             try:
                 end = [pos
@@ -464,11 +497,14 @@ History:
             except (AttributeError, TypeError):
                 msg = (f"Possible starts: {possible_start}, move: {self.current_move}, card: {card}"
                        f"Current_player: {self.current_player} Last 2 moves: {self.history.get()[-2:]}"
-                       f"Board: {self.board}")
-                # import ipdb; ipdb.set_trace()
-
+                       f"\nBoard: {self.board}")
                 raise BadMoveError(msg)
             if end:
                 possible_moves[start] = end
-        self.logger.debug(f'Result: {convert_to_strings(possible_moves)}')
         return convert_to_strings(possible_moves)
+
+    def _cards_checks(self, card):
+        if self.jack and self.card_is(card, 'Q'):
+            raise CardValidationError('Cannot play Queen card after Jack card')
+        # if not self.last_move['move'] and self.card_is(card, 'K', 1):
+            # raise CardValidationError('Cannot play King of Spades after lost turn')
