@@ -88,6 +88,8 @@ class ChessaoHistory:
         for group in ('check', 'mate'):
             if matched.group(group):
                 record_dict[group] = bool(matched.group(group))
+            else:
+                record_dict[group] = False
 
         if matched.group('start') in (None, ''):
             assert matched.group('end') in (None, '')
