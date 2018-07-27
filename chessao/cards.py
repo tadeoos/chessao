@@ -1,4 +1,5 @@
 """Cards module."""
+import logging
 import random
 from collections import OrderedDict
 from itertools import permutations
@@ -230,6 +231,7 @@ class ChessaoCards:
         self.current_card = None
         self.current_pile = 0
         self.reshuffled = False
+        self.logger = logging.getLogger(__name__)
 
     def __str__(self):
         return f"Piles: {self.piles}"
@@ -293,6 +295,7 @@ class ChessaoCards:
         self.burned = []
         self.piles = new_piles
         self.reshuffled = True
+        self.logger.debug('Reshuffled...')
 
     def _put_card(self, card, burn=False):
         self.penultimate_card = self.last_card
