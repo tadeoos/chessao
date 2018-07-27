@@ -1,4 +1,5 @@
 import logging
+from typing import Dict
 
 CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
 CARDS_RANKS = ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
@@ -26,7 +27,7 @@ PIECES_STR = {
         'Rook': '♖',
         'Knight': '♘',
         'Bishop': '♗',
-        'Queen': '♛',
+        'Queen': '♕',
         'King': '♔'
 
     },
@@ -41,12 +42,12 @@ PIECES_STR = {
     }
 }
 
-MAPDICT = {
+MAPDICT: Dict[str, int] = {
     letter + str(number - 1): 10 * number + 1 + 'ABCDEFGH'.index(letter)
     for number in range(2, 10)
     for letter in 'ABCDEFGH'
 }
-INVERTED_MAPDICT = {val: key for key, val in MAPDICT.items()}
+INVERTED_MAPDICT: Dict[int, str] = {val: key for key, val in MAPDICT.items()}
 
 # from logging import NullHandler
 # logging.getLogger(__name__).addHandler(NullHandler())
@@ -57,4 +58,4 @@ formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s.%(lineno)s: 
                               datefmt='%m/%d/%Y %H:%M:%S')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
