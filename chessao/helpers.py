@@ -1,7 +1,7 @@
 import random
 from typing import List, Dict, Tuple
 
-from chessao import CARDS_COLORS
+from chessao import CARDS_COLORS, INVERTED_MAPDICT
 from chessao.cards import Card, ChessaoCards
 from chessao.pieces import Pawn
 
@@ -32,6 +32,17 @@ def invert_dict(dictionary):
 def get_inverted_mapdict() -> Dict[int, str]:
     """Return dict with {21: 'A1', 31: 'A2' ...} mapping."""
     return invert_dict(get_mapdict())
+
+
+def convert_to_strings(dictionary) -> Dict[str, List[str]]:
+    new = []
+    for key, list_of_positions in dictionary.items():
+        try:
+            start = INVERTED_MAPDICT[key]
+        except KeyError:
+            start = key
+        new.append((start, [INVERTED_MAPDICT[i] for i in list_of_positions]))
+    return dict(new)
 
 
 def invert_color(color) -> str:
