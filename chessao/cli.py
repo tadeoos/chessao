@@ -3,25 +3,37 @@ import json
 import random
 import time
 import traceback
+import pickle
 
 import click
 
 from chessao import WHITE_COLOR, BLACK_COLOR
-from chessao.gameplay import ChessaoGame
+from chessao.gameplay import ChessaoGame, CardValidationError
 from chessao.players import gracz
 
 
-def dump_error_info(game):
-    timestr = time.strftime("%Y%m%d-%H%M%S")
+def dump_pickle(game):
+    timestr = time.strftime("%m%d-%H:%M:%S")
+    path = f'/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/{timestr}.pkl'
+    with open(path, 'wb') as outfile:
+        pickle.dump(game, outfile, pickle.HIGHEST_PROTOCOL)
+
+
+def dump_error_info(game, error_tb):
+    timestr = time.strftime("%m%d-%H:%M:%S")
     path = f'/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/{timestr}.json'
     data = {
         'starting_deck': game.cards.starting_deck,
         'ledger': game.history.get(),
         'mate': game.mate,
-        'stalemate': game.stalemate
+        'stalemate': game.stalemate,
+        'error': error_tb,
+        'fen': game.board.fen(),
+        'current_card': str(game.current_card),
+        'current_move': game.current_move,
     }
     with open(path, 'w') as outfile:
-        json.dump(data, outfile)
+        json.dump(data, outfile, indent=4)
 
 
 def simulate_game(quiet):
@@ -32,10 +44,20 @@ def simulate_game(quiet):
     else:
         click.secho("Game finished succesfuly!", fg='green')
         print(chessao)
+        print(chessao.board.fen())
         print(f'STALEMATE: {chessao.stalemate}')
         print(f'MATE: {chessao.mate}')
-    click.secho(f"Dumping info...", fg='blue')
-    dump_error_info(chessao)
+    if not chessao.cards.reshuffled:  # messes up the ledger
+        click.secho(f"Dumping info...", fg='blue')
+        dump_error_info(chessao, error)
+    # dump_pickle(chessao)
+
+
+def get_cards_to_play(game):
+    burn, cards = game.current_player.choose_card(game.piles)
+    pile = game.cards.pick_a_pile(cards[-1])
+    cards_to_remove = game.current_player.get_three(3, blacklist=cards)
+    return burn, cards, pile, cards_to_remove
 
 
 def control_loop(quiet):
@@ -47,34 +69,42 @@ def control_loop(quiet):
         while not game.finished:
             move = True
             moves += 1
-            burn, cards = game.current_player.choose_card(game.piles)
-            pile = game.cards.pick_a_pile(cards[-1])
-            cards_to_remove = game.current_player.get_three(3, blacklist=cards)
-            jack = random.choice(game.possible_jack_choices())
+            cards_ok = False
+            while not cards_ok:
+                burn, cards, pile, cards_to_remove = get_cards_to_play(game)
+                try:
+                    game._cards_checks(cards[-1])
+                    cards_ok = True
+                except CardValidationError:
+                    cards_ok = False
+
+            possible_jacks = game.possible_jack_choices()
+            if possible_jacks:
+                jack = random.choice(possible_jacks)
+            else:
+                jack = None
+
+            # game loop
             if game.king_of_spades_active():
-                game._handle_king_of_spades()
+                game._play_penultimate_card()
             else:
                 game.play_cards(cards, pile, burn, jack, cards_to_remove)
 
             if game.card_is(game.current_card, 'A'):
                 if not game.check:
+                    game.current_move = []
                     game.swap_players_color()
                     game.add_to_history()
                     continue
-            if game.card_is(game.current_card, 'K', 1):
-                move = []
             if game.player_should_lose_turn:
-                possible_moves = None
-            else:
-                possible_moves = game.possible_moves()
+                move = []
+            possible_moves = game.possible_moves()
             if possible_moves and move:
                 move = game.current_player.choose_move(possible_moves)
-                game.chess_move(move[0], move[1])
-            else:
-                move = []
-                game.current_move = []
-
+            game.chess_move(move, promotion='q')
             game.end_move()
+
+            # printing
             if not quiet:
                 output = f"\rMove {moves}: {game.invert_color(game.to_move)} {move} {cards if not burn else ''}"
                 if not burn and cards[-1].rank == 'J':
