@@ -23,10 +23,10 @@ pytest
 - [x] 3 card
 - [ ] jack
 - [x] Queen
-- [ ] King of spades
+- [x] King of spades
 - [ ] King of hearts
 - [x] Other kings
 - [x] Ace
 - [ ] stalemate
-- [ ] Promotion
+- [x] Promotion
 - [ ] Tests for known corner cases
