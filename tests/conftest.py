@@ -1,6 +1,7 @@
 from pytest import fixture
 
 from chessao import BLACK_COLOR, WHITE_COLOR
+from chessao.chess import Board
 from chessao.cards import Card
 from chessao.gameplay import ChessaoGame
 from chessao.players import Player
@@ -40,6 +41,24 @@ def hand_setup():
         return ChessaoGame.for_tests(hands=hands)
 
     return _hand_setup
+
+
+@fixture()
+def fen_setup():
+
+    def _fen_setup(fen, x=None, y=None):
+        neutral_cards = card_list(['51', '61', '71', '81', '91'])
+        hands = []
+        for hand in (x, y):
+            if hand is None:
+                hands.append(neutral_cards[:])
+            else:
+                cards = card_list(hand) + neutral_cards
+                hands.append(cards[:5])
+        board = Board(fenrep=fen)
+        return ChessaoGame.for_tests(hands=hands, board=board)
+
+    return _fen_setup
 
 
 @fixture
