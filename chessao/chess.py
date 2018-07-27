@@ -36,12 +36,13 @@ class Board:
         """
         Board constructor.
 
-        >>> 'K' in Board(rand=1).fen()
+        >>> 'K' in Board(rand=0).fen()
         True
         """
         self._brd: List[Union[int, str, Piece]] = [0 for i in range(120)]
         self.mapdict: Dict[str, int] = get_mapdict()
         self.capture_took_place: bool = False
+        self.promotion_took_place: bool = False
         self.captured_pieces: List = []
         self.enpass: int = 300
         self.fullmove: int = 0
@@ -85,12 +86,24 @@ class Board:
         return self._brd[key]
 
     def __setitem__(self, key, value) -> None:
+        if type(key) == str:
+            md = get_mapdict()
+            key = md[key]
         self._brd[key] = value
 
     def pieces(self) -> Iterable[Piece]:
         """Generator yielding pieces on the board"""
         for position in self.all_taken():
             yield self[position]
+
+    @staticmethod
+    def promotion_happens(position, color):
+        row = int(position / 10)
+        if color == WHITE_COLOR and row == 9:
+            return True
+        if color == BLACK_COLOR and row == 2:
+            return True
+        return False
 
     def _move_piece(self, pos_from: int, pos_to: int) -> None:
         """Replace the piece from `pos_from` to `pos_to`
@@ -99,9 +112,10 @@ class Board:
             pos_to (int)
             pos_from (int)
         """
+        assert self[pos_from] != EMPTY, f"Tried to move form empty"
         self[pos_to] = self[pos_from]
         piece = self[pos_to]
-        if isinstance(piece, Piece):
+        if issubclass(type(piece), Piece):
             piece.position = pos_to
             piece.mvs_number += 1
         else:
@@ -135,6 +149,17 @@ class Board:
         self.enpass = 300
         return self
 
+    def _promotion_move(self, start: int, end: int, piece: str, only_bool: bool):
+        assert piece in 'rnqb', f"invalid piece for promotion"
+        self._move_piece(pos_from=start, pos_to=end)
+        color = self[end].color
+        self.promotion_took_place = self[end]
+        self[end] = FEN_DICT[piece](color=color, position=end)
+        self._turn_clock(piece_color=end, clock=False)
+        # clearing enpass after enpass -> problem in pat functiong
+        self.enpass = 300
+        return self
+
     def _castle_move(self, start_position_int, end_position_int, only_bool):
         if only_bool:
             return True
@@ -155,10 +180,11 @@ class Board:
             return True
         self.swap(start_position_int, end_position_int)
         self[end_position_int].mvs_number += 1
+        self[start_position_int].mvs_number += 1  # adding for castle to work properly
         self._turn_clock(piece_color=end_position_int, clock=1)
         return self
 
-    def move(self, pos_from, pos_to=None, card=None, only_bool=False):
+    def move(self, pos_from, pos_to=None, card=None, promotion=None, only_bool=False):
         """
         Move a piece on a board.
 
@@ -218,6 +244,8 @@ class Board:
         card = card or Card(1, '5')
 
         self.capture_took_place = False
+        self.promotion_took_place = False
+
         start_position_int = self.mapdict[pos_from] if isinstance(
             pos_from, str) else pos_from
         end_position_int = self.mapdict[pos_to] if isinstance(
@@ -234,6 +262,8 @@ class Board:
         if self[start_position_int].name == 'Pawn':
             if self.enpass == end_position_int:
                 return self._enpassant_move(start_position_int, end_position_int, only_bool)
+            elif self.promotion_happens(end_position_int, self[start_position_int].color):
+                return self._promotion_move(start_position_int, end_position_int, promotion, only_bool)
             elif self[start_position_int].mvs_number == 0 and \
                     abs(start_position_int - end_position_int) == 20:  # then set enpassant
                 self.enpass = (start_position_int + end_position_int) / 2
@@ -355,8 +385,6 @@ class Board:
         return {type(self[pos]) for pos in taken if self[pos].color == color}
 
     def get_piece(self, position):
-        if type(position) == str:
-            return self[self.mapdict[position]]
         return self[position]
 
     def get_points(self, col):
@@ -372,11 +400,54 @@ class Board:
 
     def swap(self, pos_a, pos_b):
         """Swap what's on two positions. Asserts that pos_b is not empty."""
+        if isinstance(pos_a, str):
+            pos_a = self.mapdict[pos_a]
+        if isinstance(pos_b, str):
+            pos_b = self.mapdict[pos_b]
         self[pos_a], self[pos_b] = self[pos_b], self[pos_a]
         if not self.is_empty(pos_b):
             self[pos_b].position = pos_b
         assert not self.is_empty(pos_a)
         self[pos_a].position = pos_a
+        return self
+
+    def revert_move(self, start: str, end: str) -> 'Board':
+        """
+        :start:
+        :end:
+
+        >>> b = Board(fenrep='8/8/K7/8/r7/P7/k7/8')
+        >>> b.captured_pieces
+        []
+        >>> b.move('A5', 'A6')
+        Board: 8/8/K7/8/8/r7/k7/8 - - 0 1
+        >>> b.captured_pieces[0].name
+        'Pawn'
+        >>> b.revert_move('A5', 'A6')
+        Board: 8/8/K7/8/r7/P7/k7/8 - - 0 1
+        >>> b = Board(fenrep='8/8/K7/8/r7/P7/k7/8')
+        >>> b.move('A5', 'A4')
+        Board: 8/8/K7/r7/8/P7/k7/8 - - 1 1
+        >>> b.revert_move('A5', 'A4')
+        Board: 8/8/K7/8/r7/P7/k7/8 - - 1 1
+        """
+
+        assert self[end] != EMPTY, f"s: {start}, e: {end}, b:\n{self}"
+        if self[start] != EMPTY:
+            assert self[end].name == 'Queen', f"s: {start}, e: {end}, b:\n{self}"
+
+        if self.capture_took_place:
+            captured_piece = self.captured_pieces.pop()
+            self[end].mvs_number -= 1
+            self[start] = self[end]
+            self[start].position = self.mapdict[start]
+            self[end] = EMPTY
+            self[captured_piece.position] = captured_piece
+            return self
+        elif self.promotion_took_place:
+            self[end] = self.promotion_took_place
+        self[end].mvs_number -= 1
+        self.swap(start, end)
         return self
 
     def color_is_checked(self, color):
@@ -477,14 +548,16 @@ class Board:
         >>> b.fen_castle('c')
         'kq'
         """
-        if Rook not in self.piece_types_left(color) or King not in self.piece_types_left(color):
-            return ''
         result = ''
+
+        if Rook not in self.piece_types_left(color) or King not in self.piece_types_left(color):
+            return result
+
         king_pos = self.positions_of_piece('King', color)[0]
         rooks_postions = self.positions_of_piece('Rook', color)
         rooks_postions.sort(reverse=True)  # start iteration with King side
         if self[king_pos].mvs_number > 0:
-            return ''
+            return result
         for rook_pos in rooks_postions:
             if self[rook_pos].mvs_number > 0 or int(rook_pos / 10) != int(king_pos / 10):
                 continue
@@ -494,7 +567,7 @@ class Board:
                 result += 'Q'
         assert len(result) < 3, 'Fen caslte cannot give more than 2 results'
         if len(result) == 2:
-            assert len(set(result)) == 2, f"Got two of the same when parsing FEN {self}"
+            assert len(set(result)) == 2, f"Got two of the same f{result} when parsing FEN\n{self}"
         if color == BLACK_COLOR:
             result = result.lower()
         return result
