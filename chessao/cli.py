@@ -1,27 +1,33 @@
 #!/usr/bin/env python
 import json
+import logging
+import pickle
 import random
 import time
 import traceback
-import pickle
+from typing import Tuple
 
 import click
 
-from chessao import WHITE_COLOR, BLACK_COLOR
-from chessao.gameplay import ChessaoGame, CardValidationError
+from chessao import WHITE_COLOR, BLACK_COLOR, SIMULATION_BUGS_PATH
+from chessao.gameplay import ChessaoGame
 from chessao.players import gracz
+from chessao.utils import GameplayEncoder
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def dump_pickle(game):
     timestr = time.strftime("%m%d-%H:%M:%S")
-    path = f'/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/{timestr}.pkl'
+    path = SIMULATION_BUGS_PATH / f'{timestr}.pkl'
     with open(path, 'wb') as outfile:
         pickle.dump(game, outfile, pickle.HIGHEST_PROTOCOL)
 
 
 def dump_error_info(game, error_tb):
     timestr = time.strftime("%m%d-%H:%M:%S")
-    path = f'/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/{timestr}.json'
+    path = SIMULATION_BUGS_PATH / f'{timestr}.json'
     data = {
         'starting_deck': game.cards.starting_deck,
         'ledger': game.history.get(),
@@ -33,7 +39,7 @@ def dump_error_info(game, error_tb):
         'current_move': game.current_move,
     }
     with open(path, 'w') as outfile:
-        json.dump(data, outfile, indent=4)
+        json.dump(data, outfile, indent=4, cls=GameplayEncoder)
 
 
 def simulate_game(quiet):
@@ -41,6 +47,7 @@ def simulate_game(quiet):
     chessao, error = control_loop(quiet)
     if error:
         click.secho(f"Error occured: {error}", fg='red')
+        dump_error_info(chessao, error)
     else:
         click.secho("Game finished succesfuly!", fg='green')
         print(chessao)
@@ -60,34 +67,48 @@ def get_cards_to_play(game):
     return burn, cards, pile, cards_to_remove
 
 
-def control_loop(quiet):
+def control_loop(quiet) -> Tuple[ChessaoGame, str]:
     players = (gracz(1, WHITE_COLOR, name='Adam'),
                gracz(2, BLACK_COLOR, name='Eve'))
     game = ChessaoGame(players)
     moves = 0
     try:
-        while not game.finished:
+        while not game.finished and moves < 250:
             move = True
             moves += 1
             cards_ok = False
-            while not cards_ok:
-                burn, cards, pile, cards_to_remove = get_cards_to_play(game)
-                try:
-                    game._cards_checks(cards[-1])
-                    cards_ok = True
-                except CardValidationError:
-                    cards_ok = False
+            logger.debug(f"Move {moves}")
 
-            possible_jacks = game.possible_jack_choices()
-            if possible_jacks:
-                jack = random.choice(possible_jacks)
-            else:
-                jack = None
+            all_moves_per_card = game.all_possible_moves_on_cards(game.current_player.hand, stalemate=False)
 
             # game loop
             if game.king_of_spades_active():
                 game._play_penultimate_card()
             else:
+                i = 0
+                while not cards_ok:
+                    i += 1
+                    burn, cards, pile, cards_to_remove = get_cards_to_play(game)
+                    if burn:
+                        if all_moves_per_card['neutral'] or game.player_should_lose_turn:
+                            cards_ok = True
+                        else:
+                            cards_ok = False
+                    else:
+                        if all_moves_per_card.get(cards[-1], []):
+                            cards_ok = True
+                        else:
+                            cards_ok = False
+                    if i > 100:
+                        print("I is super big: ", burn, cards, pile, cards_to_remove, all_moves_per_card)
+                        return game, "Stuck in loop"
+
+                possible_jacks = game.possible_jack_choices()
+                if possible_jacks:
+                    jack = random.choice(possible_jacks)
+                else:
+                    jack = None
+
                 game.play_cards(cards, pile, burn, jack, cards_to_remove)
 
             if game.card_is(game.current_card, 'A'):
@@ -96,13 +117,19 @@ def control_loop(quiet):
                     game.swap_players_color()
                     game.add_to_history()
                     continue
+            possible_moves = game.possible_moves()
             if game.player_should_lose_turn:
                 move = []
-            possible_moves = game.possible_moves()
+            elif not burn and game.card_is(game.current_card, "K", 1):
+                move = []
             if possible_moves and move:
                 move = game.current_player.choose_move(possible_moves)
             game.chess_move(move, promotion='q')
             game.end_move()
+
+            if len(game.board.all_taken()) < 6:
+                print("breaking cause only 5 pieces left")
+                break
 
             # printing
             if not quiet:
@@ -112,7 +139,9 @@ def control_loop(quiet):
                 if not burn and cards[-1].rank == '3':
                     output += f"{cards_to_remove} | hand: {game.current_player.hand}"
                 click.echo(output)
-        return game, None
+        if game.stalemate and not game.mate:
+            logger.debug("STALEMATE")
+        return game, ""
     except Exception as e:
         return game, traceback.format_exc()
 

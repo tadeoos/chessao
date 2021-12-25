@@ -7,7 +7,7 @@ from functools import total_ordering
 from pprint import pformat
 from typing import List, Optional, Tuple
 
-from chessao import CARDS_COLORS, CARDS_RANKS, CARDS_RANKS_MAPPING
+from chessao import CARDS_COLORS, CARDS_RANKS, CARDS_RANKS_MAPPING, CARDS_COLORS_NAMES, CARDS_COLOR_FROM_HUMAN
 
 
 @total_ordering
@@ -24,7 +24,7 @@ class Card:
     You would construct a two of spades with ``Card(1, '2')``
     """
 
-    def __init__(self, color: int, rank: str, burned=False):
+    def __init__(self, color: int, rank: str, burned=False, human=None):
         """
         >>> Card(1, 20)
         Traceback (most recent call last):
@@ -38,6 +38,10 @@ class Card:
         >>> c.burned
         True
         """
+        if human:
+            rank, color = human.split(" of ")
+            rank = rank[0].upper()
+            color = CARDS_COLOR_FROM_HUMAN[color]
         if color not in CARDS_COLORS.keys():
             raise TypeError('Card color should be an integer: 1, 2, 3 or 4')
         if rank not in CARDS_RANKS:
@@ -71,7 +75,7 @@ class Card:
         >>> print(Card(1, '2'))
         2♤
         """
-        return self.rank + CARDS_COLORS[self.color]
+        return f"{self.rank}{CARDS_COLORS[self.color]}"
 
     def __repr__(self):
         """
@@ -80,6 +84,7 @@ class Card:
         2♤
         """
         return str(self)
+
 
     def is_near(self, card):
         """
@@ -94,20 +99,27 @@ class Card:
         >>> Card(1, '2').is_near(Card(1, '3'))
         True
         """
-        rank_diff = CARDS_RANKS_MAPPING[self.rank] - \
-            CARDS_RANKS_MAPPING[card.rank]
+        rank_diff = CARDS_RANKS_MAPPING[self.rank] - CARDS_RANKS_MAPPING[card.rank]
         if abs(rank_diff) == 1 and self.color == card.color:
             return True
         if abs(rank_diff) == 0 and self.color != card.color:
             return True
         return False
 
-    def is_(self, rank=None, color=None):
+    def is_(self, rank=None, color=None) -> bool:
+        checks = []
         if rank:
-            if color:
-                return rank == self.rank and color == self.color
-            return rank == self.rank
-        return color == self.color
+            checks.append(rank == self.rank)
+        if color:
+            checks.append(color == self.color)
+        return all(checks)
+
+    @property
+    def is_spot(self):
+        return self.rank in ('5', '6', '7', '8', '9', '10')
+
+    def to_json(self):
+        return f"{self.rank}{CARDS_COLORS_NAMES[self.color]}"
 
     @classmethod
     def from_string(cls, str_card, burned=False):
@@ -150,6 +162,9 @@ class Deck:
         [5♤]
         """
         return [self.cards.pop() for _ in range(repeat)]
+
+    def to_json(self):
+        return [card.to_json() for card in self.cards]
 
     def remove(self, cards: List[Card]):
         for card in cards:
@@ -317,7 +332,7 @@ class ChessaoCards:
 
     def validate_cards(self, cards: List[Card]):
         """
-        Returns True if a card is can be put on one of a decks
+        Returns True if a card can be put on one of a decks
 
         # >>> validate_cards([Card(1,'5')], ([Card(1,'9')],[Card(3, 'K')]))
         # True
@@ -428,3 +443,13 @@ class ChessaoCards:
         if strict:
             return [stairs for stairs in result if ChessaoCards.validate_stairs(stairs)]
         return result
+
+    @staticmethod
+    def any_in(cards: List[str], hand: List[Card]) -> bool:
+        for card in cards:
+            if len(card) > 1:
+                if Card.from_string(card) in hand:
+                    return True
+            else:  # we assume that in this case rank is passed
+                if [*filter(lambda c: c.rank == card, hand)]:
+                    return True

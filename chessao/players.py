@@ -55,6 +55,9 @@ class Player:
         """Choose a promotion for pawn at the end of the board."""
         raise NotImplementedError
 
+    def to_json(self):
+        return str(self)
+
 
 class gracz(Player):
 

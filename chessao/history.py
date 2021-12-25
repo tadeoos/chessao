@@ -1,11 +1,17 @@
+import json
 from collections import defaultdict
+from copy import deepcopy
+from dataclasses import dataclass, InitVar, field, asdict
 from pprint import pformat
-import re
-from typing import List, Optional, Tuple
+from typing import List, TYPE_CHECKING
 
 from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card
-from chessao.chess import Board, FEN_DICT
+from chessao.chess import Board
+from chessao.utils import GameplayEncoder
+
+if TYPE_CHECKING:
+    from chessao.gameplay import ChessaoGame
 
 
 PATTERN = (fr'(?P<color>{WHITE_COLOR}|{BLACK_COLOR}) (?P<discarded>\[[\d\w♤♡♢♧,\s]+\])?\s?(?P<burn>!?)'
@@ -18,10 +24,75 @@ PATTERN = (fr'(?P<color>{WHITE_COLOR}|{BLACK_COLOR}) (?P<discarded>\[[\d\w♤♡
            )
 
 
+@dataclass
+class MoveRecord:
+    chessao: InitVar["ChessaoGame"]
+    color: str = field(init=False)
+    discarded: List[Card] = field(init=False)
+    burned: bool = field(init=False)
+    card: Card = field(init=False)
+    jack: str = field(init=False)
+    pile: int = field(init=False)
+    promotion: str = field(init=False)
+    check: bool = field(init=False)
+    mate: bool = field(init=False)
+    fen: str = field(init=False)
+    move: List[str] = field(init=False)
+    piece: str = field(init=False)
+    white_hand: List[Card] = field(init=False)
+    black_hand: List[Card] = field(init=False)
+
+    def __post_init__(self, chessao):
+        self.color = chessao.to_move
+        self.discarded = chessao.discarded_cards
+        self.burned = chessao.burned
+        self.card = chessao.cards.absolute_current
+        self.jack = chessao.jack
+        self.pile = chessao.cards.current_pile
+        self.promotion = chessao.promotion
+        self.check = chessao.check
+        self.mate = chessao.mate
+        self.fen = chessao.board.fen()
+        self.white_hand = deepcopy(chessao.get_white().hand)
+        self.black_hand = deepcopy(chessao.get_black().hand)
+
+        if chessao.current_move:
+            self.piece = chessao.board.get_fen_rep(chessao.board.get_piece(chessao.current_move[1]))
+            self.move = chessao.current_move
+        else:
+            self.piece = ''
+            self.move = []
+
+    def to_json(self):
+        return json.loads(json.dumps(asdict(self), cls=GameplayEncoder))
+
+    def __str__(self):
+        color = self.color
+        discarded = f"{self.discarded}" + ' ' if self.discarded else ''
+        burn = '!' if self.burned else ''
+        card = self.card
+        jack = ';' + self.jack if self.jack is not None else ''
+        pile = self.pile
+        prom = '=' + self.promotion if self.promotion else ''
+        check = '+' if self.check else ''
+        mate = '#' if self.mate else ''
+        fen = self.fen
+
+        if not self.move:
+            return f"{color} {discarded}{burn}{card}{jack}({pile}) {fen}"
+
+        piece = self.piece
+        start = self.move[0]
+        end = self.move[1]
+
+        return f"{color} {discarded}{burn}{card}{jack}({pile}) {piece}{start}:{end}{prom}{check}{mate} {fen}"
+
+
 class ChessaoHistory:
 
     def __init__(self, board: Board, ledger=None) -> None:
-        self.ledger = ledger or [board.fen()]
+        self.ledger: List[MoveRecord] = ledger or [board.fen()]
+        self.starting_position = board.fen()
 
     def __len__(self):
         return len(self.ledger)
@@ -35,74 +106,59 @@ class ChessaoHistory:
     def get(self):
         return self.ledger
 
-    def add(self, chessao_game: 'ChessaoGame') -> None:
-        color = chessao_game.to_move
-        discarded = f"{chessao_game.discarded_cards}" + ' ' if chessao_game.discarded_cards else ''
-        burn = '!' if chessao_game.burned else ''
-        card = chessao_game.cards.absolute_current
-        jack = ';' + chessao_game.jack if chessao_game.jack is not None else ''
-        pile = chessao_game.cards.current_pile
-        prom = '=' + chessao_game.promotion if chessao_game.promotion else ''
-        check = '+' if chessao_game.check else ''
-        mate = '#' if chessao_game.mate else ''
-        fen = chessao_game.board.fen()
-        if not chessao_game.current_move:
-            record = (f"{color} {discarded}{burn}{card}"
-                      f"{jack}({pile}) {fen}")
-        else:
-            piece = chessao_game.board.get_fen_rep(chessao_game.board.get_piece(chessao_game.current_move[1]))
-            start = chessao_game.current_move[0]
-            end = chessao_game.current_move[1]
-            record = (f"{color} {discarded}{burn}{card}{jack}({pile}) "
-                      f"{piece}{start}:{end}{prom}{check}{mate} {fen}")
+    def add(self, chessao_game) -> None:
+        record = MoveRecord(chessao_game)
         self.ledger.append(record)
 
-    def get_move_from_turn(self, index: int, key: str = None):
+    def get_move_from_turn(self, index: int) -> dict:
         if not 0 < abs(index) < len(self.ledger):
             # TODO: logging
             return defaultdict(lambda: None)
-        parsed_move = self.parse_record(self.ledger[index])
-        if key:
-            return parsed_move[key]
-        return parsed_move
+        parsed_move = self.ledger[index]
+        return asdict(parsed_move)
 
-    @staticmethod
-    def parse_record(record: str) -> dict:
-        record_dict = defaultdict(lambda: None)
-        pattern = PATTERN
+    # @staticmethod
+    # def parse_record(record: MoveRecord) -> dict:
+    #     record_dict = defaultdict(lambda: None)
+    #     pattern = PATTERN
+    #
+    #     matched = re.search(pattern, record)
+    #     if matched is None:
+    #         raise ValueError(f"Record not matched: {record}")
+    #
+    #     for group in ('color', 'board', 'white_castle', 'black_castle', 'enpassant'):
+    #         record_dict[group] = matched.group(group)
+    #
+    #     for group in ('pile', 'halfmove', 'fullmove'):
+    #         record_dict[group] = int(matched.group(group))
+    #
+    #     for group in ('jack', 'piece', 'promotion'):
+    #         if matched.group(group):
+    #             record_dict[group] = FEN_DICT[matched.group(group).lower()]
+    #
+    #     for group in ('check', 'mate'):
+    #         if matched.group(group):
+    #             record_dict[group] = bool(matched.group(group))
+    #         else:
+    #             record_dict[group] = False
+    #
+    #     if matched.group('start') in (None, ''):
+    #         assert matched.group('end') in (None, '')
+    #         record_dict['move'] = []
+    #     else:
+    #         assert matched.group('start') is not None
+    #         record_dict['move'] = [matched.group('start'), matched.group('end')]
+    #
+    #     if matched.group('discarded'):
+    #         discarded_list = matched.group('discarded')[1:-1].split(', ')
+    #         record_dict['discarded'] = [*map(Card.from_string, discarded_list)]
+    #
+    #     record_dict['burned'] = bool(matched.group('burn'))
+    #     record_dict['card'] = Card.from_string(matched.group('card'))
+    #
+    #     return record_dict
 
-        matched = re.search(pattern, record)
-        if matched is None:
-            raise ValueError(f"Record not matched: {record}")
-
-        for group in ('color', 'board', 'white_castle', 'black_castle', 'enpassant'):
-            record_dict[group] = matched.group(group)
-
-        for group in ('pile', 'halfmove', 'fullmove'):
-            record_dict[group] = int(matched.group(group))
-
-        for group in ('jack', 'piece', 'promotion'):
-            if matched.group(group):
-                record_dict[group] = FEN_DICT[matched.group(group).lower()]
-
-        for group in ('check', 'mate'):
-            if matched.group(group):
-                record_dict[group] = bool(matched.group(group))
-            else:
-                record_dict[group] = False
-
-        if matched.group('start') in (None, ''):
-            assert matched.group('end') in (None, '')
-            record_dict['move'] = []
-        else:
-            assert matched.group('start') is not None
-            record_dict['move'] = [matched.group('start'), matched.group('end')]
-
-        if matched.group('discarded'):
-            discarded_list = matched.group('discarded')[1:-1].split(', ')
-            record_dict['discarded'] = [*map(Card.from_string, discarded_list)]
-
-        record_dict['burned'] = bool(matched.group('burn'))
-        record_dict['card'] = Card.from_string(matched.group('card'))
-
-        return record_dict
+    def get_fens(self):
+        return [
+            rec.fen for rec in self.ledger if isinstance(rec, MoveRecord)
+        ]

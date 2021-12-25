@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from pprint import pformat
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any, Union, Type
 
 from chessao import WHITE_COLOR, BLACK_COLOR, MAPDICT
 from chessao.cards import Card, ChessaoCards
@@ -9,7 +9,7 @@ from chessao.chess import Board, FEN_DICT, EMPTY
 
 from chessao.pieces import King, Piece, Queen
 from chessao.players import Player
-from chessao.helpers import ok_karta, invert_dict, convert_to_strings
+from chessao.helpers import invert_dict, convert_to_strings
 from chessao.history import ChessaoHistory
 
 
@@ -38,7 +38,7 @@ class ChessaoGame:
 
     def __init__(self, players, board=None, cards=None, **kwargs):
 
-        self.board = board or Board()
+        self.board = board or Board(fenrep=kwargs.get("fen"))
         self.cards = cards or ChessaoCards()
         self.history = kwargs.get('history', ChessaoHistory(self.board))
         self.current_move = kwargs.get('current_move', None)
@@ -47,10 +47,12 @@ class ChessaoGame:
         self.mate = kwargs.get('mate', False)
         self.stalemate = kwargs.get('stalemate', False)
         self.promotion = kwargs.get('promotion', False)
+        self.last_player_number_of_moves = 12
         # self.can_capture = kwargs.get('can_capture', True)
         self.jack = kwargs.get('jack', None)
         # self.three = kwargs.get('three', 0)
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.WARNING)
 
         # deal cards
         if kwargs.get('deal', True):
@@ -76,7 +78,7 @@ class ChessaoGame:
 
     @classmethod
     def from_ledger(cls,
-                    ledger: List[str],
+                    ledger: List,
                     starting_deck: Tuple[str],
                     players: Optional[Tuple[Player]] = None) -> "ChessaoGame":
 
@@ -90,14 +92,13 @@ class ChessaoGame:
         board = Board(fenrep=ledger[0])
         chessao = cls(players, board=board, cards=cards)
         for record in ledger[1:]:
-            turn = ChessaoHistory.parse_record(record)
             chessao.full_move(
-                cards=[turn['card']],
-                move=turn['move'],
-                pile=turn['pile'],
-                burn=turn['burned'],
-                jack=turn['jack'],
-                cards_to_discard=turn['discarded'])
+                cards=[record.card],
+                move=record.move,
+                pile=record.pile,
+                burn=record.burned,
+                jack=record.jack,
+                cards_to_discard=record.discarded)
         return chessao
 
     def __str__(self):
@@ -110,9 +111,10 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
 {blacks.name} {blacks.id} (white): {blacks.hand}
 {self.board.print_for(self.to_move)}
 {whites.name} {whites.id} (black): {whites.hand}"""
-# History:
-# {self.cards.starting_deck}
-# {self.history}"""
+
+    # History:
+    # {self.cards.starting_deck}
+    # {self.history}"""
 
     def __repr__(self):
         return pformat(self.__dict__)
@@ -191,13 +193,10 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
             return BLACK_COLOR
         return WHITE_COLOR
 
-    def card_is(self, card, rank=None, color=None):
+    def card_is(self, card: Card, rank: str = None, color: int = None):
         if card is None:
             return False
-        try:
-            return card.is_(rank, color)
-        except AttributeError:
-            raise(f'{card} has no attribute is_')
+        return card.is_(rank, color)
 
     def piece_has(self, position, **kwargs):
         piece = self.board[position]
@@ -214,6 +213,12 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
 
     def add_to_history(self):
         self.history.add(self)
+
+    def get_white(self):
+        return self._get_player_by_color(WHITE_COLOR)
+
+    def get_black(self):
+        return self._get_player_by_color(BLACK_COLOR)
 
     def _get_player_by_color(self, color: str):
         if self.players[0].color == color:
@@ -255,7 +260,7 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
                    burn: bool = False,
                    jack: Optional[str] = None,
                    cards_to_remove: Optional[List[Card]] = None):
-        self._cards_checks(cards[-1])
+        self._cards_checks(cards[-1], burn)
         try:
             self.current_player.remove_cards(cards)
         except ValueError:
@@ -305,7 +310,10 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
         assert start in possible_moves, f'{self.possible_moves()}| {self.current_card}'
         move_ends = possible_moves[move[0]]
         assert end in move_ends, f'{self.possible_moves()}| {self.current_card}| {self.board.fen()}'
-        self.board.move(start, end, self.current_card, promotion)
+        card_to_use_for_move = self.current_card
+        if self.check and self.card_is(self.current_card, 'Q'):
+            card_to_use_for_move = None
+        self.board.move(start, end, card_to_use_for_move, promotion)
         self.current_move = [start, end]
 
     def end_move(self):
@@ -313,7 +321,7 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
             self.logger.info("Handling king of spades...")
             pm = self.history.get_move_from_turn(-2)
             self.check = pm['check']
-            self.stalemate = pm['stalemate']
+            self.stalemate = pm.get('stalemate', None)  # TODO: what is this?
             self.mate = pm['mate']
             self._revert_last_move()
         else:
@@ -324,7 +332,7 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
         self.add_to_history()
         self.change_color()
 
-    def set_jack(self, jack: str):
+    def set_jack(self, jack: Union[str, Type[Piece]]):
         if all([self.card_is(self.current_card, 'J'),
                 self.possible_jack_choices()]):
             if jack not in FEN_DICT:
@@ -353,53 +361,114 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
     def set_mate(self):
         self.mate = self.check and self.stalemate
 
+    def all_possible_moves_on_cards(self, hand, stalemate=False
+                                    ) -> Dict[str, Dict[str, List[str]]]:
+        """Return dict for possible moves on every card."""
+        moves = {}
+        moves['neutral'] = self.possible_moves(Card(1, '5'), stalemate)
+        for card in [*filter(lambda card: card.rank not in '345678910JA', hand)]:
+            if self.cards.validate_cards([card]):
+                moves[card] = self.possible_moves(card, stalemate)
+        return moves
+
+    @staticmethod
+    def possible_moves_count(possible_moves_dict: Dict[Any, Dict[Any, List[Any]]]) -> int:
+        moves = set()
+
+        for moves_dict in possible_moves_dict.values():
+            pairs = {
+                (k, v[i])
+                for k, v in moves_dict.items()
+                for i in range(len(v))
+            }
+            moves.update(pairs)
+
+        return len(moves)
+
+    def check_if_sufficient_material(self):
+        """ugly as hell..."""
+        pieces_left = self.board.pieces_left()
+        # len(self.board.all_taken()) == 2
+        if len(pieces_left) > 4:
+            return True
+        pieces_by_color = defaultdict(list)
+        for piece in pieces_left:
+            pieces_by_color[piece.color].append(piece)
+
+        if len(pieces_by_color[WHITE_COLOR]) == 1:
+            # must be king
+            oponents_pieces = {piece.name.lower() for piece in pieces_by_color[BLACK_COLOR]}
+            if oponents_pieces in [{'king', 'knight'}, {'king', 'bishop'}, {'king'}]:
+                return False
+
+        if len(pieces_by_color[BLACK_COLOR]) == 1:
+            # must be king
+            oponents_pieces = {piece.name.lower() for piece in pieces_by_color[WHITE_COLOR]}
+            if oponents_pieces in [{'king', 'knight'}, {'king', 'bishop'}, {'king'}]:
+                return False
+
+        if len(pieces_by_color[WHITE_COLOR]) == 2 == len(pieces_by_color[BLACK_COLOR]):
+            white_pieces = sorted([piece.name for piece in pieces_by_color[WHITE_COLOR]])
+            black_pieces = sorted([piece.name for piece in pieces_by_color[BLACK_COLOR]])
+            if white_pieces == ["Bishop", "King"] == black_pieces:
+                colors = {getattr(piece, "piece_color", None) for piece in pieces_left}
+                if len(colors) == 2:
+                    return False
+        return True
+
     def set_stalemate(self):
         cur_player = self.current_player
-        if any([self.board.halfmoveclock == 100,
-                len(self.board.all_taken()) == 2]):
+        if self.board.halfmoveclock == 100 or not self.check_if_sufficient_material():
             self.stalemate = True
             if self.board.halfmoveclock == 100:
                 self.logger.info('Stalemate out of boringness')
             else:
-                self.logger.info('Stalemate: only kings left')
+                self.logger.info('Stalemate: insufficient material')
             return
         color = self.invert_color(self.to_move)
         self.to_move = color
         checked_player = self._get_player_by_color(color)
         assert cur_player.name != checked_player.name
-        for card in checked_player.hand:
-            if ok_karta([card], self.piles) and not self.card_is(card, 'A'):
 
-                if self.card_is(card, 'K', 1):  # king of spades is a valid move
-                    self.stalemate = False
-                    self.to_move = self.invert_color(color)
-                    return
-                # exclude the Queen because it can be played anytime,
-                # but it can't help you during check
-                # if self.check and card.rank == 'Q':
-                    # continue
-                # TODO: handle this shiit, it's still shady
-                if self.possible_moves(card, stalemate_checking=True):
-                    self.stalemate = False
-                    self.to_move = self.invert_color(color)
-                    return
-            elif self.possible_moves(Card(1, '5'), stalemate_checking=True):
-                self.stalemate = False
-                self.to_move = self.invert_color(color)
-                return
-        self.stalemate = True
+        if self.cards.any_in(['K1'], checked_player.hand):
+            self.stalemate = False
+            self.to_move = self.invert_color(color)
+            return
+        possible_moves = self.all_possible_moves_on_cards(
+            checked_player.hand, stalemate=True
+        )
+
+        number_of_possible_moves = self.possible_moves_count(possible_moves)
+        self.last_player_number_of_moves = number_of_possible_moves
+
+        player_can_lose_turn = any([
+            self.card_is(self.current_card, 'K', 2),
+            self.card_is(self.current_card, '4'),
+            self.card_is(self.current_card, 'J'),
+        ]) and not self.check
+
+        if number_of_possible_moves == 0 and not player_can_lose_turn:
+            self.stalemate = True
+        else:
+            self.stalemate = False
         self.to_move = self.invert_color(color)
 
     @property
     def player_should_lose_turn(self):
+        if self.check:
+            return False
         if self.card_is(self.current_card, 'K', 1) and self.moves > 0:
-            self.logger.info("King of spades played")
+            self.logger.debug("King of spades played - ignoring move")
             return True
         if all([self.card_is(self.last_card, '4'),
                 not self.card_is(self.current_card, '4')]):
+            self.logger.debug("Four is active - ignoring move")
             return True  # four is active
 
-        return not bool(self.possible_moves())
+        have_moves = bool(self.possible_moves())
+        if not have_moves:
+            self.logger.debug(f"Player {self.current_player} should lose turn")
+        return not have_moves
 
     def positions_taken_by_color(self, color):
         return [pos for pos in self.board.all_taken()
@@ -419,6 +488,8 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
     @staticmethod
     def get_piece_name(piece_class):
         """Do dummy initialization just to get the name."""
+        if isinstance(piece_class, str):
+            piece_class = FEN_DICT[piece_class.lower()]
         return piece_class(WHITE_COLOR, 45).name
 
     def possible_moves(self, card=None, stalemate_checking=False):
@@ -442,17 +513,31 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
                 {'card': self.current_card,
                  'jack': FEN_DICT[self.jack] if self.jack else None})
 
-        possible_start, blacklisted_moves = self._filter_possible_starts(
+        filtered_possible_starts, blacklisted_moves = self._filter_possible_starts(
             possible_start=possible_start,
             card=card,
             penultimate_move=penultimate_move,
-            last_move=last_move)
+            last_move=last_move
+        )
+        possible_moves = self._get_possible_moves(filtered_possible_starts, card, blacklisted_moves)
+        if not possible_moves and self.check and self._one_of_kings_is_active():
+            # we're not filtering starts here...
+            return self._get_possible_moves(possible_start, card, blacklisted_moves)
+        # self.logger.debug(f'Possible starts: {filtered_possible_start}')
+        # self.logger.debug(f'Blacklisted: {blacklisted_moves}')
+        return possible_moves
 
-        return self._get_possible_moves(possible_start, card, blacklisted_moves)
+    def _one_of_kings_is_active(self):
+        last_move = self.history.get_move_from_turn(-1)
+        was_king_of_spades = self.card_is(last_move['card'], 'K', 1)
+        was_king_of_hearts = self.card_is(last_move['card'], 'K', 2)
+        return not last_move['burned'] and (was_king_of_hearts or was_king_of_spades)
 
-    def _filter_possible_starts(self, possible_start,
-                                card, penultimate_move,
-                                last_move) -> Tuple[List[int], List[int]]:
+    def _filter_possible_starts(
+            self, possible_start,
+            card, penultimate_move,
+            last_move
+    ) -> Tuple[List[int], List[int]]:
         """Shrink down default possible starting positions based on active special cards."""
 
         blacklisted_moves = []  # for king of spades
@@ -468,16 +553,17 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
                     self.logger.debug('King of hearts active...')
                     last_move_end = penultimate_move['move'][1]
                     if self.board[last_move_end].color == self.to_move:
-                        possible_start = [penultimate_move['move'][1]]
+                        possible_start = [MAPDICT[penultimate_move['move'][1]]]
                     else:
                         possible_start = []
 
         if all([last_move['jack'] is not None,
-                not self.card_is(self.current_card, 'J')]):
+                not self.card_is(self.current_card, 'J'),
+                not self.check]):
             self.logger.debug('Jack active...')
             piece_name = self.get_piece_name(last_move['jack'])
             possible_start = self.board.positions_of_piece(piece_name, self.to_move)
-        elif self.card_is(card, 'Q') and Queen in self.board.piece_types_left(self.to_move):
+        elif self.card_is(card, 'Q') and Queen in self.board.piece_types_left(self.to_move) and not self.check:
             self.logger.debug('Queen active...')
             possible_start = self.board.positions_of_piece('Queen', self.to_move)
 
@@ -490,10 +576,16 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
         for start in possible_start:
             # self.logger.debug(f'Possible start at the end: {possible_start}')
             piece_card = card or Card(1, '5')  # mock card for moves checking
+            if self.check:
+                if piece_card.rank == 'Q':
+                    # player played queen card while being under check -- it doesnt have effect
+                    piece_card = Card(1, '5')
             try:
-                end = [pos
-                       for pos in self.board[start].moves(piece_card, self.board)
-                       if not isinstance(self.board[pos], King) and pos not in blacklisted_moves]
+                end = [
+                    pos
+                    for pos in self.board[start].moves(piece_card, self.board)
+                    if not isinstance(self.board[pos], King) and pos not in blacklisted_moves
+                ]
             except (AttributeError, TypeError):
                 msg = (f"Possible starts: {possible_start}, move: {self.current_move}, card: {card}"
                        f"Current_player: {self.current_player} Last 2 moves: {self.history.get()[-2:]}"
@@ -503,8 +595,15 @@ CURRENT_CARD:  {'!' if self.burned else ''}{self.current_card}
                 possible_moves[start] = end
         return convert_to_strings(possible_moves)
 
-    def _cards_checks(self, card):
+    def _cards_checks(self, card, burn=False):
+        if burn:
+            return
         if self.jack and self.card_is(card, 'Q'):
             raise CardValidationError('Cannot play Queen card after Jack card')
-        # if not self.last_move['move'] and self.card_is(card, 'K', 1):
-            # raise CardValidationError('Cannot play King of Spades after lost turn')
+        if self.check and self.card_is(card, 'A'):
+            raise CardValidationError('Cannot play Ace when checked')
+        pm = self.history.get_move_from_turn(-2)
+        if all([pm['check'],
+                self.last_player_number_of_moves < 2,
+                self.card_is(card, 'K', 1)]):
+            raise CardValidationError('Cannot mate with King of spades')

@@ -1,7 +1,7 @@
 """Chess pieces implementation."""
 
 from copy import deepcopy
-from chessao import PIECES_STR, BLACK_COLOR
+from chessao import PIECES_STR, BLACK_COLOR, WHITE_COLOR
 
 
 class ChessaoPieceException(Exception):
@@ -157,6 +157,18 @@ class Bishop(SlidingPiece):
         super(Bishop, self).__init__(color, position, name, val, mvs)
         self.range = (9, 11, -11, -9)
 
+    @property
+    def piece_color(self):
+        pos_str = str(self.position)
+        tenths = int(pos_str[0])
+        units = int(pos_str[1])
+        if tenths % 2 == 0:
+            if units % 2 == 1:
+                return BLACK_COLOR
+        elif units % 2 == 0:
+            return BLACK_COLOR
+        return WHITE_COLOR
+
 
 class Knight(Piece):
 
@@ -207,18 +219,23 @@ class King(Piece):
                       2, -2, 20, -20, 18, 22, -18, -22]
         else:
             zakres = [1, -1, 10, -10, 9, 11, -9, -11]
+        discared_ranges = set()
         for i in zakres:
+            if i in discared_ranges:
+                continue
             a = self.position + i
             if a > 20 and a < 99 and board[a] != 0:
                 if board.is_empty(a):
                     res.append(a)
-                    continue
                 elif board[a].color != self.color:
                     b = 2 * i
                     if b in zakres:
-                        zakres.remove(b)
+                        discared_ranges.add(b)
                     res.append(a)
                 else:
+                    # board is not empty with the same color piece
+                    if (2 * i) in zakres:
+                        discared_ranges.add(2 * i)
                     continue
 
         # cannot move to a position under check
@@ -239,5 +256,5 @@ class King(Piece):
     def under_attack(cls, position_int, color, board):
         for i in (1, -1, 10, -10, 9, 11, -9, -11):
             a = position_int + i
-            if (type(board[a]) == cls and board[a].color != color):
+            if type(board[a]) == cls and board[a].color != color:
                 return True

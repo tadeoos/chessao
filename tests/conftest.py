@@ -7,6 +7,8 @@ from chessao.gameplay import ChessaoGame
 from chessao.players import Player
 from .utils import card_list
 
+collect_ignore = ["chessao/dev.py:"]
+
 DEFAULT_PLAYERS = (
     Player(1, WHITE_COLOR, name='white'),
     Player(2, BLACK_COLOR, name='black')
@@ -32,13 +34,13 @@ def chessao_check():
 @fixture()
 def hand_setup():
 
-    def _hand_setup(x, y):
+    def _hand_setup(x, y, **kwargs):
         neutral_cards = card_list(['51', '61', '71', '81', '91'])
         hands = []
         for hand in (x, y):
             cards = card_list(hand) + neutral_cards
             hands.append(cards[:5])
-        return ChessaoGame.for_tests(hands=hands)
+        return ChessaoGame.for_tests(hands=hands, **kwargs)
 
     return _hand_setup
 
@@ -46,7 +48,7 @@ def hand_setup():
 @fixture()
 def fen_setup():
 
-    def _fen_setup(fen, x=None, y=None):
+    def _fen_setup(fen, x=None, y=None, **kwargs):
         neutral_cards = card_list(['51', '61', '71', '81', '91'])
         hands = []
         for hand in (x, y):
@@ -56,7 +58,7 @@ def fen_setup():
                 cards = card_list(hand) + neutral_cards
                 hands.append(cards[:5])
         board = Board(fenrep=fen)
-        return ChessaoGame.for_tests(hands=hands, board=board)
+        return ChessaoGame.for_tests(hands=hands, board=board, **kwargs)
 
     return _fen_setup
 

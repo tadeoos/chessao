@@ -1,8 +1,8 @@
 import time
 import unittest
 
-from pympler import asizeof
 import pytest
+from pympler import asizeof
 
 import chessao.chess as chess
 import chessao.cards as chcards

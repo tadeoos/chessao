@@ -12,6 +12,13 @@ Coming soonish.
 
 ## Development
 
+### dev server for fe
+
+$ cd chessao 
+$ export FLASK_APP=dev 
+$ export FLASK_ENV=development
+$ poetry run flask run
+
 ### tests
 
 ```bash

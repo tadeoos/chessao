@@ -34,6 +34,9 @@ def get_inverted_mapdict() -> Dict[int, str]:
     return invert_dict(get_mapdict())
 
 
+POS_TO_SQUARE_MAP = get_inverted_mapdict()
+
+
 def convert_to_strings(dictionary) -> Dict[str, List[str]]:
     new = []
     for key, list_of_positions in dictionary.items():

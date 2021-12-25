@@ -1,7 +1,10 @@
 import logging
+from pathlib import Path
 from typing import Dict
 
 CARDS_COLORS = {1: '♤', 2: '♡', 3: '♢', 4: '♧'}
+CARDS_COLORS_NAMES = {1: 'S', 2: 'H', 3: 'D', 4: 'C'}
+CARDS_COLOR_FROM_HUMAN = {"spades": 1, "hearts": 2, 'diamonds': 3, 'clubs': 4}
 CARDS_RANKS = ('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K')
 CARDS_RANKS_MAPPING = {
     '2': 2,
@@ -18,8 +21,8 @@ CARDS_RANKS_MAPPING = {
     'K': 13,
     'A': 14
 }
-BLACK_COLOR = 'c'
-WHITE_COLOR = 'b'
+BLACK_COLOR = 'black'
+WHITE_COLOR = 'white'
 
 PIECES_STR = {
     WHITE_COLOR: {
@@ -48,6 +51,8 @@ MAPDICT: Dict[str, int] = {
     for letter in 'ABCDEFGH'
 }
 INVERTED_MAPDICT: Dict[int, str] = {val: key for key, val in MAPDICT.items()}
+
+SIMULATION_BUGS_PATH = Path(__file__).parent.parent / 'tests' / 'simulation_bugs'
 
 # from logging import NullHandler
 # logging.getLogger(__name__).addHandler(NullHandler())

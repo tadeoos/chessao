@@ -1,8 +1,9 @@
 import json
 import os
+import pickle
 
-from chessao import WHITE_COLOR, BLACK_COLOR
 from chessao.cards import Card
+from chessao import SIMULATION_BUGS_PATH
 
 
 def assert_lists_equal(l1, l2):
@@ -22,10 +23,13 @@ def card_list(list_of_strings):
 
 def load_simulation_bugs(parametrize=False, path=None):
     data = {}
-    path = path or '/Users/Tadeo/dev/TAD/szachao/tests/simulation_bugs/'
-    for filename in os.listdir(path):
+    path = path or SIMULATION_BUGS_PATH
+    for filename in path.iterdir():
         with open(os.path.join(path, filename)) as f:
-            data[filename] = json.load(f)
+            try:
+                data[str(filename)] = json.load(f)
+            except json.decoder.JSONDecodeError:
+                continue
     if parametrize:
         parameters = []
         ids_ = []
@@ -34,3 +38,9 @@ def load_simulation_bugs(parametrize=False, path=None):
             ids_.append(k)
         return parameters, ids_
     return data
+
+
+def load_game_pkl_from(filename, path=None):
+    path = path or SIMULATION_BUGS_PATH
+    with open(os.path.join(path, filename), 'rb') as f:
+        return pickle.load(f)

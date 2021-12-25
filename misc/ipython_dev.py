@@ -7,7 +7,7 @@ from chessao.pieces import Rook, Bishop, King, Knight, Queen
 from chessao.players import Player
 from chessao.gameplay import ChessaoGame
 from chessao.history import ChessaoHistory
-from tests.utils import load_game_pkl_from, load_simulation_bugs
+from tests.utils import load_game_pkl_from, load_simulation_bugs, card_list
 
 DEFAULT_PLAYERS = (
     Player(1, WHITE_COLOR, name='white'),
@@ -16,3 +16,8 @@ DEFAULT_PLAYERS = (
 
 cards = ChessaoCards()
 chessao = ChessaoGame(DEFAULT_PLAYERS)
+
+
+def test_fen(fen):
+    b = Board(fenrep=fen)
+    print(b)
